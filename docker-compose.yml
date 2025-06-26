@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  maratron:
+    build: .
+    ports:
+      - "3000:3000"  # Next.js web app
+      - "3001:3001"  # MCP server (if needed for external access)
+    volumes:
+      # Mount source code for live editing
+      - ./apps/web:/app/web
+      - ./apps/ai:/app/ai
+      # Mount node_modules to preserve installed packages
+      - web_node_modules:/app/web/node_modules
+      - ai_venv:/app/ai/.venv
+    environment:
+      # Connect to host machine's PostgreSQL database
+      - DATABASE_URL=postgresql://maratron:yourpassword@host.docker.internal:5432/maratrondb
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=a5f8c2e7b1d9f4a6c8e3b7f2d5a9c4e6b8f1d3a7c9e2b5f8a1d4c7e9b2f5a8c1d4e7
+      - NODE_ENV=development
+      - ENVIRONMENT=development
+    extra_hosts:
+      # Allow container to connect to host machine
+      - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
+
+volumes:
+  web_node_modules:
+  ai_venv:

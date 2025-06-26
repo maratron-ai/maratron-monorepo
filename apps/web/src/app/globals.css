@@ -1,0 +1,85 @@
+/* Import color variables */
+@import "../styles/theme.css";
+
+/* Import Tailwind CSS layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+/* Global base styles */
+html,
+body {
+  padding: 0;
+  margin: 0;
+  @apply font-sans;
+  background-color: var(--background);
+  color: var(--foreground);
+  scroll-behavior: smooth;
+}
+
+/* Improve text rendering on some devices */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Anchor tag styling */
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Add a border-box box-sizing model */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Example global heading styles */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+/* Example paragraph styling */
+p {
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+@layer base {
+  input,
+  select,
+  textarea {
+    @apply border
+           text-muted-foreground
+           rounded-md
+          bg-accent-2
+          opacity-10
+           px-3 py-2
+           text-foreground
+           placeholder:text-gray-500    /* ← use a default gray */
+           focus:outline-none
+           focus:ring-2 focus:ring-accent-2
+           disabled:cursor-not-allowed
+           disabled:opacity-50;
+  }
+  select {
+    @apply appearance-none;
+  }
+}
+
+button {
+  @apply bg-primary text-foreground px-4 py-2 rounded hover:bg-primary hover:opacity-80
+         transition-colors focus:outline-none focus:ring-2 focus:ring-secondary;
+}
+button.avatar-btn {
+  @apply bg-transparent hover:bg-transparent p-0 text-transparent rounded-none focus:outline-none focus:ring-0;
+}

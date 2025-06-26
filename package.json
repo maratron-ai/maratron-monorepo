@@ -1,0 +1,42 @@
+{
+  "name": "maratron",
+  "version": "1.0.0",
+  "description": "Maratron - AI-powered running and fitness application with social features",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "docker-compose up --build",
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:ai": "cd apps/ai && python run_server.py",
+    "build": "cd apps/web && npm run build",
+    "test": "cd apps/web && npm test",
+    "test:ai": "cd apps/ai && uv run pytest",
+    "lint": "cd apps/web && npm run lint",
+    "db:studio": "cd apps/web && npx prisma studio",
+    "db:generate": "cd apps/web && npx prisma generate",
+    "db:push": "cd apps/web && npx prisma db push",
+    "clean": "docker-compose down -v && docker system prune -f",
+    "logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "running",
+    "fitness",
+    "ai",
+    "social",
+    "training",
+    "nextjs",
+    "python",
+    "mcp"
+  ],
+  "author": "Maratron Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

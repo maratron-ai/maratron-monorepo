@@ -1,0 +1,276 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum DistanceUnit {
+  miles
+  kilometers
+}
+
+enum elevationGainUnit {
+  miles
+  kilometers
+  meters
+  feet
+}
+
+enum TrainingLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+enum TrainingEnvironment {
+  outdoor
+  treadmill
+  indoor
+  mixed
+}
+
+enum DayOfWeek {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+}
+
+enum Device {
+  Garmin
+  Polar
+  Suunto
+  Fitbit
+  AppleWatch         @map("Apple Watch")
+  SamsungGalaxyWatch @map("Samsung Galaxy Watch")
+  Coros
+  Other
+}
+
+enum Gender {
+  Male
+  Female
+  Other
+}
+
+model User {
+  id                           String               @id @default(uuid())
+  name                         String
+  email                        String               @unique
+  age                          Int?
+  gender                       Gender?
+  trainingLevel                TrainingLevel?
+  VDOT                         Int?
+  goals                        String[]
+  avatarUrl                    String?
+  yearsRunning                 Int?
+  weeklyMileage                Int?
+  height                       Int?
+  weight                       Int?
+  injuryHistory                String?
+  preferredTrainingDays        DayOfWeek[]
+  preferredTrainingEnvironment TrainingEnvironment?
+  device                       Device?
+  defaultDistanceUnit          DistanceUnit?        @default(miles)
+  defaultElevationUnit         elevationGainUnit?   @default(feet)
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
+
+  runs         Run[]
+  runningPlans RunningPlan[]
+  shoes        Shoe[]        @relation("UserShoes")
+  sessions     UserSession[]
+
+  profile SocialProfile?
+
+  // Default shoe relation
+  defaultShoeId String? @unique
+  defaultShoe   Shoe?   @relation("UserDefaultShoe", fields: [defaultShoeId], references: [id])
+
+  @@map("Users")
+}
+
+model Shoe {
+  id        String   @id @default(uuid())
+  name      String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  currentDistance Float        @default(0) // Usage so far (in distanceUnit)
+  distanceUnit    DistanceUnit
+  maxDistance     Float // When shoe “expires” (in distanceUnit)
+  retired         Boolean      @default(false)
+
+  // Owner
+  userId String
+  user   User   @relation("UserShoes", fields: [userId], references: [id])
+
+  // Back-ref for default shoe relation
+  defaultForUser User? @relation("UserDefaultShoe")
+
+  runs Run[]
+
+  @@map("Shoes")
+}
+
+model Run {
+  id                  String               @id @default(uuid())
+  date                DateTime
+  duration            String
+  distance            Float
+  distanceUnit        DistanceUnit
+  trainingEnvironment TrainingEnvironment?
+  name                String?
+  pace                String?
+  paceUnit            DistanceUnit?
+  elevationGain       Float?
+  elevationGainUnit   elevationGainUnit?
+  notes               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Shoe used in this run (optional for legacy runs)
+  shoeId String?
+  shoe   Shoe?   @relation(fields: [shoeId], references: [id])
+
+  @@map("Runs")
+}
+
+model RunningPlan {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  weeks     Int
+  planData  Json
+  startDate DateTime?
+  endDate   DateTime?
+  active    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("RunningPlans")
+}
+
+model SocialProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  username     String   @unique
+  bio          String?
+  profilePhoto String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user           User             @relation(fields: [userId], references: [id])
+  posts          RunPost[]
+  following      Follow[]         @relation("following")
+  followers      Follow[]         @relation("followers")
+  comments       Comment[]
+  likes          Like[]
+  RunGroup       RunGroup[]
+  RunGroupMember RunGroupMember[]
+}
+
+model RunPost {
+  id              String   @id @default(uuid())
+  socialProfileId String
+  groupId         String?
+  distance        Float
+  time            String
+  caption         String?
+  photoUrl        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  socialProfile SocialProfile @relation(fields: [socialProfileId], references: [id])
+  group         RunGroup?     @relation(fields: [groupId], references: [id])
+  comments      Comment[]
+  likes         Like[]
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  SocialProfile @relation("following", fields: [followerId], references: [id])
+  following SocialProfile @relation("followers", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
+
+model Comment {
+  id              String   @id @default(uuid())
+  postId          String
+  socialProfileId String
+  text            String
+  createdAt       DateTime @default(now())
+
+  post          RunPost       @relation(fields: [postId], references: [id])
+  socialProfile SocialProfile @relation(fields: [socialProfileId], references: [id])
+}
+
+model Like {
+  id              String   @id @default(uuid())
+  postId          String
+  socialProfileId String
+  createdAt       DateTime @default(now())
+
+  post          RunPost       @relation(fields: [postId], references: [id])
+  socialProfile SocialProfile @relation(fields: [socialProfileId], references: [id])
+
+  @@unique([postId, socialProfileId])
+}
+
+model RunGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  imageUrl    String?
+  private     Boolean  @default(false)
+  password    String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner   SocialProfile    @relation(fields: [ownerId], references: [id])
+  members RunGroupMember[]
+  posts   RunPost[]
+}
+
+model RunGroupMember {
+  groupId         String
+  socialProfileId String
+  joinedAt        DateTime @default(now())
+
+  group         RunGroup      @relation(fields: [groupId], references: [id])
+  socialProfile SocialProfile @relation(fields: [socialProfileId], references: [id])
+
+  @@id([groupId, socialProfileId])
+}
+
+model UserSession {
+  id           String   @id @default(uuid())
+  userId       String
+  sessionData  String   // JSON string containing session state
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("UserSessions")
+}

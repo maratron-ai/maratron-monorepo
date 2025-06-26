@@ -1,0 +1,69 @@
+.switch {
+  position: relative;
+  display: inline-flex;
+  width: 200px; 
+  height: 40px; 
+  border: 1px solid rgba(var(--accent-rgb), 0.5);
+  border-radius: 12px;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+}
+
+.input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.slider {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 50%;
+  height: 100%;
+  background-color: rgb(var(--primary-rgb));
+  border-radius: 12px;
+  transition: transform 1s ease, left 1s ease;
+  z-index: 0;
+  transform: translateX(0);
+}
+
+.input:checked + .slider::before {
+  transform: translateX(100%);
+  left: calc(100% - 4px - 50%);
+}
+
+.labelLeft,
+.labelRight {
+  flex: 1;
+  text-align: center;
+  line-height: 40px;
+  font-size: 1rem;
+  font-weight: 500;
+  background-color: var(--background);
+  color: var(--foreground);
+  position: relative;
+  z-index: 1;
+}
+
+.input:not(:checked) + .slider .labelLeft {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+.input:checked + .slider .labelRight {
+  background-color: var(--foreground);
+  color: var(--background);
+}
