@@ -1,0 +1,187 @@
+name: Monorepo CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Detect changes to determine which apps to test
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.changes.outputs.web }}
+      ai: ${{ steps.changes.outputs.ai }}
+      root: ${{ steps.changes.outputs.root }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'package.json'
+              - 'package-lock.json'
+            ai:
+              - 'apps/ai/**'
+            root:
+              - 'docker-compose.yml'
+              - 'Dockerfile'
+              - '.github/workflows/**'
+
+  # Web application CI
+  web:
+    needs: changes
+    if: ${{ needs.changes.outputs.web == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run type checking
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test -- --ci --coverage --watchAll=false
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          directory: apps/web/coverage
+
+  # AI server CI
+  ai:
+    needs: changes
+    if: ${{ needs.changes.outputs.ai == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/ai
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_maratrondb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --extra test
+
+      - name: Run linting with ruff
+        run: uv run ruff check src/ tests/
+
+      - name: Run type checking with mypy
+        run: uv run mypy src/ --ignore-missing-imports
+
+      - name: Run unit tests
+        run: uv run pytest tests/unit/ -m unit --cov=src --cov-report=xml
+
+      - name: Run integration tests
+        env:
+          TEST_DATABASE_URL: postgresql://test:test@localhost:5432/test_maratrondb
+        run: uv run pytest tests/integration/ -m integration
+
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          directory: apps/ai
+          file: coverage.xml
+
+  # Docker build test
+  docker:
+    needs: changes
+    if: ${{ needs.changes.outputs.root == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.ai == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: maratron:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Security scanning
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Dependency review for PRs
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3

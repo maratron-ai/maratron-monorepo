@@ -1,0 +1,50 @@
+version: 2
+updates:
+  # Web application dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "tailwindcss"
+      - dependency-name: "autoprefixer"
+      - dependency-name: "@types/node"
+    commit-message:
+      prefix: "web"
+      include: "scope"
+
+  # Root package.json dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "root"
+      include: "scope"
+
+  # AI server Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/apps/ai"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ai"
+      include: "scope"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
