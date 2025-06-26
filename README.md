@@ -5,15 +5,14 @@ A full-stack running and fitness application with AI-powered features, social ne
 ## 🏗️ Architecture
 
 ```
-maratron/
+maratron-monorepo/
 ├── apps/
 │   ├── web/          # Next.js web application
 │   └── ai/           # Python MCP server
-├── docs/             # Documentation
 ├── assets/           # Shared assets (logos, etc.)
 ├── Dockerfile        # Multi-service container
 ├── docker-compose.yml # Development orchestration
-└── start.sh          # Container startup script
+└── package.json      # Root workspace configuration
 ```
 
 ## 🚀 Quick Start
@@ -26,8 +25,8 @@ maratron/
 ### Development with Docker (Recommended)
 ```bash
 # Clone and start everything
-git clone <your-repo>
-cd maratron
+git clone https://github.com/maratron-ai/maratron-monorepo.git
+cd maratron-monorepo
 npm run dev  # Starts Docker Compose
 
 # View logs
@@ -100,7 +99,7 @@ uv run pytest        # Run tests
 - PostgreSQL runs in Docker container
 - Schema automatically applied on startup
 - Sample data populated for development
-- Prisma Studio available at http://localhost:5432
+- Prisma Studio available via `npm run db:studio`
 
 ### Manual Operations
 ```bash
@@ -130,7 +129,7 @@ SERVER__DEBUG=true
 ### Web Application
 ```bash
 cd apps/web
-npm test              # Unit tests
+npm test              # Unit tests with Jest
 npm run test:watch    # Watch mode
 ```
 
@@ -173,9 +172,8 @@ uv run pytest --cov=src         # With coverage
 ## 📖 Documentation
 
 - `CLAUDE.md` - Development guidance for AI assistants
-- `apps/web/README.md` - Web application details
-- `apps/ai/README.md` - AI server documentation
-- `docs/` - Additional documentation
+- `apps/web/CLAUDE.md` - Web application details
+- `apps/ai/CLAUDE.md` - AI server documentation
 
 ## 🤝 Contributing
 
