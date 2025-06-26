@@ -69,7 +69,7 @@ jobs:
         run: uv run bandit -r src/ -f json -o bandit-report.json || true
 
       - name: Upload bandit results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: bandit-report-${{ matrix.python-version }}
@@ -92,7 +92,7 @@ jobs:
           flags: ai-server,python-${{ matrix.python-version }}
 
       - name: Upload coverage HTML
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.python-version == '3.11'
         with:
           name: coverage-html
