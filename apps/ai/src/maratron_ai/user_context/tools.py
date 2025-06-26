@@ -4,15 +4,12 @@ from typing import Optional
 from .context import (
     get_user_context_manager, 
     get_current_user_session, 
-    get_current_user_id,
-    require_user_context,
-    UserPreferences
+    get_current_user_id
 )
 from ..database_utils import handle_database_errors
 from .security import (
     secure_user_operation,
-    get_security_validator,
-    validate_user_operation
+    get_security_validator
 )
 
 
@@ -38,7 +35,7 @@ async def set_current_user(user_id: str) -> str:
             'preferences': session.preferences.dict() if session.preferences else None
         }
         
-        return f"✅ User context set successfully:\n" + \
+        return "✅ User context set successfully:\n" + \
                f"User: {user_info['user_data'].get('name', 'Unknown')} ({user_id})\n" + \
                f"Training Level: {user_info['user_data'].get('training_level', 'Not set')}\n" + \
                f"Recent Runs: {user_info['user_data'].get('recent_runs_count', 0)} in last 30 days\n" + \
@@ -66,8 +63,8 @@ async def get_current_user() -> str:
     preferences = session.preferences
     context = session.conversation_context
     
-    response = f"👤 **Current User Context**\n\n"
-    response += f"**User Information:**\n"
+    response = "👤 **Current User Context**\n\n"
+    response += "**User Information:**\n"
     response += f"• Name: {user_data.get('name', 'Unknown')}\n"
     response += f"• Email: {user_data.get('email', 'Unknown')}\n"
     response += f"• Training Level: {user_data.get('training_level', 'Not set')}\n"
@@ -75,19 +72,19 @@ async def get_current_user() -> str:
     response += f"• Recent Runs: {user_data.get('recent_runs_count', 0)} in last 30 days\n\n"
     
     if preferences:
-        response += f"**Preferences:**\n"
+        response += "**Preferences:**\n"
         response += f"• Distance Unit: {preferences.distance_unit}\n"
         response += f"• Timezone: {preferences.timezone}\n"
         response += f"• Detailed Responses: {'Yes' if preferences.detailed_responses else 'No'}\n"
         response += f"• Include Social Data: {'Yes' if preferences.include_social_data else 'No'}\n"
         response += f"• Max Results: {preferences.max_results_per_query}\n\n"
     
-    response += f"**Session Information:**\n"
+    response += "**Session Information:**\n"
     response += f"• Session ID: {session.session_id}\n"
     response += f"• Created: {session.created_at.strftime('%Y-%m-%d %H:%M UTC')}\n"
     response += f"• Last Activity: {session.last_activity.strftime('%Y-%m-%d %H:%M UTC')}\n\n"
     
-    response += f"**Conversation Context:**\n"
+    response += "**Conversation Context:**\n"
     response += f"• Last Topic: {context.last_topic or 'None'}\n"
     response += f"• Last Action: {context.last_action or 'None'}\n"
     response += f"• Mood: {context.conversation_mood}\n"
@@ -112,7 +109,7 @@ async def switch_user_context(user_id: str) -> str:
         
         session = await manager.switch_user_context(user_id)
         
-        return f"🔄 User context switched successfully:\n" + \
+        return "🔄 User context switched successfully:\n" + \
                f"Previous User: {old_user_id or 'None'}\n" + \
                f"Current User: {session.cached_user_data.get('name', 'Unknown')} ({user_id})\n" + \
                f"Session ID: {session.session_id}"
@@ -163,7 +160,7 @@ async def update_user_preferences(preferences_json: str) -> str:
         manager = get_user_context_manager()
         await manager.update_user_preferences(preferences)
         
-        return f"✅ User preferences updated successfully:\n" + \
+        return "✅ User preferences updated successfully:\n" + \
                json.dumps(session.preferences.dict(), indent=2)
                
     except json.JSONDecodeError:
@@ -197,7 +194,7 @@ async def update_conversation_context(context_json: str) -> str:
         manager = get_user_context_manager()
         await manager.update_conversation_context(**context_updates)
         
-        return f"✅ Conversation context updated successfully:\n" + \
+        return "✅ Conversation context updated successfully:\n" + \
                f"Last Topic: {session.conversation_context.last_topic}\n" + \
                f"Last Action: {session.conversation_context.last_action}\n" + \
                f"Mood: {session.conversation_context.conversation_mood}"

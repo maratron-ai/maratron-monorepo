@@ -3,8 +3,7 @@ import os
 import pytest
 import asyncio
 import asyncpg
-from unittest.mock import AsyncMock, MagicMock
-from typing import AsyncGenerator
+from unittest.mock import AsyncMock
 
 # Set test environment
 os.environ["DATABASE_URL"] = "postgresql://test:test@localhost:5432/test_maratrondb"

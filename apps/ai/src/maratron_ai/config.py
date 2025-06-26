@@ -1,7 +1,7 @@
 """Configuration management for Maratron AI MCP Server."""
 import os
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 from urllib.parse import urlparse
 from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict

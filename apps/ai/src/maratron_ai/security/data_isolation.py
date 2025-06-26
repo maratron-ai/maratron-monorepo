@@ -1,9 +1,9 @@
 """Data isolation security layer to prevent cross-user data access."""
 
 import logging
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from functools import wraps
-from ..user_context.context import get_current_user_id, get_current_user_session
+from ..user_context.context import get_current_user_id
 from ..database_utils import fetch_with_timeout, fetchrow_with_timeout, execute_with_timeout
 
 logger = logging.getLogger(__name__)

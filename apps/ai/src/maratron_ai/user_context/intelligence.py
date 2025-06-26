@@ -1,7 +1,7 @@
 """Intelligent context analysis and personalization."""
 
-from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime, timedelta
+from typing import Dict, List, Any
+from datetime import datetime
 from dataclasses import dataclass
 import re
 
@@ -119,7 +119,7 @@ class ContextIntelligence:
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
             return (datetime.now() - date_obj).days <= days
-        except:
+        except (ValueError, TypeError):
             return False
             
     def _calculate_consistency(self, runs: List[Dict]) -> float:

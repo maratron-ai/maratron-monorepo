@@ -70,7 +70,7 @@ jobs:
         run: npm run build
 
       - name: Upload test coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           directory: apps/web/coverage
 
@@ -128,7 +128,7 @@ jobs:
         run: uv run pytest tests/integration/ -m integration
 
       - name: Upload test coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           directory: apps/ai
           file: coverage.xml

@@ -1,7 +1,7 @@
 """Unit tests for database utilities."""
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock
 import asyncpg
 
 import sys
@@ -217,7 +217,6 @@ class TestConnectionManagement:
         # This test validates the connection validation logic
         # In a real scenario, this would test database connectivity
         # For unit testing, we verify the function exists and can be called
-        from maratron_ai.database_utils import validate_connection
         
         # Verify the function is importable and callable
         assert callable(validate_connection)
@@ -228,7 +227,6 @@ class TestConnectionManagement:
     async def test_validate_connection_failure(self):
         """Test connection validation failure."""
         # Similar to success test, this validates the error handling logic
-        from maratron_ai.database_utils import validate_connection
         
         # Verify the function handles errors appropriately
         # In integration tests, this would test actual connection failures

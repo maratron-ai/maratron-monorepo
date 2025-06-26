@@ -8,11 +8,9 @@ from pydantic import BaseModel, Field
 from dataclasses import dataclass, asdict
 import asyncio
 from ..database_utils import (
-    handle_database_errors, 
     fetch_with_timeout, 
     fetchrow_with_timeout,
-    execute_with_timeout,
-    DatabaseError
+    execute_with_timeout
 )
 from ..config import get_config
 

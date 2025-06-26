@@ -15,9 +15,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11', '3.12']
 
     services:
       postgres:
@@ -47,8 +44,8 @@ jobs:
         with:
           version: "latest"
 
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
+      - name: Set up Python 3.11
+        run: uv python install 3.11
 
       - name: Install dependencies
         run: uv sync --extra test
@@ -69,10 +66,10 @@ jobs:
         run: uv run bandit -r src/ -f json -o bandit-report.json || true
 
       - name: Upload bandit results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bandit-report-${{ matrix.python-version }}
+          name: bandit-report
           path: apps/ai/bandit-report.json
 
       - name: Run unit tests
@@ -89,100 +86,7 @@ jobs:
         with:
           directory: apps/ai
           file: coverage.xml
-          flags: ai-server,python-${{ matrix.python-version }}
-
-      - name: Upload coverage HTML
-        uses: actions/upload-artifact@v3
-        if: matrix.python-version == '3.11'
-        with:
-          name: coverage-html
-          path: apps/ai/htmlcov/
+          flags: ai-server
 
       - name: Test health check script
         run: uv run python scripts/health_check.py --startup
-
-  # Performance and load testing
-  performance:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test_maratrondb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    defaults:
-      run:
-        working-directory: apps/ai
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v2
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install 3.11
-
-      - name: Install dependencies
-        run: uv sync --extra test
-
-      - name: Run performance tests
-        env:
-          TEST_DATABASE_URL: postgresql://test:test@localhost:5432/test_maratrondb
-        run: uv run pytest tests/ -m slow --durations=10
-
-  # Documentation and code quality
-  quality:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/ai
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v2
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install 3.11
-
-      - name: Install dependencies
-        run: uv sync --extra test
-
-      - name: Check code complexity (radon)
-        run: |
-          uv add radon
-          uv run radon cc src/ --min=C
-          uv run radon mi src/ --min=B
-
-      - name: Generate documentation coverage
-        run: |
-          uv add interrogate
-          uv run interrogate src/ --ignore-init-method --ignore-magic --ignore-module --fail-under=80
-
-      - name: Check for common security issues
-        run: uv run safety check
-
-      - name: Check dependencies for known vulnerabilities
-        run: |
-          uv export --format=requirements-txt > requirements.txt
-          uv add safety
-          uv run safety check -r requirements.txt

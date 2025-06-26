@@ -5,7 +5,7 @@ import logging.config
 import sys
 from pathlib import Path
 from typing import Dict, Any
-from .config import get_config, LogLevel
+from .config import get_config
 
 
 def setup_logging(log_level: str = None, log_file: str = None) -> None:

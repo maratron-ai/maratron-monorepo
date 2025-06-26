@@ -1,9 +1,8 @@
 """Enhanced conversation memory for better user context."""
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from pydantic import BaseModel
+from dataclasses import dataclass
 
 
 @dataclass

@@ -1,7 +1,7 @@
 """Tests for data isolation security system."""
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from src.maratron_ai.security.data_isolation import (
     SecureDataAccess, 
     DataAccessViolationError, 

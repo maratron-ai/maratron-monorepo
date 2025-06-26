@@ -1,8 +1,6 @@
 """Unit tests for database tools with mocked connections."""
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-import uuid
-from datetime import datetime
+from unittest.mock import AsyncMock, patch
 
 # Import the server module
 import sys

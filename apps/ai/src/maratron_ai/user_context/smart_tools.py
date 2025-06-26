@@ -1,10 +1,8 @@
 """Smart MCP tools that provide intelligent user context."""
 
-from typing import Dict, Any, List, Optional
-import json
+from typing import Dict, List
 from ..database_utils import handle_database_errors
 from .intelligence import ContextIntelligence
-from .memory import ConversationMemory
 from .context import get_current_user_session, get_current_user_id
 
 

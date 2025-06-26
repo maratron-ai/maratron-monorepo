@@ -1,7 +1,6 @@
 """Test runner script for easy test execution."""
 import subprocess
 import sys
-import os
 
 
 def run_tests():

@@ -1,11 +1,10 @@
 """Refactored MCP Server with proper Tools vs Resources separation."""
-import os
 import asyncpg
 import uuid
 import logging
 from typing import Optional
 from mcp.server.fastmcp import FastMCP
-from .config import get_config, Config
+from .config import get_config
 from .database_utils import (
     handle_database_errors,
     execute_with_timeout,
@@ -127,8 +126,8 @@ async def database_schema() -> str:
             count_row = await fetchrow_with_timeout(pool, f'SELECT COUNT(*) AS cnt FROM {ident}')
             count = count_row["cnt"] if count_row else 0
             result += f"\n**Rows:** {count}\n\n"
-        except:
-            result += f"\n**Rows:** Error counting\n\n"
+        except Exception:
+            result += "\n**Rows:** Error counting\n\n"
     
     track_conversation_topic("database_schema")
     return result
@@ -196,7 +195,7 @@ async def current_user_profile() -> str:
             return "❌ User profile not found."
         
         # Format profile information
-        result = f"# Your Profile\n\n"
+        result = "# Your Profile\n\n"
         result += f"**Name:** {user_data['name']}\n"
         result += f"**Email:** {user_data['email']}\n"
         result += f"**Training Level:** {user_data.get('trainingLevel', 'Not set')}\n"
@@ -227,7 +226,7 @@ async def user_recent_runs(user_id: str) -> str:
         runs_data = await secure_db.get_user_runs(pool, user_id, get_user_max_results())
         
         if not runs_data:
-            return f"No runs found for this user."
+            return "No runs found for this user."
         
         # Get user name securely
         user_profile = await secure_db.get_user_profile(pool, user_id)
@@ -330,7 +329,7 @@ async def user_run_summary(user_id: str, period: str = "30d") -> str:
         min_dist = float(stats_row['min_distance'] or 0)
         max_dist = float(stats_row['max_distance'] or 0)
         
-        result += f"## Summary Statistics\n"
+        result += "## Summary Statistics\n"
         result += f"- **Total Runs:** {stats_row['run_count']}\n"
         result += f"- **Total Distance:** {total_dist:.2f} {preferred_unit}\n"
         result += f"- **Average Distance:** {avg_dist:.2f} {preferred_unit}\n"

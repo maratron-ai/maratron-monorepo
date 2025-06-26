@@ -4,7 +4,7 @@ import asyncio
 import logging
 import sys
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 from urllib.parse import urlparse
 
 import asyncpg

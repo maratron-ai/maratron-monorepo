@@ -1,8 +1,7 @@
 """Easy-to-use API wrapper for web application integration."""
 
-import asyncio
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 
 from .server import (
@@ -10,11 +9,7 @@ from .server import (
     add_user, update_user_email, delete_user,
     add_run, add_shoe,
     set_current_user_tool, get_current_user_tool,
-    update_user_preferences_tool, update_conversation_context_tool,
-    get_session_history,
-    
-    # Resources  
-    database_schema, user_profile,
+    update_user_preferences_tool, user_profile,
     user_recent_runs, user_run_summary, user_shoes,
     database_stats,
     

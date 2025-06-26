@@ -1,7 +1,5 @@
 """Integration tests with real database connections."""
 import pytest
-import uuid
-from datetime import datetime
 
 # Import the server module
 import sys
@@ -143,8 +141,7 @@ class TestComplexIntegration:
         user_id = user_result.split("id ")[1].rstrip(".")
         
         # Add shoes for the user
-        shoe_result = await server.add_shoe(user_id, "Training Shoes", 500.0, "miles")
-        shoe_id = shoe_result.split("id ")[1].rstrip(".")
+        await server.add_shoe(user_id, "Training Shoes", 500.0, "miles")
         
         # Add multiple runs
         for i in range(5):
