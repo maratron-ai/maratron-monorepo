@@ -175,13 +175,6 @@ uv run pytest --cov=src         # With coverage
 - `apps/web/CLAUDE.md` - Web application details
 - `apps/ai/CLAUDE.md` - AI server documentation
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
 
 ## 📄 License
 
