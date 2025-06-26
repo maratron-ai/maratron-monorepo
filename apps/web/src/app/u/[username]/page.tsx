@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { authOptions } from "@lib/auth";
 import type { SocialProfile } from "@maratypes/social";
 import type { Run } from "@maratypes/run";
 import ProfileInfoCard from "@components/social/ProfileInfoCard";
@@ -84,11 +84,11 @@ async function getProfileData(username: string) {
 }
 
 interface Props {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }
 
 export default async function UserProfilePage({ params }: Props) {
-  const { username } = params;
+  const { username } = await params;
   const data = await getProfileData(username);
   if (!data) return notFound();
 

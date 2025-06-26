@@ -6,10 +6,10 @@ import { parseDuration } from "@utils/time";
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context
+    const params = await context.params
     const { id } = params
     const run = await prisma.run.findUnique({
       where: { id },
@@ -29,11 +29,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json();
-    const { params } = context
+    const params = await context.params
     const { id } = params
     const updatedRun = await prisma.run.update({
       where: { id },
@@ -70,10 +70,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context
+    const params = await context.params
     const { id } = params
     await prisma.run.delete({
       where: { id },

@@ -21,7 +21,7 @@ export async function GET() {
     return NextResponse.json({
       status: 'error',
       message: 'MCP connection failed',
-      error: error.toString()
+      error: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }

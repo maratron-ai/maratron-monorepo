@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@lib/prisma";
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
-  const { id } = await ctx.params;
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
+  const { id } = params;
   try {
     const profile = await prisma.socialProfile.findUnique({
       where: { userId: id },

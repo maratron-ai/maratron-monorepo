@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '@lib/auth';
 
 // MCP tools will be re-enabled once we get the basic chat working
 
@@ -81,6 +81,6 @@ export async function GET() {
   return NextResponse.json({
     message: 'Maratron Chat API',
     status: 'active',
-    availableTools: Object.keys(mcpTools)
+    availableTools: [] // MCP tools disabled - will be re-enabled later
   });
 }

@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@lib/prisma";
 
-export async function GET(_req: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
+  const { id } = params;
   try {
     const post = await prisma.runPost.findUnique({
       where: { id },
@@ -16,8 +17,9 @@ export async function GET(_req: NextRequest, context: { params: { id: string } }
   }
 }
 
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+export async function PUT(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
+  const { id } = params;
   try {
     const data = await req.json();
     const post = await prisma.runPost.update({ where: { id }, data });
@@ -28,8 +30,9 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
   }
 }
 
-export async function DELETE(_req: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+export async function DELETE(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
+  const { id } = params;
   try {
     await prisma.runPost.delete({ where: { id } });
     return NextResponse.json({});

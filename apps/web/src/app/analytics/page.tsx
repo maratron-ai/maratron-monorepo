@@ -28,9 +28,11 @@ interface AnalyticsData {
   averagePace: string;
   longestRun: number;
   weeklyAverage: number;
-  monthlyTrend: { week: string; distance: number; runs: number }[];
-  paceProgression: { month: string; pace: string; weekTimestamp: number }[];
-  distanceDistribution: { range: string; count: number }[];
+  monthlyTrend: { week: string; distance: number; runs: number; weekDate: string; weekStart: Date }[];
+  paceProgression: { month: string; pace: string; paceMinutes: number; monthDate: string; weekStart: Date }[];
+  distanceDistribution: { range: string; count: number; percentage: number }[];
+  weeklyDistanceChart: { week: string; distance: number; runs: number; weekStart: Date; weekTimestamp: number }[];
+  cumulativeDistance: { month: string; total: number; weekStart: Date; weekTimestamp: number }[];
 }
 
 export default function AnalyticsPage() {

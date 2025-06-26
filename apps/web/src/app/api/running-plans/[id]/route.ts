@@ -19,9 +19,9 @@ function addWeeks(date: Date, weeks: number): Date {
   return addDays(date, weeks * 7);
 }
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { params } = context
+    const params = await context.params
     const { id } = params
     const plan = await prisma.runningPlan.findUnique({ where: { id } });
     if (!plan) {
@@ -37,10 +37,10 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   }
 }
 
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const body = await request.json();
-    const { params } = context;
+    const params = await context.params;
     const { id } = params;
 
     const existing = await prisma.runningPlan.findUnique({ where: { id } });
@@ -81,9 +81,9 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
   }
 }
 
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { params } = context
+    const params = await context.params
     const { id } = params
     await prisma.runningPlan.delete({ where: { id } });
     return NextResponse.json({ message: "Plan deleted" }, { status: 200 });

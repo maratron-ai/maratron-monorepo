@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@lib/prisma";
 
-export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
-  const { id } = ctx.params;
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
+  const { id } = params;
   const data = await req.json();
   try {
     const profile = await prisma.socialProfile.update({

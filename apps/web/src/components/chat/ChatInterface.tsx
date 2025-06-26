@@ -36,7 +36,13 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [error, setError] = useState<Error | null>(null);
 
   const append = useCallback(async (message: { role: string; content: string }) => {
-    const newMessages = [...messages, message];
+    const fullMessage = {
+      id: Date.now().toString(),
+      role: message.role as 'user' | 'assistant' | 'system',
+      content: message.content,
+      timestamp: new Date()
+    };
+    const newMessages = [...messages, fullMessage];
     setMessages(newMessages);
     
     if (message.role === 'user') {
@@ -54,7 +60,13 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
           throw new Error('Chat request failed');
         }
         
-        const assistantMessage = await response.json();
+        const responseData = await response.json();
+        const assistantMessage = {
+          id: Date.now().toString() + '_assistant',
+          role: 'assistant' as const,
+          content: responseData.content || responseData.message || 'No response',
+          timestamp: new Date()
+        };
         setMessages([...newMessages, assistantMessage]);
       } catch (err) {
         setError(err as Error);
@@ -166,10 +178,7 @@ What would you like to know about your training?`;
                 content={message.content}
                 timestamp={new Date()}
                 isLoading={isLoading && index === messages.length - 1 && message.role === 'assistant'}
-                toolCalls={message.toolInvocations?.map(tool => ({
-                  name: tool.toolName,
-                  arguments: tool.args
-                }))}
+                toolCalls={message.toolCalls}
                 avatarUrl={session?.user?.image}
                 userName={session?.user?.name}
               />

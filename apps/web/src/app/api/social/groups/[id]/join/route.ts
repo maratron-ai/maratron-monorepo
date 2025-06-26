@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@lib/prisma";
 import bcrypt from "bcryptjs";
 
-export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
-  const { id } = await ctx.params;
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
+  const { id } = params;
   const { profileId, password } = await req.json();
   if (!profileId) {
     return NextResponse.json({ error: "profileId required" }, { status: 400 });
@@ -36,9 +37,10 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
 
 export async function DELETE(
   req: NextRequest,
-  ctx: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
-  const { id } = ctx.params;
+  const params = await ctx.params;
+  const { id } = params;
   const { profileId } = await req.json();
   if (!profileId) {
     return NextResponse.json({ error: "profileId required" }, { status: 400 });

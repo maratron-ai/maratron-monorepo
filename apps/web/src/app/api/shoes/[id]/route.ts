@@ -6,10 +6,10 @@ import { shoeSchema } from "@lib/schemas/shoeSchema";
 // GET /api/shoes/[id] — Get a specific shoe
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context
+    const params = await context.params
     const { id } = params
     const shoe = await prisma.shoe.findUnique({
       where: { id },
@@ -30,13 +30,13 @@ export async function GET(
 // PUT /api/shoes/[id] — Update a shoe
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json();
     await shoeSchema.validate(body, { abortEarly: false, stripUnknown: true });
 
-    const { params } = context
+    const params = await context.params
     const { id } = params
     const updatedShoe = await prisma.shoe.update({
       where: { id },
@@ -55,10 +55,10 @@ export async function PUT(
 // DELETE /api/shoes/[id] — Delete a shoe
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context
+    const params = await context.params
     const { id } = params
     await prisma.shoe.delete({
       where: { id },

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@lib/prisma";
 
-export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
-  const { id } = await ctx.params;
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
+  const { id } = params;
   const profileId = req.nextUrl.searchParams.get("profileId");
   try {
     const group = await prisma.runGroup.findUnique({
