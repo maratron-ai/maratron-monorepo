@@ -29,12 +29,6 @@ Comprehensive sync script with multiple modes:
 - `push` - Push local changes to separate repos
 - `pull` - Pull changes from separate repos
 
-### `./sync-repos.sh` (Legacy)
-Simple push-only script (kept for backward compatibility)
-
-### `./pull-from-repos.sh`
-Pull-only script for getting external changes
-
 ## Common Workflows
 
 ### Daily Development
