@@ -224,3 +224,44 @@ The AI server exposes these tools for the web application:
 - `db_summary()` - Database statistics
 
 All tools are async and decorated with error handling and user context awareness.
+
+## Claude Code Development Tools
+
+When working with Claude Code (claude.ai/code), the following MCP tools are available for enhanced development:
+
+### Component Development
+- **21st Magic Component Builder** (`mcp__magic__21st_magic_component_builder`) - Generate UI components with /ui command
+- **21st Magic Component Inspiration** (`mcp__magic__21st_magic_component_inspiration`) - Browse component library for inspiration
+- **21st Magic Component Refiner** (`mcp__magic__21st_magic_component_refiner`) - Improve existing UI components
+- **Logo Search** (`mcp__magic__logo_search`) - Find company logos in JSX/TSX/SVG formats
+
+### Library Documentation
+- **Context7 Library Resolver** (`mcp__context7__resolve-library-id`) - Resolve package names to Context7 library IDs
+- **Context7 Documentation** (`mcp__context7__get-library-docs`) - Fetch up-to-date library documentation
+
+### Browser Automation
+- **Puppeteer Navigation** (`mcp__puppeteer__puppeteer_navigate`) - Navigate to URLs
+- **Puppeteer Screenshot** (`mcp__puppeteer__puppeteer_screenshot`) - Take page screenshots
+- **Puppeteer Interactions** - Click, fill, select, hover, and evaluate JavaScript on pages
+
+### Enhanced Thinking
+- **Sequential Thinking** (`mcp__sequential-thinking__sequentialthinking`) - Multi-step problem-solving with reflection and revision
+
+### Usage Examples
+
+```bash
+# Generate a new component with 21st Magic
+/ui create a dashboard card component
+
+# Search for library documentation
+# First resolve library ID, then fetch docs
+Context7: resolve "react-hook-form" -> get docs
+
+# Take screenshots for testing/documentation
+Puppeteer: navigate to localhost:3000 -> screenshot dashboard
+
+# Complex problem solving with reflection
+Sequential thinking: plan feature implementation with multiple revision cycles
+```
+
+These tools extend Claude Code's capabilities for modern web development, UI design, and automated testing workflows.

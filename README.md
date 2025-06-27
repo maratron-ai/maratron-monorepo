@@ -179,6 +179,76 @@ uv run pytest --cov=src         # With coverage
 - Environment-based configuration
 - No secrets in codebase
 
+## 🤖 Claude Code Development Tools
+
+When working with [Claude Code](https://docs.anthropic.com/en/docs/claude-code), the following MCP tools are available for enhanced development:
+
+### 🎨 Component Development
+- **[21st Magic Component Builder](https://github.com/21st-dev/magic-mcp)** - Generate UI components with `/ui` command
+  - **Documentation**: [21st.dev/magic](https://21st.dev/magic)
+  - **Usage**: `/ui create a dashboard card component`
+  - **Integration**: Works with [shadcn/ui](https://ui.shadcn.com/) components
+
+- **[21st Magic Component Inspiration](https://github.com/21st-dev/magic-mcp)** - Browse component library for inspiration
+  - **Usage**: `/21st fetch` to explore existing components
+  
+- **[21st Magic Component Refiner](https://github.com/21st-dev/magic-mcp)** - Improve existing UI components
+  - **Usage**: `/ui refine` to enhance component design and functionality
+
+- **[Logo Search](https://github.com/21st-dev/magic-mcp)** - Find company logos in JSX/TSX/SVG formats
+  - **Usage**: `/logo GitHub` to search for brand logos
+
+### 📚 Library Documentation
+- **[Context7 Library Resolver](https://github.com/upstash/context7)** - Resolve package names to Context7 library IDs
+  - **Documentation**: [context7.com](https://context7.com)
+  - **Claude Code Setup**: [Local Server Connection Guide](https://github.com/upstash/context7?tab=readme-ov-file#claude-code-local-server-connection)
+  - **Usage**: Automatically resolves library names to fetch documentation
+
+- **[Context7 Documentation](https://github.com/upstash/context7)** - Fetch up-to-date library documentation
+  - **Features**: Real-time documentation for 1000+ libraries
+  - **Usage**: Get current docs for React, Next.js, Prisma, and more
+
+### 🌐 Browser Automation
+- **[Puppeteer MCP Server](https://smithery.ai/server/@smithery-ai/puppeteer)** - Full browser automation
+  - **Documentation**: [Puppeteer API](https://pptr.dev)
+  - **Features**: Navigate, screenshot, click, fill forms, evaluate JavaScript
+  - **Usage**: Automated testing, screenshot generation, web scraping
+
+### 🧠 Enhanced Thinking
+- **[Sequential Thinking](https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking)** - Multi-step problem-solving
+  - **Features**: Reflection, revision, hypothesis generation and verification
+  - **Usage**: Complex feature planning with iterative refinement
+
+### 🔗 Additional Resources
+
+- **[Model Context Protocol (MCP)](https://modelcontextprotocol.io/)** - Core protocol documentation
+- **[Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)** - Complete guide to Claude Code
+- **[FastMCP](https://github.com/jlowin/fastmcp)** - Python MCP server framework (used in our AI server)
+- **[MCP Servers Repository](https://github.com/modelcontextprotocol/servers)** - Collection of MCP server implementations
+- **[Smithery.ai](https://smithery.ai/)** - MCP server marketplace and discovery
+- **[shadcn/ui](https://ui.shadcn.com/)** - UI component library used in web application
+
+### Usage Examples
+
+```bash
+# Generate modern UI components
+/ui create a responsive data table with filters
+
+# Get up-to-date library documentation  
+Ask about "react-hook-form validation patterns"
+
+# Automate browser testing
+Take a screenshot of the dashboard at localhost:3000
+
+# Complex problem solving
+Plan and implement a new feature with multiple iterations and refinements
+
+# Search for brand assets
+/logo Discord Slack GitHub
+```
+
+These tools significantly enhance development workflows by providing AI-powered component generation, real-time documentation access, browser automation, and sophisticated problem-solving capabilities.
+
 ## 📄 License
 
 MIT License - see LICENSE file for details
