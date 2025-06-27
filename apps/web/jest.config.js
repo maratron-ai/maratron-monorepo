@@ -14,11 +14,14 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@components/(.*)$': '<rootDir>/src/components/$1',
     '^@lib/(.*)$': '<rootDir>/src/lib/$1',
-    '^@maratypes/(.*)$': '<rootDir>/src/maratypes/$1',
+    '^@maratypes/(.*)$': '<rootDir>/src/maratypes/$1',  
     '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@utils/(.*)$': '<rootDir>/src/lib/utils/$1',
     '^@pages/(.*)$': '<rootDir>/src/pages/$1',
     '^@styles/(.*)$': '<rootDir>/src/styles/$1',
+    // Handle CSS and static assets
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/__mocks__/fileMock.js',
   },
   testMatch: [
     '**/__tests__/**/*.(ts|tsx|js)',

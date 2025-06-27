@@ -93,6 +93,16 @@ python run_server.py  # Start MCP server
 uv run pytest        # Run tests
 ```
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[Architecture Overview](docs/architecture.md)** - System design and component relationships
+- **[Web Application](docs/web-app.md)** - Next.js frontend with social features and run tracking  
+- **[AI MCP Server](docs/ai-server.md)** - Python MCP server with database tools and context management
+- **[API Reference](docs/api-reference.md)** - Complete API documentation
+- **[Development Guide](docs/development.md)** - Setup, testing, and contribution guidelines
+
 ## 🗄️ Database
 
 ### Automatic Setup
@@ -168,13 +178,6 @@ uv run pytest --cov=src         # With coverage
 - Session management with timeouts
 - Environment-based configuration
 - No secrets in codebase
-
-## 📖 Documentation
-
-- `CLAUDE.md` - Development guidance for AI assistants
-- `apps/web/CLAUDE.md` - Web application details
-- `apps/ai/CLAUDE.md` - AI server documentation
-
 
 ## 📄 License
 
