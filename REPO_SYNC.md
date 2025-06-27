@@ -31,22 +31,29 @@ Comprehensive sync script with multiple modes:
 
 ## Automatic Sync Options
 
-### Option 1: Git Alias (Recommended)
+### Option 1: Git Alias (Recommended) ✅
 ```bash
 # Use this instead of regular git push
 git sync-push
 
-# Or with arguments
+# Works with arguments too
 git sync-push origin main
+git sync-push --force
 ```
 
-### Option 2: Wrapper Script
+### Option 2: Direct Script
 ```bash
-# Use custom push script
-./git-push
+# Use the script directly
+./git-sync-push
 
-# Or with arguments  
-./git-push origin main
+# With arguments  
+./git-sync-push origin main
+```
+
+### Option 3: Legacy Wrapper
+```bash
+# Alternative wrapper script
+./git-push
 ```
 
 ### Option 3: Manual Sync Scripts
