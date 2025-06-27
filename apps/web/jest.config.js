@@ -11,17 +11,22 @@ const customJestConfig = {
   testEnvironment: 'jsdom',
   // Handle module path mapping to match tsconfig.json paths
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@components/(.*)$': '<rootDir>/src/components/$1',
-    '^@lib/(.*)$': '<rootDir>/src/lib/$1',
-    '^@maratypes/(.*)$': '<rootDir>/src/maratypes/$1',  
-    '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
-    '^@utils/(.*)$': '<rootDir>/src/lib/utils/$1',
-    '^@pages/(.*)$': '<rootDir>/src/pages/$1',
-    '^@styles/(.*)$': '<rootDir>/src/styles/$1',
-    // Handle CSS and static assets
+    // First handle CSS and static assets (before path aliases)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/__mocks__/fileMock.js',
+    // Then handle path aliases - most specific first
+    '^@components/(.*)$': '<rootDir>/src/components/$1',
+    '^@lib/api/social$': '<rootDir>/src/lib/api/social/index.ts',
+    '^@lib/api/run$': '<rootDir>/src/lib/api/run/index.ts', 
+    '^@lib/api/(.*)$': '<rootDir>/src/lib/api/$1/index.ts',
+    '^@lib/utils/cn$': '<rootDir>/src/lib/utils/cn.ts',
+    '^@lib/(.*)$': '<rootDir>/src/lib/$1',
+    '^@pages/(.*)$': '<rootDir>/src/pages/$1',
+    '^@styles/(.*)$': '<rootDir>/src/styles/$1',
+    '^@utils/(.*)$': '<rootDir>/src/lib/utils/$1',
+    '^@maratypes/(.*)$': '<rootDir>/src/maratypes/$1',
+    '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: [
     '**/__tests__/**/*.(ts|tsx|js)',
@@ -36,6 +41,14 @@ const customJestConfig = {
     '!src/**/__tests__/**',
     '!src/**/*.test.{ts,tsx}',
   ],
+  // Add explicit transformation settings
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+  },
+  // Set module resolution
+  resolver: undefined,
+  clearMocks: true,
+  restoreMocks: true,
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
