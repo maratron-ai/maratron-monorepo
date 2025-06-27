@@ -17,8 +17,11 @@
     "db:studio": "cd apps/web && npx prisma studio",
     "db:generate": "cd apps/web && npx prisma generate",
     "db:push": "cd apps/web && npx prisma db push",
+    "db:seed": "cd apps/web && npm run db:seed",
+    "db:reset": "cd apps/web && npm run db:reset",
     "clean": "docker-compose down -v && docker system prune -f",
-    "logs": "docker-compose logs -f"
+    "logs": "docker-compose logs -f",
+    "prepare": "husky"
   },
   "keywords": [
     "running",
@@ -33,10 +36,25 @@
   "author": "Maratron Team",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20"
+    "@types/node": "^20",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2"
   },
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{js,jsx,ts,tsx}": [
+      "cd apps/web && npx prettier --write",
+      "cd apps/web && npx eslint --fix"
+    ],
+    "apps/web/**/*.{json,md,yml,yaml}": [
+      "cd apps/web && npx prettier --write"
+    ],
+    "apps/ai/**/*.py": [
+      "cd apps/ai && uv run ruff format",
+      "cd apps/ai && uv run ruff check --fix"
+    ]
   }
 }
