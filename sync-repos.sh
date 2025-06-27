@@ -39,11 +39,21 @@ git push origin $current_branch
 
 echo ""
 echo "2️⃣ Pushing web subdirectory to web-origin..."
-git subtree push --prefix=apps/web web-origin main
+if git subtree push --prefix=apps/web web-origin main 2>/dev/null; then
+    echo "✅ Web repository synced successfully"
+else
+    echo "⚠️  Force pushing web subdirectory (first time setup)..."
+    git push web-origin `git subtree split --prefix=apps/web $current_branch`:main --force
+fi
 
 echo ""
 echo "3️⃣ Pushing AI subdirectory to ai-origin..."
-git subtree push --prefix=apps/ai ai-origin main
+if git subtree push --prefix=apps/ai ai-origin main 2>/dev/null; then
+    echo "✅ AI repository synced successfully"
+else
+    echo "⚠️  Force pushing AI subdirectory (first time setup)..."
+    git push ai-origin `git subtree split --prefix=apps/ai $current_branch`:main --force
+fi
 
 echo ""
 echo "✅ All repositories synced successfully!"
