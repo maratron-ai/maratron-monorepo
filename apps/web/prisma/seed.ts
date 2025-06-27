@@ -100,6 +100,25 @@ async function main() {
         defaultDistanceUnit: DistanceUnit.miles,
       },
     }),
+    prisma.user.create({
+      data: {
+        name: 'Jackson Thetford',
+        email: 'jackson@maratron.ai',
+        age: 29,
+        gender: Gender.Male,
+        trainingLevel: TrainingLevel.advanced,
+        VDOT: 60,
+        goals: ['Sub-2:45 Marathon', 'Olympic Trials Qualifier'],
+        yearsRunning: 10,
+        weeklyMileage: 75,
+        height: 178,
+        weight: 68,
+        preferredTrainingDays: ['Monday', 'Tuesday', 'Wednesday', 'Friday', 'Saturday', 'Sunday'],
+        preferredTrainingEnvironment: TrainingEnvironment.mixed,
+        device: Device.Garmin,
+        defaultDistanceUnit: DistanceUnit.miles,
+      },
+    }),
   ]);
 
   console.log('👥 Created users');
@@ -170,6 +189,37 @@ async function main() {
         userId: users[3].id,
       },
     }),
+    // Jackson's shoes
+    prisma.shoe.create({
+      data: {
+        name: 'Nike ZoomX Vaporfly NEXT% 2',
+        notes: 'Marathon racing shoes',
+        currentDistance: 78.4,
+        maxDistance: 300,
+        distanceUnit: DistanceUnit.miles,
+        userId: users[4].id,
+      },
+    }),
+    prisma.shoe.create({
+      data: {
+        name: 'Nike Air Zoom Alphafly NEXT%',
+        notes: 'Race day carbon fiber shoes',
+        currentDistance: 104.2,
+        maxDistance: 400,
+        distanceUnit: DistanceUnit.miles,
+        userId: users[4].id,
+      },
+    }),
+    prisma.shoe.create({
+      data: {
+        name: 'Hoka Clifton 9',
+        notes: 'Daily trainer for easy runs',
+        currentDistance: 287.6,
+        maxDistance: 500,
+        distanceUnit: DistanceUnit.miles,
+        userId: users[4].id,
+      },
+    }),
   ]);
 
   console.log('👟 Created shoes');
@@ -190,6 +240,10 @@ async function main() {
   await prisma.user.update({
     where: { id: users[3].id },
     data: { defaultShoeId: shoes[5].id },
+  });
+  await prisma.user.update({
+    where: { id: users[4].id },
+    data: { defaultShoeId: shoes[8].id },
   });
 
   // Create recent runs
@@ -277,6 +331,56 @@ async function main() {
         shoeId: shoes[5].id,
       },
     }),
+    // Jackson's runs
+    prisma.run.create({
+      data: {
+        date: new Date('2024-06-26'),
+        duration: '68:30',
+        distance: 15.0,
+        distanceUnit: DistanceUnit.miles,
+        pace: '4:34',
+        paceUnit: DistanceUnit.miles,
+        name: 'Marathon Pace Long Run',
+        trainingEnvironment: TrainingEnvironment.outdoor,
+        elevationGain: 420,
+        elevationGainUnit: 'feet',
+        notes: 'Perfect execution of marathon pace work. Building confidence for race day.',
+        userId: users[4].id,
+        shoeId: shoes[8].id,
+      },
+    }),
+    prisma.run.create({
+      data: {
+        date: new Date('2024-06-24'),
+        duration: '24:15',
+        distance: 6.0,
+        distanceUnit: DistanceUnit.miles,
+        pace: '4:02',
+        paceUnit: DistanceUnit.miles,
+        name: 'Track Workout - 5x1200m',
+        trainingEnvironment: TrainingEnvironment.outdoor,
+        notes: '5x1200m at 5K pace with 400m recovery. Hit all splits perfectly.',
+        userId: users[4].id,
+        shoeId: shoes[6].id,
+      },
+    }),
+    prisma.run.create({
+      data: {
+        date: new Date('2024-06-22'),
+        duration: '45:20',
+        distance: 10.0,
+        distanceUnit: DistanceUnit.miles,
+        pace: '4:32',
+        paceUnit: DistanceUnit.miles,
+        name: 'Threshold Run',
+        trainingEnvironment: TrainingEnvironment.outdoor,
+        elevationGain: 200,
+        elevationGainUnit: 'feet',
+        notes: '6 miles at threshold pace. Felt controlled and strong throughout.',
+        userId: users[4].id,
+        shoeId: shoes[8].id,
+      },
+    }),
   ]);
 
   console.log('🏃 Created runs');
@@ -309,6 +413,13 @@ async function main() {
         userId: users[3].id,
         username: 'emilyendurance',
         bio: 'New to running but loving every mile! First marathon in training.',
+      },
+    }),
+    prisma.socialProfile.create({
+      data: {
+        userId: users[4].id,
+        username: 'jacksonthetford',
+        bio: 'Creator of Maratron 🏃‍♂️ | Sub-2:45 marathoner | Olympic Trials dreamer | Running data nerd',
       },
     }),
   ]);
@@ -347,6 +458,38 @@ async function main() {
         followingId: socialProfiles[1].id,
       },
     }),
+    // Jackson follows everyone
+    prisma.follow.create({
+      data: {
+        followerId: socialProfiles[4].id,
+        followingId: socialProfiles[0].id,
+      },
+    }),
+    prisma.follow.create({
+      data: {
+        followerId: socialProfiles[4].id,
+        followingId: socialProfiles[1].id,
+      },
+    }),
+    prisma.follow.create({
+      data: {
+        followerId: socialProfiles[4].id,
+        followingId: socialProfiles[2].id,
+      },
+    }),
+    // Others follow Jackson back
+    prisma.follow.create({
+      data: {
+        followerId: socialProfiles[0].id,
+        followingId: socialProfiles[4].id,
+      },
+    }),
+    prisma.follow.create({
+      data: {
+        followerId: socialProfiles[2].id,
+        followingId: socialProfiles[4].id,
+      },
+    }),
   ]);
 
   console.log('👥 Created follow relationships');
@@ -375,6 +518,22 @@ async function main() {
         distance: 12.0,
         time: '75:20',
         caption: 'Long run in the books! Marathon pace progression felt smooth. Building towards that Boston qualifier goal 🎯',
+      },
+    }),
+    prisma.runPost.create({
+      data: {
+        socialProfileId: socialProfiles[4].id,
+        distance: 15.0,
+        time: '68:30',
+        caption: 'Marathon pace long run complete! 15 miles at 4:34 pace. The Olympic Trials dream is alive and well 🎆✨ Building Maratron during the day, chasing fast times in the morning!',
+      },
+    }),
+    prisma.runPost.create({
+      data: {
+        socialProfileId: socialProfiles[4].id,
+        distance: 6.0,
+        time: '24:15',
+        caption: 'Track session: 5x1200m at 5K pace 💪 Hit every split perfectly. Sometimes the best code debugging happens during interval recovery 😄💻',
       },
     }),
   ]);
@@ -409,6 +568,20 @@ async function main() {
         postId: runPosts[2].id,
         socialProfileId: socialProfiles[1].id,
         text: 'You got this! BQ is definitely within reach with that training 🏆',
+      },
+    }),
+    prisma.comment.create({
+      data: {
+        postId: runPosts[3].id,
+        socialProfileId: socialProfiles[0].id,
+        text: 'Olympic Trials pace! 😲 Absolutely crushing it Jackson!',
+      },
+    }),
+    prisma.comment.create({
+      data: {
+        postId: runPosts[4].id,
+        socialProfileId: socialProfiles[2].id,
+        text: 'Haha love the coding reference! Those track splits are insane 🔥',
       },
     }),
   ]);
@@ -453,6 +626,50 @@ async function main() {
         socialProfileId: socialProfiles[1].id,
       },
     }),
+    // Likes for Jackson's posts
+    prisma.like.create({
+      data: {
+        postId: runPosts[3].id,
+        socialProfileId: socialProfiles[0].id,
+      },
+    }),
+    prisma.like.create({
+      data: {
+        postId: runPosts[3].id,
+        socialProfileId: socialProfiles[1].id,
+      },
+    }),
+    prisma.like.create({
+      data: {
+        postId: runPosts[3].id,
+        socialProfileId: socialProfiles[2].id,
+      },
+    }),
+    prisma.like.create({
+      data: {
+        postId: runPosts[4].id,
+        socialProfileId: socialProfiles[1].id,
+      },
+    }),
+    prisma.like.create({
+      data: {
+        postId: runPosts[4].id,
+        socialProfileId: socialProfiles[2].id,
+      },
+    }),
+    // Jackson likes others' posts
+    prisma.like.create({
+      data: {
+        postId: runPosts[0].id,
+        socialProfileId: socialProfiles[4].id,
+      },
+    }),
+    prisma.like.create({
+      data: {
+        postId: runPosts[1].id,
+        socialProfileId: socialProfiles[4].id,
+      },
+    }),
   ]);
 
   console.log('❤️ Created likes');
@@ -485,6 +702,12 @@ async function main() {
       data: {
         groupId: runGroup.id,
         socialProfileId: socialProfiles[3].id,
+      },
+    }),
+    prisma.runGroupMember.create({
+      data: {
+        groupId: runGroup.id,
+        socialProfileId: socialProfiles[4].id,
       },
     }),
   ]);
@@ -542,6 +765,7 @@ You can now log in with:
 - sarah@example.com  
 - mike@example.com
 - emily@example.com
+- jackson@maratron.ai
 `);
 }
 
