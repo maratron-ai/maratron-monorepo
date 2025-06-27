@@ -1,0 +1,199 @@
+051497dd74381ae2a1ceade39a485674
+/* istanbul ignore next */
+var _jsxFileName = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/layout.tsx";
+import React from "react";
+var __jsx = React.createElement;
+function cov_1ms8ls19fo() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/layout.tsx";
+  var hash = "4fb6b2f7ede293d6ce2957ae269d06b92bb03d78";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/layout.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 9,
+          column: 14
+        },
+        end: {
+          line: 12,
+          column: 2
+        }
+      },
+      "1": {
+        start: {
+          line: 13,
+          column: 34
+        },
+        end: {
+          line: 16,
+          column: 1
+        }
+      },
+      "2": {
+        start: {
+          line: 22,
+          column: 2
+        },
+        end: {
+          line: 32,
+          column: 4
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "RootLayout",
+        decl: {
+          start: {
+            line: 17,
+            column: 24
+          },
+          end: {
+            line: 17,
+            column: 34
+          }
+        },
+        loc: {
+          start: {
+            line: 21,
+            column: 4
+          },
+          end: {
+            line: 33,
+            column: 1
+          }
+        },
+        line: 21
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "4fb6b2f7ede293d6ce2957ae269d06b92bb03d78"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_1ms8ls19fo = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_1ms8ls19fo();
+// src/app/layout.tsx
+
+import { Inter } from "next/font/google";
+import "./globals.css";
+import Providers from "@components/Providers";
+import Navbar from "@components/Navbar";
+import Footer from "@components/Footer";
+const inter =
+/* istanbul ignore next */
+(cov_1ms8ls19fo().s[0]++, Inter({
+  variable: "--font-inter",
+  subsets: ["latin"]
+}));
+export const metadata =
+/* istanbul ignore next */
+(cov_1ms8ls19fo().s[1]++, {
+  title: "Maratron",
+  description: "Maratron AI description"
+});
+export default function RootLayout({
+  children
+}) {
+  /* istanbul ignore next */
+  cov_1ms8ls19fo().f[0]++;
+  cov_1ms8ls19fo().s[2]++;
+  return /* istanbul ignore next */__jsx(
+  /* istanbul ignore next */
+  "html",
+  /* istanbul ignore next */
+  {
+    lang: "en",
+    className: inter.variable,
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 23,
+      columnNumber: 5
+    }
+  },
+  /* istanbul ignore next */
+  __jsx(
+  /* istanbul ignore next */
+  "body",
+  /* istanbul ignore next */
+  {
+    className: "antialiased",
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 24,
+      columnNumber: 7
+    }
+  },
+  /* istanbul ignore next */
+  __jsx(Providers,
+  /* istanbul ignore next */
+  {
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 25,
+      columnNumber: 9
+    }
+  },
+  /* istanbul ignore next */
+  __jsx(Navbar,
+  /* istanbul ignore next */
+  {
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 26,
+      columnNumber: 11
+    }
+  }),
+  /* istanbul ignore next */
+  __jsx(
+  /* istanbul ignore next */
+  "div",
+  /* istanbul ignore next */
+  {
+    className: "min-h-screen",
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 27,
+      columnNumber: 11
+    }
+  }, children),
+  /* istanbul ignore next */
+  __jsx(Footer,
+  /* istanbul ignore next */
+  {
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 28,
+      columnNumber: 11
+    }
+  }))));
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfMW1zOGxzMTlmbyIsImFjdHVhbENvdmVyYWdlIiwiSW50ZXIiLCJQcm92aWRlcnMiLCJOYXZiYXIiLCJGb290ZXIiLCJpbnRlciIsInMiLCJ2YXJpYWJsZSIsInN1YnNldHMiLCJtZXRhZGF0YSIsInRpdGxlIiwiZGVzY3JpcHRpb24iLCJSb290TGF5b3V0IiwiY2hpbGRyZW4iLCJmIiwiX19qc3giLCJsYW5nIiwiY2xhc3NOYW1lIiwiX19zZWxmIiwiX19zb3VyY2UiLCJmaWxlTmFtZSIsIl9qc3hGaWxlTmFtZSIsImxpbmVOdW1iZXIiLCJjb2x1bW5OdW1iZXIiXSwic291cmNlcyI6WyJsYXlvdXQudHN4Il0sInNvdXJjZXNDb250ZW50IjpbIi8vIHNyYy9hcHAvbGF5b3V0LnRzeFxuaW1wb3J0IHR5cGUgeyBNZXRhZGF0YSB9IGZyb20gXCJuZXh0XCI7XG5pbXBvcnQgeyBJbnRlciB9IGZyb20gXCJuZXh0L2ZvbnQvZ29vZ2xlXCI7XG5pbXBvcnQgXCIuL2dsb2JhbHMuY3NzXCI7XG5pbXBvcnQgUHJvdmlkZXJzIGZyb20gXCJAY29tcG9uZW50cy9Qcm92aWRlcnNcIjtcbmltcG9ydCBOYXZiYXIgZnJvbSBcIkBjb21wb25lbnRzL05hdmJhclwiO1xuaW1wb3J0IEZvb3RlciBmcm9tIFwiQGNvbXBvbmVudHMvRm9vdGVyXCI7XG5cbmNvbnN0IGludGVyID0gSW50ZXIoe1xuICB2YXJpYWJsZTogXCItLWZvbnQtaW50ZXJcIixcbiAgc3Vic2V0czogW1wibGF0aW5cIl0sXG59KTtcbmV4cG9ydCBjb25zdCBtZXRhZGF0YTogTWV0YWRhdGEgPSB7XG4gIHRpdGxlOiBcIk1hcmF0cm9uXCIsXG4gIGRlc2NyaXB0aW9uOiBcIk1hcmF0cm9uIEFJIGRlc2NyaXB0aW9uXCIsXG59O1xuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUm9vdExheW91dCh7XG4gIGNoaWxkcmVuLFxufTogUmVhZG9ubHk8e1xuICBjaGlsZHJlbjogUmVhY3QuUmVhY3ROb2RlO1xufT4pIHtcbiAgcmV0dXJuIChcbiAgICA8aHRtbCBsYW5nPVwiZW5cIiBjbGFzc05hbWU9e2ludGVyLnZhcmlhYmxlfT5cbiAgICAgIDxib2R5IGNsYXNzTmFtZT1cImFudGlhbGlhc2VkXCI+XG4gICAgICAgIDxQcm92aWRlcnM+XG4gICAgICAgICAgPE5hdmJhciAvPlxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibWluLWgtc2NyZWVuXCI+e2NoaWxkcmVufTwvZGl2PlxuICAgICAgICAgIDxGb290ZXIgLz5cbiAgICAgICAgPC9Qcm92aWRlcnM+XG4gICAgICA8L2JvZHk+XG4gICAgPC9odG1sPlxuICApO1xufVxuIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0lBZVk7SUFBQUEsY0FBQSxZQUFBQSxDQUFBO01BQUEsT0FBQUMsY0FBQTtJQUFBO0VBQUE7RUFBQSxPQUFBQSxjQUFBO0FBQUE7QUFBQUQsY0FBQTtBQWZaOztBQUVBLFNBQVNFLEtBQUssUUFBUSxrQkFBa0I7QUFDeEMsT0FBTyxlQUFlO0FBQ3RCLE9BQU9DLFNBQVMsTUFBTSx1QkFBdUI7QUFDN0MsT0FBT0MsTUFBTSxNQUFNLG9CQUFvQjtBQUN2QyxPQUFPQyxNQUFNLE1BQU0sb0JBQW9CO0FBRXZDLE1BQU1DLEtBQUs7QUFBQTtBQUFBLENBQUFOLGNBQUEsR0FBQU8sQ0FBQSxPQUFHTCxLQUFLLENBQUM7RUFDbEJNLFFBQVEsRUFBRSxjQUFjO0VBQ3hCQyxPQUFPLEVBQUUsQ0FBQyxPQUFPO0FBQ25CLENBQUMsQ0FBQztBQUNGLE9BQU8sTUFBTUMsUUFBa0I7QUFBQTtBQUFBLENBQUFWLGNBQUEsR0FBQU8sQ0FBQSxPQUFHO0VBQ2hDSSxLQUFLLEVBQUUsVUFBVTtFQUNqQkMsV0FBVyxFQUFFO0FBQ2YsQ0FBQztBQUNELGVBQWUsU0FBU0MsVUFBVUEsQ0FBQztFQUNqQ0M7QUFHRCxDQUFDLEVBQUU7RUFBQTtFQUFBZCxjQUFBLEdBQUFlLENBQUE7RUFBQWYsY0FBQSxHQUFBTyxDQUFBO0VBQ0YsT0FDRSwwQkFBQVMsS0FBQTtFQUFBO0VBQUE7RUFBQTtFQUFBO0lBQU1DLElBQUksRUFBQyxJQUFJO0lBQUNDLFNBQVMsRUFBRVosS0FBSyxDQUFDRSxRQUFTO0lBQUFXLE1BQUE7SUFBQUMsUUFBQTtNQUFBQyxRQUFBLEVBQUFDLFlBQUE7TUFBQUMsVUFBQTtNQUFBQyxZQUFBO0lBQUE7RUFBQTtFQUN4QztFQUFBUixLQUFBO0VBQUE7RUFBQTtFQUFBO0VBQUE7SUFBTUUsU0FBUyxFQUFDLGFBQWE7SUFBQUMsTUFBQTtJQUFBQyxRQUFBO01BQUFDLFFBQUEsRUFBQUMsWUFBQTtNQUFBQyxVQUFBO01BQUFDLFlBQUE7SUFBQTtFQUFBO0VBQzNCO0VBQUFSLEtBQUEsQ0FBQ2IsU0FBUztFQUFBO0VBQUE7SUFBQWdCLE1BQUE7SUFBQUMsUUFBQTtNQUFBQyxRQUFBLEVBQUFDLFlBQUE7TUFBQUMsVUFBQTtNQUFBQyxZQUFBO0lBQUE7RUFBQTtFQUNSO0VBQUFSLEtBQUEsQ0FBQ1osTUFBTTtFQUFBO0VBQUE7SUFBQWUsTUFBQTtJQUFBQyxRQUFBO01BQUFDLFFBQUEsRUFBQUMsWUFBQTtNQUFBQyxVQUFBO01BQUFDLFlBQUE7SUFBQTtFQUFBLENBQUUsQ0FBQztFQUNWO0VBQUFSLEtBQUE7RUFBQTtFQUFBO0VBQUE7RUFBQTtJQUFLRSxTQUFTLEVBQUMsY0FBYztJQUFBQyxNQUFBO0lBQUFDLFFBQUE7TUFBQUMsUUFBQSxFQUFBQyxZQUFBO01BQUFDLFVBQUE7TUFBQUMsWUFBQTtJQUFBO0VBQUEsR0FBRVYsUUFBYyxDQUFDO0VBQzlDO0VBQUFFLEtBQUEsQ0FBQ1gsTUFBTTtFQUFBO0VBQUE7SUFBQWMsTUFBQTtJQUFBQyxRQUFBO01BQUFDLFFBQUEsRUFBQUMsWUFBQTtNQUFBQyxVQUFBO01BQUFDLFlBQUE7SUFBQTtFQUFBLENBQUUsQ0FDQSxDQUNQLENBQ0YsQ0FBQztBQUVYIiwiaWdub3JlTGlzdCI6W119

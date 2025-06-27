@@ -1,0 +1,12 @@
+59e3be9ea5d1d5b3ae19ffb4cde99e62
+"use strict";
+
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _calculatePace = _interopRequireDefault(require("../running/calculatePace"));
+describe("calculatePace", () => {
+  it("computes pace from duration and distance", () => {
+    expect((0, _calculatePace.default)("01:00:00", 10)).toBe("06:00");
+    expect((0, _calculatePace.default)("00:30:00", 5)).toBe("06:00");
+  });
+});
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJfY2FsY3VsYXRlUGFjZSIsIl9pbnRlcm9wUmVxdWlyZURlZmF1bHQiLCJyZXF1aXJlIiwiZGVzY3JpYmUiLCJpdCIsImV4cGVjdCIsImNhbGN1bGF0ZVBhY2UiLCJ0b0JlIl0sInNvdXJjZXMiOlsiY2FsY3VsYXRlUGFjZS50ZXN0LnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBjYWxjdWxhdGVQYWNlIGZyb20gXCIuLi9ydW5uaW5nL2NhbGN1bGF0ZVBhY2VcIjtcblxuZGVzY3JpYmUoXCJjYWxjdWxhdGVQYWNlXCIsICgpID0+IHtcbiAgaXQoXCJjb21wdXRlcyBwYWNlIGZyb20gZHVyYXRpb24gYW5kIGRpc3RhbmNlXCIsICgpID0+IHtcbiAgICBleHBlY3QoY2FsY3VsYXRlUGFjZShcIjAxOjAwOjAwXCIsIDEwKSkudG9CZShcIjA2OjAwXCIpO1xuICAgIGV4cGVjdChjYWxjdWxhdGVQYWNlKFwiMDA6MzA6MDBcIiwgNSkpLnRvQmUoXCIwNjowMFwiKTtcbiAgfSk7XG59KTtcbiJdLCJtYXBwaW5ncyI6Ijs7O0FBQUEsSUFBQUEsY0FBQSxHQUFBQyxzQkFBQSxDQUFBQyxPQUFBO0FBRUFDLFFBQVEsQ0FBQyxlQUFlLEVBQUUsTUFBTTtFQUM5QkMsRUFBRSxDQUFDLDBDQUEwQyxFQUFFLE1BQU07SUFDbkRDLE1BQU0sQ0FBQyxJQUFBQyxzQkFBYSxFQUFDLFVBQVUsRUFBRSxFQUFFLENBQUMsQ0FBQyxDQUFDQyxJQUFJLENBQUMsT0FBTyxDQUFDO0lBQ25ERixNQUFNLENBQUMsSUFBQUMsc0JBQWEsRUFBQyxVQUFVLEVBQUUsQ0FBQyxDQUFDLENBQUMsQ0FBQ0MsSUFBSSxDQUFDLE9BQU8sQ0FBQztFQUNwRCxDQUFDLENBQUM7QUFDSixDQUFDLENBQUMiLCJpZ25vcmVMaXN0IjpbXX0=

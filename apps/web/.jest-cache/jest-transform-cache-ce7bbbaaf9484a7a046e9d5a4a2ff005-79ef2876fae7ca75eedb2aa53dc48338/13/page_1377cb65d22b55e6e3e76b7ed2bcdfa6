@@ -1,0 +1,123 @@
+34c6ea0ee025bb142f696ab34485c3ff
+/* istanbul ignore next */
+var _jsxFileName = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/about/page.tsx";
+import React from "react";
+var __jsx = React.createElement;
+function cov_z5dg50xjc() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/about/page.tsx";
+  var hash = "b926391f6906796d59c51eba708339247f8e5276";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/about/page.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 3,
+          column: 2
+        },
+        end: {
+          line: 11,
+          column: 4
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "AboutPage",
+        decl: {
+          start: {
+            line: 2,
+            column: 24
+          },
+          end: {
+            line: 2,
+            column: 33
+          }
+        },
+        loc: {
+          start: {
+            line: 2,
+            column: 36
+          },
+          end: {
+            line: 12,
+            column: 1
+          }
+        },
+        line: 2
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "b926391f6906796d59c51eba708339247f8e5276"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_z5dg50xjc = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_z5dg50xjc();
+// src/app/about/page.tsx
+export default function AboutPage() {
+  /* istanbul ignore next */
+  cov_z5dg50xjc().f[0]++;
+  cov_z5dg50xjc().s[0]++;
+  return /* istanbul ignore next */__jsx(
+  /* istanbul ignore next */
+  "main",
+  /* istanbul ignore next */
+  {
+    className: "w-full px-4 sm:px-6 lg:px-8 min-h-screen flex flex-col items-center justify-center space-y-6",
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 4,
+      columnNumber: 5
+    }
+  },
+  /* istanbul ignore next */
+  __jsx(
+  /* istanbul ignore next */
+  "h1",
+  /* istanbul ignore next */
+  {
+    className: "text-3xl font-bold",
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 5,
+      columnNumber: 7
+    }
+  }, "About Maratron"),
+  /* istanbul ignore next */
+  __jsx(
+  /* istanbul ignore next */
+  "p",
+  /* istanbul ignore next */
+  {
+    className: "text-lg text-center",
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 6,
+      columnNumber: 7
+    }
+  }, "Maratron is your AI-powered running coach, helping you train smarter, stay motivated, and achieve your goals\u2014one step at a time!"));
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfejVkZzUweGpjIiwiYWN0dWFsQ292ZXJhZ2UiLCJBYm91dFBhZ2UiLCJmIiwicyIsIl9fanN4IiwiY2xhc3NOYW1lIiwiX19zZWxmIiwiX19zb3VyY2UiLCJmaWxlTmFtZSIsIl9qc3hGaWxlTmFtZSIsImxpbmVOdW1iZXIiLCJjb2x1bW5OdW1iZXIiXSwic291cmNlcyI6WyJwYWdlLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBzcmMvYXBwL2Fib3V0L3BhZ2UudHN4XG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBBYm91dFBhZ2UoKSB7XG4gIHJldHVybiAoXG4gICAgPG1haW4gY2xhc3NOYW1lPVwidy1mdWxsIHB4LTQgc206cHgtNiBsZzpweC04IG1pbi1oLXNjcmVlbiBmbGV4IGZsZXgtY29sIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBzcGFjZS15LTZcIj5cbiAgICAgIDxoMSBjbGFzc05hbWU9XCJ0ZXh0LTN4bCBmb250LWJvbGRcIj5BYm91dCBNYXJhdHJvbjwvaDE+XG4gICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LWxnIHRleHQtY2VudGVyXCI+XG4gICAgICAgIE1hcmF0cm9uIGlzIHlvdXIgQUktcG93ZXJlZCBydW5uaW5nIGNvYWNoLCBoZWxwaW5nIHlvdSB0cmFpbiBzbWFydGVyLFxuICAgICAgICBzdGF5IG1vdGl2YXRlZCwgYW5kIGFjaGlldmUgeW91ciBnb2Fsc+KAlG9uZSBzdGVwIGF0IGEgdGltZSFcbiAgICAgIDwvcD5cbiAgICA8L21haW4+XG4gICk7XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztJQWVZO0lBQUFBLGFBQUEsWUFBQUEsQ0FBQTtNQUFBLE9BQUFDLGNBQUE7SUFBQTtFQUFBO0VBQUEsT0FBQUEsY0FBQTtBQUFBO0FBQUFELGFBQUE7QUFmWjtBQUNBLGVBQWUsU0FBU0UsU0FBU0EsQ0FBQSxFQUFHO0VBQUE7RUFBQUYsYUFBQSxHQUFBRyxDQUFBO0VBQUFILGFBQUEsR0FBQUksQ0FBQTtFQUNsQyxPQUNFLDBCQUFBQyxLQUFBO0VBQUE7RUFBQTtFQUFBO0VBQUE7SUFBTUMsU0FBUyxFQUFDLDhGQUE4RjtJQUFBQyxNQUFBO0lBQUFDLFFBQUE7TUFBQUMsUUFBQSxFQUFBQyxZQUFBO01BQUFDLFVBQUE7TUFBQUMsWUFBQTtJQUFBO0VBQUE7RUFDNUc7RUFBQVAsS0FBQTtFQUFBO0VBQUE7RUFBQTtFQUFBO0lBQUlDLFNBQVMsRUFBQyxvQkFBb0I7SUFBQUMsTUFBQTtJQUFBQyxRQUFBO01BQUFDLFFBQUEsRUFBQUMsWUFBQTtNQUFBQyxVQUFBO01BQUFDLFlBQUE7SUFBQTtFQUFBLEdBQUMsZ0JBQWtCLENBQUM7RUFDdEQ7RUFBQVAsS0FBQTtFQUFBO0VBQUE7RUFBQTtFQUFBO0lBQUdDLFNBQVMsRUFBQyxxQkFBcUI7SUFBQUMsTUFBQTtJQUFBQyxRQUFBO01BQUFDLFFBQUEsRUFBQUMsWUFBQTtNQUFBQyxVQUFBO01BQUFDLFlBQUE7SUFBQTtFQUFBLEdBQUMsdUlBR2hDLENBQ0MsQ0FBQztBQUVYIiwiaWdub3JlTGlzdCI6W119

@@ -1,0 +1,171 @@
+7658727df8ed3a95d4e28a041226b921
+/* istanbul ignore next */
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+function cov_1gdk3gbvy4() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/lib/utils/running/calculatePace.ts";
+  var hash = "9216b16f5dd87b0238a9a332f3f51fc96c3fd266";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/lib/utils/running/calculatePace.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 22
+        },
+        end: {
+          line: 11,
+          column: 1
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 36
+        },
+        end: {
+          line: 3,
+          column: 67
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 23
+        },
+        end: {
+          line: 4,
+          column: 60
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 22
+        },
+        end: {
+          line: 5,
+          column: 45
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 22
+        },
+        end: {
+          line: 6,
+          column: 50
+        }
+      },
+      "5": {
+        start: {
+          line: 7,
+          column: 27
+        },
+        end: {
+          line: 7,
+          column: 55
+        }
+      },
+      "6": {
+        start: {
+          line: 8,
+          column: 2
+        },
+        end: {
+          line: 10,
+          column: 24
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 2,
+            column: 22
+          },
+          end: {
+            line: 2,
+            column: 23
+          }
+        },
+        loc: {
+          start: {
+            line: 2,
+            column: 70
+          },
+          end: {
+            line: 11,
+            column: 1
+          }
+        },
+        line: 2
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "9216b16f5dd87b0238a9a332f3f51fc96c3fd266"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_1gdk3gbvy4 = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_1gdk3gbvy4();
+cov_1gdk3gbvy4().s[0]++;
+// Updated helper function to calculate pace (mm:ss per unit) using HH:MM:SS input
+const calculatePace = (duration, distance) => {
+  /* istanbul ignore next */
+  cov_1gdk3gbvy4().f[0]++;
+  const [hours, minutes, seconds] =
+  /* istanbul ignore next */
+  (cov_1gdk3gbvy4().s[1]++, duration.split(":").map(Number));
+  const totalSeconds =
+  /* istanbul ignore next */
+  (cov_1gdk3gbvy4().s[2]++, hours * 3600 + minutes * 60 + seconds);
+  const paceSeconds =
+  /* istanbul ignore next */
+  (cov_1gdk3gbvy4().s[3]++, totalSeconds / distance);
+  const paceMinutes =
+  /* istanbul ignore next */
+  (cov_1gdk3gbvy4().s[4]++, Math.floor(paceSeconds / 60));
+  const remainingSeconds =
+  /* istanbul ignore next */
+  (cov_1gdk3gbvy4().s[5]++, Math.round(paceSeconds % 60));
+  /* istanbul ignore next */
+  cov_1gdk3gbvy4().s[6]++;
+  return `${paceMinutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
+/* istanbul ignore next */
+var _default = exports.default = calculatePace;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfMWdkazNnYnZ5NCIsImFjdHVhbENvdmVyYWdlIiwicyIsImNhbGN1bGF0ZVBhY2UiLCJkdXJhdGlvbiIsImRpc3RhbmNlIiwiZiIsImhvdXJzIiwibWludXRlcyIsInNlY29uZHMiLCJzcGxpdCIsIm1hcCIsIk51bWJlciIsInRvdGFsU2Vjb25kcyIsInBhY2VTZWNvbmRzIiwicGFjZU1pbnV0ZXMiLCJNYXRoIiwiZmxvb3IiLCJyZW1haW5pbmdTZWNvbmRzIiwicm91bmQiLCJ0b1N0cmluZyIsInBhZFN0YXJ0IiwiX2RlZmF1bHQiLCJleHBvcnRzIiwiZGVmYXVsdCJdLCJzb3VyY2VzIjpbImNhbGN1bGF0ZVBhY2UudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLy8gVXBkYXRlZCBoZWxwZXIgZnVuY3Rpb24gdG8gY2FsY3VsYXRlIHBhY2UgKG1tOnNzIHBlciB1bml0KSB1c2luZyBISDpNTTpTUyBpbnB1dFxuY29uc3QgY2FsY3VsYXRlUGFjZSA9IChkdXJhdGlvbjogc3RyaW5nLCBkaXN0YW5jZTogbnVtYmVyKTogc3RyaW5nID0+IHtcbiAgY29uc3QgW2hvdXJzLCBtaW51dGVzLCBzZWNvbmRzXSA9IGR1cmF0aW9uLnNwbGl0KFwiOlwiKS5tYXAoTnVtYmVyKTtcbiAgY29uc3QgdG90YWxTZWNvbmRzID0gaG91cnMgKiAzNjAwICsgbWludXRlcyAqIDYwICsgc2Vjb25kcztcbiAgY29uc3QgcGFjZVNlY29uZHMgPSB0b3RhbFNlY29uZHMgLyBkaXN0YW5jZTtcbiAgY29uc3QgcGFjZU1pbnV0ZXMgPSBNYXRoLmZsb29yKHBhY2VTZWNvbmRzIC8gNjApO1xuICBjb25zdCByZW1haW5pbmdTZWNvbmRzID0gTWF0aC5yb3VuZChwYWNlU2Vjb25kcyAlIDYwKTtcbiAgcmV0dXJuIGAke3BhY2VNaW51dGVzLnRvU3RyaW5nKCkucGFkU3RhcnQoMiwgXCIwXCIpfToke3JlbWFpbmluZ1NlY29uZHNcbiAgICAudG9TdHJpbmcoKVxuICAgIC5wYWRTdGFydCgyLCBcIjBcIil9YDtcbn07XG5cbmV4cG9ydCBkZWZhdWx0IGNhbGN1bGF0ZVBhY2U7Il0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7SUFlWTtJQUFBQSxjQUFBLFlBQUFBLENBQUE7TUFBQSxPQUFBQyxjQUFBO0lBQUE7RUFBQTtFQUFBLE9BQUFBLGNBQUE7QUFBQTtBQUFBRCxjQUFBO0FBQUFBLGNBQUEsR0FBQUUsQ0FBQTtBQWZaO0FBQ0EsTUFBTUMsYUFBYSxHQUFHQSxDQUFDQyxRQUFnQixFQUFFQyxRQUFnQixLQUFhO0VBQUE7RUFBQUwsY0FBQSxHQUFBTSxDQUFBO0VBQ3BFLE1BQU0sQ0FBQ0MsS0FBSyxFQUFFQyxPQUFPLEVBQUVDLE9BQU8sQ0FBQztFQUFBO0VBQUEsQ0FBQVQsY0FBQSxHQUFBRSxDQUFBLE9BQUdFLFFBQVEsQ0FBQ00sS0FBSyxDQUFDLEdBQUcsQ0FBQyxDQUFDQyxHQUFHLENBQUNDLE1BQU0sQ0FBQztFQUNqRSxNQUFNQyxZQUFZO0VBQUE7RUFBQSxDQUFBYixjQUFBLEdBQUFFLENBQUEsT0FBR0ssS0FBSyxHQUFHLElBQUksR0FBR0MsT0FBTyxHQUFHLEVBQUUsR0FBR0MsT0FBTztFQUMxRCxNQUFNSyxXQUFXO0VBQUE7RUFBQSxDQUFBZCxjQUFBLEdBQUFFLENBQUEsT0FBR1csWUFBWSxHQUFHUixRQUFRO0VBQzNDLE1BQU1VLFdBQVc7RUFBQTtFQUFBLENBQUFmLGNBQUEsR0FBQUUsQ0FBQSxPQUFHYyxJQUFJLENBQUNDLEtBQUssQ0FBQ0gsV0FBVyxHQUFHLEVBQUUsQ0FBQztFQUNoRCxNQUFNSSxnQkFBZ0I7RUFBQTtFQUFBLENBQUFsQixjQUFBLEdBQUFFLENBQUEsT0FBR2MsSUFBSSxDQUFDRyxLQUFLLENBQUNMLFdBQVcsR0FBRyxFQUFFLENBQUM7RUFBQztFQUFBZCxjQUFBLEdBQUFFLENBQUE7RUFDdEQsT0FBTyxHQUFHYSxXQUFXLENBQUNLLFFBQVEsQ0FBQyxDQUFDLENBQUNDLFFBQVEsQ0FBQyxDQUFDLEVBQUUsR0FBRyxDQUFDLElBQUlILGdCQUFnQixDQUNsRUUsUUFBUSxDQUFDLENBQUMsQ0FDVkMsUUFBUSxDQUFDLENBQUMsRUFBRSxHQUFHLENBQUMsRUFBRTtBQUN2QixDQUFDO0FBQUM7QUFBQSxJQUFBQyxRQUFBLEdBQUFDLE9BQUEsQ0FBQUMsT0FBQSxHQUVhckIsYUFBYSIsImlnbm9yZUxpc3QiOltdfQ==

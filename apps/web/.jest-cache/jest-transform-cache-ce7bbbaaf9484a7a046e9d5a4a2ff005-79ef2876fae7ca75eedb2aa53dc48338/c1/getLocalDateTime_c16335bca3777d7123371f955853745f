@@ -1,0 +1,120 @@
+ccb40a1b9c187e50c6e5f2262e122dc1
+/* istanbul ignore next */
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getLocalDateTime = getLocalDateTime;
+function cov_uq8m2pndr() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/lib/utils/time/getLocalDateTime.ts";
+  var hash = "04597965d5c8eae97b0de44dbbb18d124cd89882";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/lib/utils/time/getLocalDateTime.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 8,
+          column: 14
+        },
+        end: {
+          line: 8,
+          column: 24
+        }
+      },
+      "1": {
+        start: {
+          line: 9,
+          column: 2
+        },
+        end: {
+          line: 9,
+          column: 61
+        }
+      },
+      "2": {
+        start: {
+          line: 10,
+          column: 2
+        },
+        end: {
+          line: 10,
+          column: 40
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "getLocalDateTime",
+        decl: {
+          start: {
+            line: 7,
+            column: 16
+          },
+          end: {
+            line: 7,
+            column: 32
+          }
+        },
+        loc: {
+          start: {
+            line: 7,
+            column: 43
+          },
+          end: {
+            line: 11,
+            column: 1
+          }
+        },
+        line: 7
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "04597965d5c8eae97b0de44dbbb18d124cd89882"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_uq8m2pndr = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_uq8m2pndr();
+// src/lib/utils/time.ts
+
+/**
+ * Returns a string for <input type="datetime-local">
+ * reflecting the user's local timezone.
+ */
+function getLocalDateTime() {
+  /* istanbul ignore next */
+  cov_uq8m2pndr().f[0]++;
+  const now =
+  /* istanbul ignore next */
+  (cov_uq8m2pndr().s[0]++, new Date());
+  /* istanbul ignore next */
+  cov_uq8m2pndr().s[1]++;
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  /* istanbul ignore next */
+  cov_uq8m2pndr().s[2]++;
+  return now.toISOString().slice(0, 16);
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfdXE4bTJwbmRyIiwiYWN0dWFsQ292ZXJhZ2UiLCJnZXRMb2NhbERhdGVUaW1lIiwiZiIsIm5vdyIsInMiLCJEYXRlIiwic2V0TWludXRlcyIsImdldE1pbnV0ZXMiLCJnZXRUaW1lem9uZU9mZnNldCIsInRvSVNPU3RyaW5nIiwic2xpY2UiXSwic291cmNlcyI6WyJnZXRMb2NhbERhdGVUaW1lLnRzIl0sInNvdXJjZXNDb250ZW50IjpbIi8vIHNyYy9saWIvdXRpbHMvdGltZS50c1xuXG4vKipcbiAqIFJldHVybnMgYSBzdHJpbmcgZm9yIDxpbnB1dCB0eXBlPVwiZGF0ZXRpbWUtbG9jYWxcIj5cbiAqIHJlZmxlY3RpbmcgdGhlIHVzZXIncyBsb2NhbCB0aW1lem9uZS5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIGdldExvY2FsRGF0ZVRpbWUoKTogc3RyaW5nIHtcbiAgY29uc3Qgbm93ID0gbmV3IERhdGUoKTtcbiAgbm93LnNldE1pbnV0ZXMobm93LmdldE1pbnV0ZXMoKSAtIG5vdy5nZXRUaW1lem9uZU9mZnNldCgpKTtcbiAgcmV0dXJuIG5vdy50b0lTT1N0cmluZygpLnNsaWNlKDAsIDE2KTtcbn1cbiJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztJQWVZO0lBQUFBLGFBQUEsWUFBQUEsQ0FBQTtNQUFBLE9BQUFDLGNBQUE7SUFBQTtFQUFBO0VBQUEsT0FBQUEsY0FBQTtBQUFBO0FBQUFELGFBQUE7QUFmWjs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNPLFNBQVNFLGdCQUFnQkEsQ0FBQSxFQUFXO0VBQUE7RUFBQUYsYUFBQSxHQUFBRyxDQUFBO0VBQ3pDLE1BQU1DLEdBQUc7RUFBQTtFQUFBLENBQUFKLGFBQUEsR0FBQUssQ0FBQSxPQUFHLElBQUlDLElBQUksQ0FBQyxDQUFDO0VBQUM7RUFBQU4sYUFBQSxHQUFBSyxDQUFBO0VBQ3ZCRCxHQUFHLENBQUNHLFVBQVUsQ0FBQ0gsR0FBRyxDQUFDSSxVQUFVLENBQUMsQ0FBQyxHQUFHSixHQUFHLENBQUNLLGlCQUFpQixDQUFDLENBQUMsQ0FBQztFQUFDO0VBQUFULGFBQUEsR0FBQUssQ0FBQTtFQUMzRCxPQUFPRCxHQUFHLENBQUNNLFdBQVcsQ0FBQyxDQUFDLENBQUNDLEtBQUssQ0FBQyxDQUFDLEVBQUUsRUFBRSxDQUFDO0FBQ3ZDIiwiaWdub3JlTGlzdCI6W119

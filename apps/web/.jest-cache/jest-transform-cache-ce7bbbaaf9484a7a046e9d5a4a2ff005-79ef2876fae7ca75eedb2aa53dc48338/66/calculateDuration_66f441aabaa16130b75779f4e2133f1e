@@ -1,0 +1,156 @@
+7ff1869d3063c619871fdf2ba75cac28
+/* istanbul ignore next */
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.calculateDurationFromPace = calculateDurationFromPace;
+function cov_20ob5uduad() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/lib/utils/running/calculateDuration.ts";
+  var hash = "9a6914ddbcdb4208d75a01521ddc039c233d131a";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/lib/utils/running/calculateDuration.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 21
+        },
+        end: {
+          line: 2,
+          column: 48
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 16
+        },
+        end: {
+          line: 3,
+          column: 43
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 16
+        },
+        end: {
+          line: 4,
+          column: 40
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 18
+        },
+        end: {
+          line: 5,
+          column: 49
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 18
+        },
+        end: {
+          line: 6,
+          column: 40
+        }
+      },
+      "5": {
+        start: {
+          line: 7,
+          column: 2
+        },
+        end: {
+          line: 9,
+          column: 63
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "calculateDurationFromPace",
+        decl: {
+          start: {
+            line: 1,
+            column: 16
+          },
+          end: {
+            line: 1,
+            column: 41
+          }
+        },
+        loc: {
+          start: {
+            line: 1,
+            column: 82
+          },
+          end: {
+            line: 10,
+            column: 1
+          }
+        },
+        line: 1
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "9a6914ddbcdb4208d75a01521ddc039c233d131a"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_20ob5uduad = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_20ob5uduad();
+function calculateDurationFromPace(distance, pace) {
+  /* istanbul ignore next */
+  cov_20ob5uduad().f[0]++;
+  const [min, sec] =
+  /* istanbul ignore next */
+  (cov_20ob5uduad().s[0]++, pace.split(":").map(Number));
+  const total =
+  /* istanbul ignore next */
+  (cov_20ob5uduad().s[1]++, (min * 60 + sec) * distance);
+  const hours =
+  /* istanbul ignore next */
+  (cov_20ob5uduad().s[2]++, Math.floor(total / 3600));
+  const minutes =
+  /* istanbul ignore next */
+  (cov_20ob5uduad().s[3]++, Math.floor(total % 3600 / 60));
+  const seconds =
+  /* istanbul ignore next */
+  (cov_20ob5uduad().s[4]++, Math.round(total % 60));
+  /* istanbul ignore next */
+  cov_20ob5uduad().s[5]++;
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfMjBvYjV1ZHVhZCIsImFjdHVhbENvdmVyYWdlIiwiY2FsY3VsYXRlRHVyYXRpb25Gcm9tUGFjZSIsImRpc3RhbmNlIiwicGFjZSIsImYiLCJtaW4iLCJzZWMiLCJzIiwic3BsaXQiLCJtYXAiLCJOdW1iZXIiLCJ0b3RhbCIsImhvdXJzIiwiTWF0aCIsImZsb29yIiwibWludXRlcyIsInNlY29uZHMiLCJyb3VuZCIsInRvU3RyaW5nIiwicGFkU3RhcnQiXSwic291cmNlcyI6WyJjYWxjdWxhdGVEdXJhdGlvbi50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZnVuY3Rpb24gY2FsY3VsYXRlRHVyYXRpb25Gcm9tUGFjZShkaXN0YW5jZTogbnVtYmVyLCBwYWNlOiBzdHJpbmcpOiBzdHJpbmcge1xuICBjb25zdCBbbWluLCBzZWNdID0gcGFjZS5zcGxpdChcIjpcIikubWFwKE51bWJlcik7XG4gIGNvbnN0IHRvdGFsID0gKG1pbiAqIDYwICsgc2VjKSAqIGRpc3RhbmNlO1xuICBjb25zdCBob3VycyA9IE1hdGguZmxvb3IodG90YWwgLyAzNjAwKTtcbiAgY29uc3QgbWludXRlcyA9IE1hdGguZmxvb3IoKHRvdGFsICUgMzYwMCkgLyA2MCk7XG4gIGNvbnN0IHNlY29uZHMgPSBNYXRoLnJvdW5kKHRvdGFsICUgNjApO1xuICByZXR1cm4gYCR7aG91cnMudG9TdHJpbmcoKS5wYWRTdGFydCgyLCBcIjBcIil9OiR7bWludXRlc1xuICAgIC50b1N0cmluZygpXG4gICAgLnBhZFN0YXJ0KDIsIFwiMFwiKX06JHtzZWNvbmRzLnRvU3RyaW5nKCkucGFkU3RhcnQoMiwgXCIwXCIpfWA7XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7SUFlWTtJQUFBQSxjQUFBLFlBQUFBLENBQUE7TUFBQSxPQUFBQyxjQUFBO0lBQUE7RUFBQTtFQUFBLE9BQUFBLGNBQUE7QUFBQTtBQUFBRCxjQUFBO0FBZkwsU0FBU0UseUJBQXlCQSxDQUFDQyxRQUFnQixFQUFFQyxJQUFZLEVBQVU7RUFBQTtFQUFBSixjQUFBLEdBQUFLLENBQUE7RUFDaEYsTUFBTSxDQUFDQyxHQUFHLEVBQUVDLEdBQUcsQ0FBQztFQUFBO0VBQUEsQ0FBQVAsY0FBQSxHQUFBUSxDQUFBLE9BQUdKLElBQUksQ0FBQ0ssS0FBSyxDQUFDLEdBQUcsQ0FBQyxDQUFDQyxHQUFHLENBQUNDLE1BQU0sQ0FBQztFQUM5QyxNQUFNQyxLQUFLO0VBQUE7RUFBQSxDQUFBWixjQUFBLEdBQUFRLENBQUEsT0FBRyxDQUFDRixHQUFHLEdBQUcsRUFBRSxHQUFHQyxHQUFHLElBQUlKLFFBQVE7RUFDekMsTUFBTVUsS0FBSztFQUFBO0VBQUEsQ0FBQWIsY0FBQSxHQUFBUSxDQUFBLE9BQUdNLElBQUksQ0FBQ0MsS0FBSyxDQUFDSCxLQUFLLEdBQUcsSUFBSSxDQUFDO0VBQ3RDLE1BQU1JLE9BQU87RUFBQTtFQUFBLENBQUFoQixjQUFBLEdBQUFRLENBQUEsT0FBR00sSUFBSSxDQUFDQyxLQUFLLENBQUVILEtBQUssR0FBRyxJQUFJLEdBQUksRUFBRSxDQUFDO0VBQy9DLE1BQU1LLE9BQU87RUFBQTtFQUFBLENBQUFqQixjQUFBLEdBQUFRLENBQUEsT0FBR00sSUFBSSxDQUFDSSxLQUFLLENBQUNOLEtBQUssR0FBRyxFQUFFLENBQUM7RUFBQztFQUFBWixjQUFBLEdBQUFRLENBQUE7RUFDdkMsT0FBTyxHQUFHSyxLQUFLLENBQUNNLFFBQVEsQ0FBQyxDQUFDLENBQUNDLFFBQVEsQ0FBQyxDQUFDLEVBQUUsR0FBRyxDQUFDLElBQUlKLE9BQU8sQ0FDbkRHLFFBQVEsQ0FBQyxDQUFDLENBQ1ZDLFFBQVEsQ0FBQyxDQUFDLEVBQUUsR0FBRyxDQUFDLElBQUlILE9BQU8sQ0FBQ0UsUUFBUSxDQUFDLENBQUMsQ0FBQ0MsUUFBUSxDQUFDLENBQUMsRUFBRSxHQUFHLENBQUMsRUFBRTtBQUM5RCIsImlnbm9yZUxpc3QiOltdfQ==

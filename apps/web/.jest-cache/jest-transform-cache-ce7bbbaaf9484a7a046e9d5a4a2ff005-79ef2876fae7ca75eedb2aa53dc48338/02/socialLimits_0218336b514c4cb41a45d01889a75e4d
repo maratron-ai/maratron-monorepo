@@ -1,0 +1,125 @@
+3bc5fc701c72fa064980a931e3da2ea9
+/* istanbul ignore next */
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.PROFILE_STATS_LIMIT = exports.PROFILE_POST_LIMIT = exports.GROUP_POST_LIMIT = exports.GROUP_LIST_LIMIT = exports.FEED_POST_LIMIT = exports.COMMENT_LIMIT = void 0;
+function cov_dfmxx3gq7() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/lib/socialLimits.ts";
+  var hash = "e90ca4b4c6f76f8fc1baa35975b617478d33f39d";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/lib/socialLimits.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 1,
+          column: 31
+        },
+        end: {
+          line: 1,
+          column: 33
+        }
+      },
+      "1": {
+        start: {
+          line: 2,
+          column: 32
+        },
+        end: {
+          line: 2,
+          column: 34
+        }
+      },
+      "2": {
+        start: {
+          line: 3,
+          column: 34
+        },
+        end: {
+          line: 3,
+          column: 36
+        }
+      },
+      "3": {
+        start: {
+          line: 4,
+          column: 29
+        },
+        end: {
+          line: 4,
+          column: 31
+        }
+      },
+      "4": {
+        start: {
+          line: 5,
+          column: 32
+        },
+        end: {
+          line: 5,
+          column: 34
+        }
+      },
+      "5": {
+        start: {
+          line: 6,
+          column: 35
+        },
+        end: {
+          line: 6,
+          column: 37
+        }
+      }
+    },
+    fnMap: {},
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0
+    },
+    f: {},
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "e90ca4b4c6f76f8fc1baa35975b617478d33f39d"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_dfmxx3gq7 = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_dfmxx3gq7();
+const FEED_POST_LIMIT =
+/* istanbul ignore next */
+exports.FEED_POST_LIMIT = (cov_dfmxx3gq7().s[0]++, 20);
+const GROUP_POST_LIMIT =
+/* istanbul ignore next */
+exports.GROUP_POST_LIMIT = (cov_dfmxx3gq7().s[1]++, 20);
+const PROFILE_POST_LIMIT =
+/* istanbul ignore next */
+exports.PROFILE_POST_LIMIT = (cov_dfmxx3gq7().s[2]++, 20);
+const COMMENT_LIMIT =
+/* istanbul ignore next */
+exports.COMMENT_LIMIT = (cov_dfmxx3gq7().s[3]++, 50);
+const GROUP_LIST_LIMIT =
+/* istanbul ignore next */
+exports.GROUP_LIST_LIMIT = (cov_dfmxx3gq7().s[4]++, 50);
+const PROFILE_STATS_LIMIT =
+/* istanbul ignore next */
+exports.PROFILE_STATS_LIMIT = (cov_dfmxx3gq7().s[5]++, 20);
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfZGZteHgzZ3E3IiwiYWN0dWFsQ292ZXJhZ2UiLCJGRUVEX1BPU1RfTElNSVQiLCJleHBvcnRzIiwicyIsIkdST1VQX1BPU1RfTElNSVQiLCJQUk9GSUxFX1BPU1RfTElNSVQiLCJDT01NRU5UX0xJTUlUIiwiR1JPVVBfTElTVF9MSU1JVCIsIlBST0ZJTEVfU1RBVFNfTElNSVQiXSwic291cmNlcyI6WyJzb2NpYWxMaW1pdHMudHMiXSwic291cmNlc0NvbnRlbnQiOlsiZXhwb3J0IGNvbnN0IEZFRURfUE9TVF9MSU1JVCA9IDIwO1xuZXhwb3J0IGNvbnN0IEdST1VQX1BPU1RfTElNSVQgPSAyMDtcbmV4cG9ydCBjb25zdCBQUk9GSUxFX1BPU1RfTElNSVQgPSAyMDtcbmV4cG9ydCBjb25zdCBDT01NRU5UX0xJTUlUID0gNTA7XG5leHBvcnQgY29uc3QgR1JPVVBfTElTVF9MSU1JVCA9IDUwO1xuZXhwb3J0IGNvbnN0IFBST0ZJTEVfU1RBVFNfTElNSVQgPSAyMDtcblxuIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0lBZVk7SUFBQUEsYUFBQSxZQUFBQSxDQUFBO01BQUEsT0FBQUMsY0FBQTtJQUFBO0VBQUE7RUFBQSxPQUFBQSxjQUFBO0FBQUE7QUFBQUQsYUFBQTtBQWZMLE1BQU1FLGVBQWU7QUFBQTtBQUFBQyxPQUFBLENBQUFELGVBQUEsSUFBQUYsYUFBQSxHQUFBSSxDQUFBLE9BQUcsRUFBRTtBQUMxQixNQUFNQyxnQkFBZ0I7QUFBQTtBQUFBRixPQUFBLENBQUFFLGdCQUFBLElBQUFMLGFBQUEsR0FBQUksQ0FBQSxPQUFHLEVBQUU7QUFDM0IsTUFBTUUsa0JBQWtCO0FBQUE7QUFBQUgsT0FBQSxDQUFBRyxrQkFBQSxJQUFBTixhQUFBLEdBQUFJLENBQUEsT0FBRyxFQUFFO0FBQzdCLE1BQU1HLGFBQWE7QUFBQTtBQUFBSixPQUFBLENBQUFJLGFBQUEsSUFBQVAsYUFBQSxHQUFBSSxDQUFBLE9BQUcsRUFBRTtBQUN4QixNQUFNSSxnQkFBZ0I7QUFBQTtBQUFBTCxPQUFBLENBQUFLLGdCQUFBLElBQUFSLGFBQUEsR0FBQUksQ0FBQSxPQUFHLEVBQUU7QUFDM0IsTUFBTUssbUJBQW1CO0FBQUE7QUFBQU4sT0FBQSxDQUFBTSxtQkFBQSxJQUFBVCxhQUFBLEdBQUFJLENBQUEsT0FBRyxFQUFFIiwiaWdub3JlTGlzdCI6W119

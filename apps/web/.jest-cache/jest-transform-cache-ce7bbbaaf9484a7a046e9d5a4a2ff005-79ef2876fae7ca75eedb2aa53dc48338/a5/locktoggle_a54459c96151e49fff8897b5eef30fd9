@@ -1,0 +1,51 @@
+68b0eb10dd8fb138a679d579d29b1d5d
+"use strict";
+
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = LockToggle;
+var _react = _interopRequireDefault(require("react"));
+var _lucideReact = require("lucide-react");
+var _button = require("./button");
+var _jsxFileName = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/components/ui/lock-toggle.tsx";
+var __jsx = _react.default.createElement;
+function LockToggle({
+  locked,
+  onChange,
+  className,
+  size
+}) {
+  return __jsx(_button.Button, {
+    type: "button",
+    variant: "ghost",
+    size: size || "icon",
+    className: className,
+    "aria-label": locked ? "group is private" : "group is public",
+    onClick: () => onChange?.(!locked),
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 13,
+      columnNumber: 5
+    }
+  }, locked ? __jsx(_lucideReact.Lock, {
+    className: "h-10 w-10",
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 21,
+      columnNumber: 17
+    }
+  }) : __jsx(_lucideReact.Unlock, {
+    className: "h-10 w-10",
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 21,
+      columnNumber: 50
+    }
+  }));
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJfbHVjaWRlUmVhY3QiLCJyZXF1aXJlIiwiX2J1dHRvbiIsIl9qc3hGaWxlTmFtZSIsIl9fanN4IiwiX3JlYWN0IiwiZGVmYXVsdCIsImNyZWF0ZUVsZW1lbnQiLCJMb2NrVG9nZ2xlIiwibG9ja2VkIiwib25DaGFuZ2UiLCJjbGFzc05hbWUiLCJzaXplIiwiQnV0dG9uIiwidHlwZSIsInZhcmlhbnQiLCJvbkNsaWNrIiwiX19zZWxmIiwiX19zb3VyY2UiLCJmaWxlTmFtZSIsImxpbmVOdW1iZXIiLCJjb2x1bW5OdW1iZXIiLCJMb2NrIiwiVW5sb2NrIl0sInNvdXJjZXMiOlsibG9jay10b2dnbGUudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IExvY2ssIFVubG9jayB9IGZyb20gXCJsdWNpZGUtcmVhY3RcIjtcbmltcG9ydCB7IEJ1dHRvbiB9IGZyb20gXCIuL2J1dHRvblwiO1xuXG5pbnRlcmZhY2UgTG9ja1RvZ2dsZVByb3BzIHtcbiAgbG9ja2VkOiBib29sZWFuO1xuICBvbkNoYW5nZT86IChsb2NrZWQ6IGJvb2xlYW4pID0+IHZvaWQ7XG4gIGNsYXNzTmFtZT86IHN0cmluZztcbiAgc2l6ZT86IFwiaWNvblwiIHwgXCJzbVwiIHwgXCJkZWZhdWx0XCIgfCBcImxnXCI7XG59XG5cbmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIExvY2tUb2dnbGUoeyBsb2NrZWQsIG9uQ2hhbmdlLCBjbGFzc05hbWUsIHNpemUgfTogTG9ja1RvZ2dsZVByb3BzKSB7XG4gIHJldHVybiAoXG4gICAgPEJ1dHRvblxuICAgICAgdHlwZT1cImJ1dHRvblwiXG4gICAgICB2YXJpYW50PVwiZ2hvc3RcIlxuICAgICAgc2l6ZT17c2l6ZSB8fCBcImljb25cIn1cbiAgICAgIGNsYXNzTmFtZT17Y2xhc3NOYW1lfVxuICAgICAgYXJpYS1sYWJlbD17bG9ja2VkID8gXCJncm91cCBpcyBwcml2YXRlXCIgOiBcImdyb3VwIGlzIHB1YmxpY1wifVxuICAgICAgb25DbGljaz17KCkgPT4gb25DaGFuZ2U/LighbG9ja2VkKX1cbiAgICA+XG4gICAgICB7bG9ja2VkID8gPExvY2sgY2xhc3NOYW1lPVwiaC0xMCB3LTEwXCIgLz4gOiA8VW5sb2NrIGNsYXNzTmFtZT1cImgtMTAgdy0xMFwiIC8+fVxuICAgIDwvQnV0dG9uPlxuICApO1xufVxuIl0sIm1hcHBpbmdzIjoiOzs7Ozs7OztBQUFBLElBQUFBLFlBQUEsR0FBQUMsT0FBQTtBQUNBLElBQUFDLE9BQUEsR0FBQUQsT0FBQTtBQUFrQyxJQUFBRSxZQUFBO0FBQUEsSUFBQUMsS0FBQSxHQUFBQyxNQUFBLENBQUFDLE9BQUEsQ0FBQUMsYUFBQTtBQVNuQixTQUFTQyxVQUFVQSxDQUFDO0VBQUVDLE1BQU07RUFBRUMsUUFBUTtFQUFFQyxTQUFTO0VBQUVDO0FBQXNCLENBQUMsRUFBRTtFQUN6RixPQUNFUixLQUFBLENBQUNGLE9BQUEsQ0FBQVcsTUFBTTtJQUNMQyxJQUFJLEVBQUMsUUFBUTtJQUNiQyxPQUFPLEVBQUMsT0FBTztJQUNmSCxJQUFJLEVBQUVBLElBQUksSUFBSSxNQUFPO0lBQ3JCRCxTQUFTLEVBQUVBLFNBQVU7SUFDckIsY0FBWUYsTUFBTSxHQUFHLGtCQUFrQixHQUFHLGlCQUFrQjtJQUM1RE8sT0FBTyxFQUFFQSxDQUFBLEtBQU1OLFFBQVEsR0FBRyxDQUFDRCxNQUFNLENBQUU7SUFBQVEsTUFBQTtJQUFBQyxRQUFBO01BQUFDLFFBQUEsRUFBQWhCLFlBQUE7TUFBQWlCLFVBQUE7TUFBQUMsWUFBQTtJQUFBO0VBQUEsR0FFbENaLE1BQU0sR0FBR0wsS0FBQSxDQUFDSixZQUFBLENBQUFzQixJQUFJO0lBQUNYLFNBQVMsRUFBQyxXQUFXO0lBQUFNLE1BQUE7SUFBQUMsUUFBQTtNQUFBQyxRQUFBLEVBQUFoQixZQUFBO01BQUFpQixVQUFBO01BQUFDLFlBQUE7SUFBQTtFQUFBLENBQUUsQ0FBQyxHQUFHakIsS0FBQSxDQUFDSixZQUFBLENBQUF1QixNQUFNO0lBQUNaLFNBQVMsRUFBQyxXQUFXO0lBQUFNLE1BQUE7SUFBQUMsUUFBQTtNQUFBQyxRQUFBLEVBQUFoQixZQUFBO01BQUFpQixVQUFBO01BQUFDLFlBQUE7SUFBQTtFQUFBLENBQUUsQ0FDcEUsQ0FBQztBQUViIiwiaWdub3JlTGlzdCI6W119

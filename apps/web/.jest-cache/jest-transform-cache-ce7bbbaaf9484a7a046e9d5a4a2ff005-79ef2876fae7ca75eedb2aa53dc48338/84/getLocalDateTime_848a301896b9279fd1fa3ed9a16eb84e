@@ -1,0 +1,19 @@
+adfc441b00349c13d17bb21f64cd066e
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getLocalDateTime = getLocalDateTime;
+// src/lib/utils/time.ts
+
+/**
+ * Returns a string for <input type="datetime-local">
+ * reflecting the user's local timezone.
+ */
+function getLocalDateTime() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJnZXRMb2NhbERhdGVUaW1lIiwibm93IiwiRGF0ZSIsInNldE1pbnV0ZXMiLCJnZXRNaW51dGVzIiwiZ2V0VGltZXpvbmVPZmZzZXQiLCJ0b0lTT1N0cmluZyIsInNsaWNlIl0sInNvdXJjZXMiOlsiZ2V0TG9jYWxEYXRlVGltZS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBzcmMvbGliL3V0aWxzL3RpbWUudHNcblxuLyoqXG4gKiBSZXR1cm5zIGEgc3RyaW5nIGZvciA8aW5wdXQgdHlwZT1cImRhdGV0aW1lLWxvY2FsXCI+XG4gKiByZWZsZWN0aW5nIHRoZSB1c2VyJ3MgbG9jYWwgdGltZXpvbmUuXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiBnZXRMb2NhbERhdGVUaW1lKCk6IHN0cmluZyB7XG4gIGNvbnN0IG5vdyA9IG5ldyBEYXRlKCk7XG4gIG5vdy5zZXRNaW51dGVzKG5vdy5nZXRNaW51dGVzKCkgLSBub3cuZ2V0VGltZXpvbmVPZmZzZXQoKSk7XG4gIHJldHVybiBub3cudG9JU09TdHJpbmcoKS5zbGljZSgwLCAxNik7XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7OztBQUFBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ08sU0FBU0EsZ0JBQWdCQSxDQUFBLEVBQVc7RUFDekMsTUFBTUMsR0FBRyxHQUFHLElBQUlDLElBQUksQ0FBQyxDQUFDO0VBQ3RCRCxHQUFHLENBQUNFLFVBQVUsQ0FBQ0YsR0FBRyxDQUFDRyxVQUFVLENBQUMsQ0FBQyxHQUFHSCxHQUFHLENBQUNJLGlCQUFpQixDQUFDLENBQUMsQ0FBQztFQUMxRCxPQUFPSixHQUFHLENBQUNLLFdBQVcsQ0FBQyxDQUFDLENBQUNDLEtBQUssQ0FBQyxDQUFDLEVBQUUsRUFBRSxDQUFDO0FBQ3ZDIiwiaWdub3JlTGlzdCI6W119

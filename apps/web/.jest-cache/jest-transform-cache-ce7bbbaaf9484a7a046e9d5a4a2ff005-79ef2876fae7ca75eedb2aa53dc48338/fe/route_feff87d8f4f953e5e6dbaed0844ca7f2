@@ -1,0 +1,249 @@
+23311a8332996da643bc25302c0ff418
+/* istanbul ignore next */
+function cov_1r7hxntxp8() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/api/chat/test/route.ts";
+  var hash = "607140976a497c65db08e73727e7c02b94a2f742";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/api/chat/test/route.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 9,
+          column: 2
+        },
+        end: {
+          line: 26,
+          column: 3
+        }
+      },
+      "1": {
+        start: {
+          line: 10,
+          column: 22
+        },
+        end: {
+          line: 10,
+          column: 36
+        }
+      },
+      "2": {
+        start: {
+          line: 11,
+          column: 18
+        },
+        end: {
+          line: 11,
+          column: 45
+        }
+      },
+      "3": {
+        start: {
+          line: 13,
+          column: 4
+        },
+        end: {
+          line: 17,
+          column: 7
+        }
+      },
+      "4": {
+        start: {
+          line: 19,
+          column: 4
+        },
+        end: {
+          line: 19,
+          column: 56
+        }
+      },
+      "5": {
+        start: {
+          line: 21,
+          column: 4
+        },
+        end: {
+          line: 25,
+          column: 24
+        }
+      },
+      "6": {
+        start: {
+          line: 30,
+          column: 2
+        },
+        end: {
+          line: 30,
+          column: 15
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "GET",
+        decl: {
+          start: {
+            line: 8,
+            column: 22
+          },
+          end: {
+            line: 8,
+            column: 25
+          }
+        },
+        loc: {
+          start: {
+            line: 8,
+            column: 28
+          },
+          end: {
+            line: 27,
+            column: 1
+          }
+        },
+        line: 8
+      },
+      "1": {
+        name: "POST",
+        decl: {
+          start: {
+            line: 29,
+            column: 22
+          },
+          end: {
+            line: 29,
+            column: 26
+          }
+        },
+        loc: {
+          start: {
+            line: 29,
+            column: 29
+          },
+          end: {
+            line: 31,
+            column: 1
+          }
+        },
+        line: 29
+      }
+    },
+    branchMap: {
+      "0": {
+        loc: {
+          start: {
+            line: 24,
+            column: 13
+          },
+          end: {
+            line: 24,
+            column: 67
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 24,
+            column: 38
+          },
+          end: {
+            line: 24,
+            column: 51
+          }
+        }, {
+          start: {
+            line: 24,
+            column: 54
+          },
+          end: {
+            line: 24,
+            column: 67
+          }
+        }],
+        line: 24
+      }
+    },
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0
+    },
+    b: {
+      "0": [0, 0]
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "607140976a497c65db08e73727e7c02b94a2f742"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_1r7hxntxp8 = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_1r7hxntxp8();
+/**
+ * Simple test endpoint to check MCP connection
+ */
+
+import { NextResponse } from 'next/server';
+import { getMCPClient } from '../../../../lib/mcp/client';
+export async function GET() {
+  /* istanbul ignore next */
+  cov_1r7hxntxp8().f[0]++;
+  cov_1r7hxntxp8().s[0]++;
+  try {
+    const mcpClient =
+    /* istanbul ignore next */
+    (cov_1r7hxntxp8().s[1]++, getMCPClient());
+    const tools =
+    /* istanbul ignore next */
+    (cov_1r7hxntxp8().s[2]++, await mcpClient.listTools());
+    /* istanbul ignore next */
+    cov_1r7hxntxp8().s[3]++;
+    return NextResponse.json({
+      status: 'success',
+      message: 'MCP connection successful',
+      availableTools: tools
+    });
+  } catch (error) {
+    /* istanbul ignore next */
+    cov_1r7hxntxp8().s[4]++;
+    console.error('MCP connection test failed:', error);
+    /* istanbul ignore next */
+    cov_1r7hxntxp8().s[5]++;
+    return NextResponse.json({
+      status: 'error',
+      message: 'MCP connection failed',
+      error: error instanceof Error ?
+      /* istanbul ignore next */
+      (cov_1r7hxntxp8().b[0][0]++, error.message) :
+      /* istanbul ignore next */
+      (cov_1r7hxntxp8().b[0][1]++, String(error))
+    }, {
+      status: 500
+    });
+  }
+}
+export async function POST() {
+  /* istanbul ignore next */
+  cov_1r7hxntxp8().f[1]++;
+  cov_1r7hxntxp8().s[6]++;
+  return GET();
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfMXI3aHhudHhwOCIsImFjdHVhbENvdmVyYWdlIiwiTmV4dFJlc3BvbnNlIiwiZ2V0TUNQQ2xpZW50IiwiR0VUIiwiZiIsInMiLCJtY3BDbGllbnQiLCJ0b29scyIsImxpc3RUb29scyIsImpzb24iLCJzdGF0dXMiLCJtZXNzYWdlIiwiYXZhaWxhYmxlVG9vbHMiLCJlcnJvciIsImNvbnNvbGUiLCJFcnJvciIsImIiLCJTdHJpbmciLCJQT1NUIl0sInNvdXJjZXMiOlsicm91dGUudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBTaW1wbGUgdGVzdCBlbmRwb2ludCB0byBjaGVjayBNQ1AgY29ubmVjdGlvblxuICovXG5cbmltcG9ydCB7IE5leHRSZXNwb25zZSB9IGZyb20gJ25leHQvc2VydmVyJztcbmltcG9ydCB7IGdldE1DUENsaWVudCB9IGZyb20gJy4uLy4uLy4uLy4uL2xpYi9tY3AvY2xpZW50JztcblxuZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIEdFVCgpIHtcbiAgdHJ5IHtcbiAgICBjb25zdCBtY3BDbGllbnQgPSBnZXRNQ1BDbGllbnQoKTtcbiAgICBjb25zdCB0b29scyA9IGF3YWl0IG1jcENsaWVudC5saXN0VG9vbHMoKTtcbiAgICBcbiAgICByZXR1cm4gTmV4dFJlc3BvbnNlLmpzb24oe1xuICAgICAgc3RhdHVzOiAnc3VjY2VzcycsXG4gICAgICBtZXNzYWdlOiAnTUNQIGNvbm5lY3Rpb24gc3VjY2Vzc2Z1bCcsXG4gICAgICBhdmFpbGFibGVUb29sczogdG9vbHNcbiAgICB9KTtcbiAgfSBjYXRjaCAoZXJyb3IpIHtcbiAgICBjb25zb2xlLmVycm9yKCdNQ1AgY29ubmVjdGlvbiB0ZXN0IGZhaWxlZDonLCBlcnJvcik7XG4gICAgXG4gICAgcmV0dXJuIE5leHRSZXNwb25zZS5qc29uKHtcbiAgICAgIHN0YXR1czogJ2Vycm9yJyxcbiAgICAgIG1lc3NhZ2U6ICdNQ1AgY29ubmVjdGlvbiBmYWlsZWQnLFxuICAgICAgZXJyb3I6IGVycm9yIGluc3RhbmNlb2YgRXJyb3IgPyBlcnJvci5tZXNzYWdlIDogU3RyaW5nKGVycm9yKVxuICAgIH0sIHsgc3RhdHVzOiA1MDAgfSk7XG4gIH1cbn1cblxuZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIFBPU1QoKSB7XG4gIHJldHVybiBHRVQoKTtcbn0iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7SUFlWTtJQUFBQSxjQUFBLFlBQUFBLENBQUE7TUFBQSxPQUFBQyxjQUFBO0lBQUE7RUFBQTtFQUFBLE9BQUFBLGNBQUE7QUFBQTtBQUFBRCxjQUFBO0FBZlo7QUFDQTtBQUNBOztBQUVBLFNBQVNFLFlBQVksUUFBUSxhQUFhO0FBQzFDLFNBQVNDLFlBQVksUUFBUSw0QkFBNEI7QUFFekQsT0FBTyxlQUFlQyxHQUFHQSxDQUFBLEVBQUc7RUFBQTtFQUFBSixjQUFBLEdBQUFLLENBQUE7RUFBQUwsY0FBQSxHQUFBTSxDQUFBO0VBQzFCLElBQUk7SUFDRixNQUFNQyxTQUFTO0lBQUE7SUFBQSxDQUFBUCxjQUFBLEdBQUFNLENBQUEsT0FBR0gsWUFBWSxDQUFDLENBQUM7SUFDaEMsTUFBTUssS0FBSztJQUFBO0lBQUEsQ0FBQVIsY0FBQSxHQUFBTSxDQUFBLE9BQUcsTUFBTUMsU0FBUyxDQUFDRSxTQUFTLENBQUMsQ0FBQztJQUFDO0lBQUFULGNBQUEsR0FBQU0sQ0FBQTtJQUUxQyxPQUFPSixZQUFZLENBQUNRLElBQUksQ0FBQztNQUN2QkMsTUFBTSxFQUFFLFNBQVM7TUFDakJDLE9BQU8sRUFBRSwyQkFBMkI7TUFDcENDLGNBQWMsRUFBRUw7SUFDbEIsQ0FBQyxDQUFDO0VBQ0osQ0FBQyxDQUFDLE9BQU9NLEtBQUssRUFBRTtJQUFBO0lBQUFkLGNBQUEsR0FBQU0sQ0FBQTtJQUNkUyxPQUFPLENBQUNELEtBQUssQ0FBQyw2QkFBNkIsRUFBRUEsS0FBSyxDQUFDO0lBQUM7SUFBQWQsY0FBQSxHQUFBTSxDQUFBO0lBRXBELE9BQU9KLFlBQVksQ0FBQ1EsSUFBSSxDQUFDO01BQ3ZCQyxNQUFNLEVBQUUsT0FBTztNQUNmQyxPQUFPLEVBQUUsdUJBQXVCO01BQ2hDRSxLQUFLLEVBQUVBLEtBQUssWUFBWUUsS0FBSztNQUFBO01BQUEsQ0FBQWhCLGNBQUEsR0FBQWlCLENBQUEsVUFBR0gsS0FBSyxDQUFDRixPQUFPO01BQUE7TUFBQSxDQUFBWixjQUFBLEdBQUFpQixDQUFBLFVBQUdDLE1BQU0sQ0FBQ0osS0FBSyxDQUFDO0lBQy9ELENBQUMsRUFBRTtNQUFFSCxNQUFNLEVBQUU7SUFBSSxDQUFDLENBQUM7RUFDckI7QUFDRjtBQUVBLE9BQU8sZUFBZVEsSUFBSUEsQ0FBQSxFQUFHO0VBQUE7RUFBQW5CLGNBQUEsR0FBQUssQ0FBQTtFQUFBTCxjQUFBLEdBQUFNLENBQUE7RUFDM0IsT0FBT0YsR0FBRyxDQUFDLENBQUM7QUFDZCIsImlnbm9yZUxpc3QiOltdfQ==

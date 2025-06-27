@@ -1,0 +1,146 @@
+851bfbce9631a86f31cc48168c9da1da
+/* istanbul ignore next */
+function cov_1568lxkehp() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/api/newsletter/route.ts";
+  var hash = "df101f76ffcb26b712316f5ac20bbfe56d04dd2a";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/api/newsletter/route.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 4,
+          column: 2
+        },
+        end: {
+          line: 10,
+          column: 3
+        }
+      },
+      "1": {
+        start: {
+          line: 5,
+          column: 22
+        },
+        end: {
+          line: 5,
+          column: 42
+        }
+      },
+      "2": {
+        start: {
+          line: 6,
+          column: 4
+        },
+        end: {
+          line: 6,
+          column: 45
+        }
+      },
+      "3": {
+        start: {
+          line: 7,
+          column: 4
+        },
+        end: {
+          line: 7,
+          column: 48
+        }
+      },
+      "4": {
+        start: {
+          line: 9,
+          column: 4
+        },
+        end: {
+          line: 9,
+          column: 76
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "POST",
+        decl: {
+          start: {
+            line: 3,
+            column: 22
+          },
+          end: {
+            line: 3,
+            column: 26
+          }
+        },
+        loc: {
+          start: {
+            line: 3,
+            column: 49
+          },
+          end: {
+            line: 11,
+            column: 1
+          }
+        },
+        line: 3
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "df101f76ffcb26b712316f5ac20bbfe56d04dd2a"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_1568lxkehp = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_1568lxkehp();
+import { NextResponse } from "next/server";
+export async function POST(request) {
+  /* istanbul ignore next */
+  cov_1568lxkehp().f[0]++;
+  cov_1568lxkehp().s[0]++;
+  try {
+    const {
+      email
+    } =
+    /* istanbul ignore next */
+    (cov_1568lxkehp().s[1]++, await request.json());
+    /* istanbul ignore next */
+    cov_1568lxkehp().s[2]++;
+    console.log("Newsletter signup:", email);
+    /* istanbul ignore next */
+    cov_1568lxkehp().s[3]++;
+    return NextResponse.json({
+      success: true
+    });
+  } catch {
+    /* istanbul ignore next */
+    cov_1568lxkehp().s[4]++;
+    return NextResponse.json({
+      error: "Invalid request"
+    }, {
+      status: 400
+    });
+  }
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfMTU2OGx4a2VocCIsImFjdHVhbENvdmVyYWdlIiwiTmV4dFJlc3BvbnNlIiwiUE9TVCIsInJlcXVlc3QiLCJmIiwicyIsImVtYWlsIiwianNvbiIsImNvbnNvbGUiLCJsb2ciLCJzdWNjZXNzIiwiZXJyb3IiLCJzdGF0dXMiXSwic291cmNlcyI6WyJyb3V0ZS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBOZXh0UmVxdWVzdCwgTmV4dFJlc3BvbnNlIH0gZnJvbSBcIm5leHQvc2VydmVyXCI7XG5cbmV4cG9ydCBhc3luYyBmdW5jdGlvbiBQT1NUKHJlcXVlc3Q6IE5leHRSZXF1ZXN0KSB7XG4gIHRyeSB7XG4gICAgY29uc3QgeyBlbWFpbCB9ID0gYXdhaXQgcmVxdWVzdC5qc29uKCk7XG4gICAgY29uc29sZS5sb2coXCJOZXdzbGV0dGVyIHNpZ251cDpcIiwgZW1haWwpO1xuICAgIHJldHVybiBOZXh0UmVzcG9uc2UuanNvbih7IHN1Y2Nlc3M6IHRydWUgfSk7XG4gIH0gY2F0Y2gge1xuICAgIHJldHVybiBOZXh0UmVzcG9uc2UuanNvbih7IGVycm9yOiBcIkludmFsaWQgcmVxdWVzdFwiIH0sIHsgc3RhdHVzOiA0MDAgfSk7XG4gIH1cbn1cbiJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7SUFlWTtJQUFBQSxjQUFBLFlBQUFBLENBQUE7TUFBQSxPQUFBQyxjQUFBO0lBQUE7RUFBQTtFQUFBLE9BQUFBLGNBQUE7QUFBQTtBQUFBRCxjQUFBO0FBZlosU0FBc0JFLFlBQVksUUFBUSxhQUFhO0FBRXZELE9BQU8sZUFBZUMsSUFBSUEsQ0FBQ0MsT0FBb0IsRUFBRTtFQUFBO0VBQUFKLGNBQUEsR0FBQUssQ0FBQTtFQUFBTCxjQUFBLEdBQUFNLENBQUE7RUFDL0MsSUFBSTtJQUNGLE1BQU07TUFBRUM7SUFBTSxDQUFDO0lBQUE7SUFBQSxDQUFBUCxjQUFBLEdBQUFNLENBQUEsT0FBRyxNQUFNRixPQUFPLENBQUNJLElBQUksQ0FBQyxDQUFDO0lBQUM7SUFBQVIsY0FBQSxHQUFBTSxDQUFBO0lBQ3ZDRyxPQUFPLENBQUNDLEdBQUcsQ0FBQyxvQkFBb0IsRUFBRUgsS0FBSyxDQUFDO0lBQUM7SUFBQVAsY0FBQSxHQUFBTSxDQUFBO0lBQ3pDLE9BQU9KLFlBQVksQ0FBQ00sSUFBSSxDQUFDO01BQUVHLE9BQU8sRUFBRTtJQUFLLENBQUMsQ0FBQztFQUM3QyxDQUFDLENBQUMsTUFBTTtJQUFBO0lBQUFYLGNBQUEsR0FBQU0sQ0FBQTtJQUNOLE9BQU9KLFlBQVksQ0FBQ00sSUFBSSxDQUFDO01BQUVJLEtBQUssRUFBRTtJQUFrQixDQUFDLEVBQUU7TUFBRUMsTUFBTSxFQUFFO0lBQUksQ0FBQyxDQUFDO0VBQ3pFO0FBQ0YiLCJpZ25vcmVMaXN0IjpbXX0=

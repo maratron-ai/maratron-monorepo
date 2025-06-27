@@ -1,0 +1,120 @@
+49f2556f84c2a813e352dd90840a3a12
+/* istanbul ignore next */
+var _jsxFileName = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/plan-generator/page.tsx";
+import React from "react";
+var __jsx = React.createElement;
+function cov_zb7hq04k1() {
+  var path = "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/plan-generator/page.tsx";
+  var hash = "633cf0862b9c35bf953d707ebac47827f5e29dfb";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/Users/jacksonthetford/Desktop/maratron-monorepo/apps/web/src/app/plan-generator/page.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 3,
+          column: 26
+        },
+        end: {
+          line: 9,
+          column: 1
+        }
+      },
+      "1": {
+        start: {
+          line: 4,
+          column: 2
+        },
+        end: {
+          line: 8,
+          column: 4
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 3,
+            column: 26
+          },
+          end: {
+            line: 3,
+            column: 27
+          }
+        },
+        loc: {
+          start: {
+            line: 3,
+            column: 32
+          },
+          end: {
+            line: 9,
+            column: 1
+          }
+        },
+        line: 3
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "633cf0862b9c35bf953d707ebac47827f5e29dfb"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_zb7hq04k1 = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_zb7hq04k1();
+import PlanGenerator from "@components/training/PlanGenerator";
+/* istanbul ignore next */
+cov_zb7hq04k1().s[0]++;
+const PlanGeneratorPage = () => {
+  /* istanbul ignore next */
+  cov_zb7hq04k1().f[0]++;
+  cov_zb7hq04k1().s[1]++;
+  return /* istanbul ignore next */__jsx(
+  /* istanbul ignore next */
+  "div",
+  /* istanbul ignore next */
+  {
+    className: "w-full px-4 sm:px-6 lg:px-8",
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 5,
+      columnNumber: 5
+    }
+  },
+  /* istanbul ignore next */
+  __jsx(PlanGenerator,
+  /* istanbul ignore next */
+  {
+    __self: this,
+    __source: {
+      fileName: _jsxFileName,
+      lineNumber: 6,
+      columnNumber: 7
+    }
+  }));
+};
+export default PlanGeneratorPage;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfemI3aHEwNGsxIiwiYWN0dWFsQ292ZXJhZ2UiLCJQbGFuR2VuZXJhdG9yIiwicyIsIlBsYW5HZW5lcmF0b3JQYWdlIiwiZiIsIl9fanN4IiwiY2xhc3NOYW1lIiwiX19zZWxmIiwiX19zb3VyY2UiLCJmaWxlTmFtZSIsIl9qc3hGaWxlTmFtZSIsImxpbmVOdW1iZXIiLCJjb2x1bW5OdW1iZXIiXSwic291cmNlcyI6WyJwYWdlLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgUGxhbkdlbmVyYXRvciBmcm9tIFwiQGNvbXBvbmVudHMvdHJhaW5pbmcvUGxhbkdlbmVyYXRvclwiO1xuXG5jb25zdCBQbGFuR2VuZXJhdG9yUGFnZSA9ICgpID0+IHtcbiAgcmV0dXJuIChcbiAgICA8ZGl2IGNsYXNzTmFtZT1cInctZnVsbCBweC00IHNtOnB4LTYgbGc6cHgtOFwiPlxuICAgICAgPFBsYW5HZW5lcmF0b3IgLz5cbiAgICA8L2Rpdj5cbiAgKTtcbn07XG5cbmV4cG9ydCBkZWZhdWx0IFBsYW5HZW5lcmF0b3JQYWdlO1xuIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztJQWVZO0lBQUFBLGFBQUEsWUFBQUEsQ0FBQTtNQUFBLE9BQUFDLGNBQUE7SUFBQTtFQUFBO0VBQUEsT0FBQUEsY0FBQTtBQUFBO0FBQUFELGFBQUE7QUFmWixPQUFPRSxhQUFhLE1BQU0sb0NBQW9DO0FBQUM7QUFBQUYsYUFBQSxHQUFBRyxDQUFBO0FBRS9ELE1BQU1DLGlCQUFpQixHQUFHQSxDQUFBLEtBQU07RUFBQTtFQUFBSixhQUFBLEdBQUFLLENBQUE7RUFBQUwsYUFBQSxHQUFBRyxDQUFBO0VBQzlCLE9BQ0UsMEJBQUFHLEtBQUE7RUFBQTtFQUFBO0VBQUE7RUFBQTtJQUFLQyxTQUFTLEVBQUMsNkJBQTZCO0lBQUFDLE1BQUE7SUFBQUMsUUFBQTtNQUFBQyxRQUFBLEVBQUFDLFlBQUE7TUFBQUMsVUFBQTtNQUFBQyxZQUFBO0lBQUE7RUFBQTtFQUMxQztFQUFBUCxLQUFBLENBQUNKLGFBQWE7RUFBQTtFQUFBO0lBQUFNLE1BQUE7SUFBQUMsUUFBQTtNQUFBQyxRQUFBLEVBQUFDLFlBQUE7TUFBQUMsVUFBQTtNQUFBQyxZQUFBO0lBQUE7RUFBQSxDQUFFLENBQ2IsQ0FBQztBQUVWLENBQUM7QUFFRCxlQUFlVCxpQkFBaUIiLCJpZ25vcmVMaXN0IjpbXX0=
