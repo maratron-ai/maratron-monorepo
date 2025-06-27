@@ -29,9 +29,49 @@ Comprehensive sync script with multiple modes:
 - `push` - Push local changes to separate repos
 - `pull` - Pull changes from separate repos
 
+## Automatic Sync Options
+
+### Option 1: Git Alias (Recommended)
+```bash
+# Use this instead of regular git push
+git sync-push
+
+# Or with arguments
+git sync-push origin main
+```
+
+### Option 2: Wrapper Script
+```bash
+# Use custom push script
+./git-push
+
+# Or with arguments  
+./git-push origin main
+```
+
+### Option 3: Manual Sync Scripts
+```bash
+# Traditional manual workflow
+git push
+./repo-sync.sh push
+```
+
 ## Common Workflows
 
-### Daily Development
+### Daily Development (with auto-sync)
+```bash
+# Start of day - get latest changes
+./repo-sync.sh pull
+
+# Make your changes...
+git add .
+git commit -m "Your changes"
+
+# Push with automatic sync
+git sync-push
+```
+
+### Daily Development (manual)
 ```bash
 # Start of day - get latest changes
 ./repo-sync.sh pull
