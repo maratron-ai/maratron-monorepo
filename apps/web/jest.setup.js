@@ -67,6 +67,8 @@ global.IntersectionObserver = class IntersectionObserver {
 
 // Suppress console warnings during tests
 const originalError = console.error;
+const originalWarn = console.warn;
+
 beforeAll(() => {
   console.error = (...args) => {
     if (
@@ -77,8 +79,20 @@ beforeAll(() => {
     }
     originalError.call(console, ...args);
   };
+
+  console.warn = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('outdated JSX transform') ||
+       args[0].includes('new-jsx-transform'))
+    ) {
+      return;
+    }
+    originalWarn.call(console, ...args);
+  };
 });
 
 afterAll(() => {
   console.error = originalError;
+  console.warn = originalWarn;
 });

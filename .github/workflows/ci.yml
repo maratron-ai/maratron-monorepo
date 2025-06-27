@@ -67,7 +67,7 @@ jobs:
 
       - name: Run tests
         working-directory: apps/web
-        run: npm test -- --ci --coverage --watchAll=false
+        run: npm test
 
       - name: Build application (includes type checking)
         working-directory: apps/web

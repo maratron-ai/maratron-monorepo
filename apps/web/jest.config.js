@@ -34,9 +34,7 @@ const config = {
   // Transform configuration
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { 
-      presets: [
-        ['next/babel', { 'preset-env': { targets: { node: 'current' } } }]
-      ]
+      presets: ['next/babel']
     }],
   },
   
