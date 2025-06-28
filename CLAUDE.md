@@ -208,22 +208,80 @@ SERVER__LOG_LEVEL=DEBUG
 - **AI Server**: Direct asyncpg with parameterized queries and connection pooling
 - **Migrations**: Use Prisma migrations for schema changes
 
-## MCP Server Tools
+## MCP Server Tools & Resources
 
-The AI server exposes these tools for the web application:
+The AI server exposes comprehensive tools and resources through the Model Context Protocol:
+
+### MCP Resources (AI-readable content)
+**Database Schema & Information:**
+- `database://schema` - Complete database schema and table structure
+- `database://stats` - Database statistics and row counts
+
+**User Profile Resources:**
+- `users://profile/{user_id}` - Complete user profile information
+- `user://profile` - Current user's profile (context-aware)
+
+**Running Data Resources:**
+- `runs://user/{user_id}/recent` - User's recent runs with detailed metrics
+- `runs://user/{user_id}/summary/{period}` - Run summaries for specific periods
+- `shoes://user/{user_id}` - User's shoe collection and usage data
+
+### MCP Tools (AI-executable actions)
+
+**Core Database Operations:**
+- `add_user(name, email)` - Create new user accounts
+- `update_user_email(user_id, email)` - Update user email addresses
+- `delete_user(user_id)` - Remove users from system
+- `add_run(user_id, date, duration, distance, ...)` - Record runs with comprehensive data
+- `add_shoe(user_id, name, max_distance, ...)` - Add shoes to user collections
 
 **User Context Management:**
-- `set_current_user_tool(user_id)` - Initialize user session
-- `get_current_user_tool()` - Get current user profile
-- `update_user_preferences_tool(preferences_json)` - Update user settings
+- `set_current_user_tool(user_id)` - Initialize user session (required first step)
+- `get_current_user_tool()` - Get current user profile and context
+- `switch_user_context_tool(user_id)` - Switch between user contexts
+- `clear_user_context_tool()` - Clear current user context
+- `update_user_preferences_tool(preferences_json)` - Update user preferences
+- `update_conversation_context_tool(context_json)` - Track conversation state
+- `get_session_info_tool(user_id)` - Get session information
+- `list_active_sessions_tool()` - List all active user sessions
 
-**Database Operations:**
-- `list_recent_runs(limit)` - Context-aware run listing
-- `add_run(user_id, date, duration, distance, distance_unit)` - Record runs
-- `list_shoes(user_id)` - User's shoe collection
-- `db_summary()` - Database statistics
+**Smart Intelligence Tools:**
+- `get_smart_user_context()` - Get comprehensive personalized context
+- `analyze_user_patterns()` - Analyze running patterns and provide insights
+- `get_motivational_context()` - Get context for encouraging responses
+- `update_conversation_intelligence(...)` - Track conversation intelligence
 
-All tools are async and decorated with error handling and user context awareness.
+### Security & Features
+
+**Data Security:**
+- Data isolation enforcement for all user-specific resources
+- UUID validation and parameterized queries for SQL injection protection
+- Rate limiting (10 requests/minute per operation)
+- Session management with 60-minute timeout
+
+**Personalization:**
+- User preference caching (distance units, timezone, response detail)
+- Conversation intelligence tracking (topics, mood, mentioned entities)
+- Context-aware responses based on user history and preferences
+
+**Usage Pattern:**
+```python
+# 1. Set user context (required first step)
+await set_current_user_tool("user-uuid")
+
+# 2. Access resources for AI understanding
+user_profile = await read_resource("user://profile")
+recent_runs = await read_resource("runs://user/{user_id}/recent")
+
+# 3. Use tools for data operations
+await add_run(user_id, "2024-01-15", "00:30:00", 5.0, "miles")
+
+# 4. Leverage smart context for personalized responses
+context = await get_smart_user_context()
+insights = await analyze_user_patterns()
+```
+
+All tools are async, decorated with comprehensive error handling, and provide user context awareness for personalized AI interactions.
 
 ## Claude Code Development Tools
 

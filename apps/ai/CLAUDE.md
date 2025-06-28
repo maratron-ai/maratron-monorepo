@@ -66,35 +66,85 @@ The application uses a comprehensive running/fitness database with these main en
 - **RunGroup/RunGroupMember**: Group running features
 - **RunningPlans**: Training plan management
 
-### Available MCP Tools
-The server exposes database tools and user context management:
+### MCP Resources (AI-readable content)
 
-**User Context Management:**
-- `set_current_user_tool(user_id)` - Set current user context for personalized responses
-- `get_current_user_tool()` - Get current user profile and preferences
-- `switch_user_context_tool(user_id)` - Switch to different user context
-- `clear_user_context_tool()` - Clear current user context
-- `update_user_preferences_tool(preferences_json)` - Update user preferences
-- `update_conversation_context_tool(context_json)` - Update conversation context
-- `get_session_info_tool(user_id)` - Get session information
-- `list_active_sessions_tool()` - List all active sessions
+**Database Schema & Information:**
+- `database://schema` - Complete database schema with all tables, columns, and relationships
+- `database://stats` - Real-time database statistics including row counts for all tables
 
-**Database Operations:**
-- User management: `add_user`, `get_user`, `list_users`, `update_user_email`, `delete_user`
-- Run tracking: `add_run`, `list_recent_runs`, `list_runs_for_user` (context-aware)
-- Shoe management: `add_shoe`, `list_shoes`
-- Database utilities: `list_tables`, `describe_table`, `count_rows`, `db_summary`
+**User Profile Resources:**
+- `users://profile/{user_id}` - Complete user profile including training preferences, VDOT, goals
+- `user://profile` - Current user's profile (requires active user context)
 
-### Key Patterns
-- **Configuration-Driven**: Environment-specific settings with validation
-- **User Context Aware**: Personalized responses based on user preferences and session state
+**Running Data Resources:**
+- `runs://user/{user_id}/recent` - User's recent runs with detailed metrics and analysis
+- `runs://user/{user_id}/summary/{period}` - Run summaries for specific time periods (week/month/year)
+- `shoes://user/{user_id}` - User's complete shoe collection with mileage and retirement status
+
+### MCP Tools (AI-executable actions)
+
+**Core Database Operations:**
+- `add_user(name: str, email: str)` - Create new user accounts with validation
+- `update_user_email(user_id: str, email: str)` - Update user email addresses
+- `delete_user(user_id: str)` - Remove users from system with cascade cleanup
+- `add_run(user_id, date, duration, distance, distance_unit, ...)` - Record runs with comprehensive parameters:
+  - Full run data: pace, elevation, training environment, shoe tracking
+  - Notes and training context
+  - Automatic VDOT and pace calculations
+- `add_shoe(user_id, name, max_distance, distance_unit, ...)` - Add shoes with:
+  - Mileage tracking and retirement management
+  - Usage notes and current distance
+
+**Advanced User Context Management:**
+- `set_current_user_tool(user_id: str)` - Initialize user session (required first step)
+- `get_current_user_tool()` - Get current user profile and context information
+- `switch_user_context_tool(user_id: str)` - Switch between different user contexts
+- `clear_user_context_tool()` - Clear current user context and session data
+- `update_user_preferences_tool(preferences_json: str)` - Update user preferences:
+  - `distance_unit`: "miles" or "kilometers"
+  - `timezone`: User timezone for date/time handling
+  - `detailed_responses`: Boolean for response verbosity
+  - `include_social_data`: Boolean for social feature inclusion
+  - `max_results_per_query`: Integer limit for query results
+- `update_conversation_context_tool(context_json: str)` - Track conversation state:
+  - `last_topic`: Current conversation topic
+  - `conversation_mood`: User sentiment analysis
+  - `mentioned_runs`, `mentioned_shoes`, `mentioned_goals`: Entity tracking
+- `get_session_info_tool(user_id: str)` - Get detailed session information
+- `list_active_sessions_tool()` - List all currently active user sessions
+- `get_session_history(user_id: str, limit: int)` - Get session history for analysis
+
+**Smart Intelligence Tools:**
+- `get_smart_user_context()` - Get comprehensive, intelligent user context for personalized responses
+- `analyze_user_patterns()` - Analyze user patterns and provide insights about running journey
+- `get_motivational_context()` - Get motivational context to provide encouraging responses
+- `update_conversation_intelligence(user_message, ai_response, intent, sentiment)` - Update conversation intelligence with rich context tracking
+
+### Security & Advanced Features
+
+**Data Security:**
+- **Data Isolation**: All user-specific resources enforce strict data isolation
+- **UUID Validation**: Comprehensive UUID validation for all user identifiers
+- **SQL Injection Protection**: Parameterized queries and enhanced identifier validation
+- **Rate Limiting**: 10 requests per minute per operation with session tracking
+- **Session Management**: 60-minute session timeout with automatic cleanup
+- **Input Validation**: JSON schema validation for preferences and context updates
+
+**Personalization Features:**
+- **User Preference Caching**: Cached distance units, timezone, response preferences
+- **Conversation Intelligence**: Tracks conversation topics, mood, and mentioned entities
+- **Smart Context**: AI-optimized context generation for personalized responses
+- **Pattern Analysis**: Running pattern analysis with insights and recommendations
+- **Motivational Context**: Context-aware motivational messaging system
+
+**Technical Patterns:**
+- **Configuration-Driven**: Environment-specific settings with Pydantic validation
 - **Connection Pooling**: Configurable asyncpg pools with retry logic and timeouts
 - **Error Handling**: Comprehensive error handling with custom exceptions and retry mechanisms
-- **Security First**: Rate limiting, input validation, and session management
 - **Table Naming**: PascalCase with quotes (e.g., `"Users"`, `"Runs"`)
-- **SQL Injection Protection**: Enhanced identifier validation and parameterized queries
 - **Logging**: Structured logging with configurable levels per environment
 - **UUIDs**: All primary keys generated with uuid.uuid4()
+- **Resource vs Tools**: Clear separation between readable resources and executable tools
 
 ## Testing Framework
 

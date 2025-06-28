@@ -63,6 +63,12 @@ src/
 - RunningPlans with JSON plan data storage
 - Social features: profiles, posts, follows, groups, comments, likes
 
+**MCP Integration:**
+- MCP client (`src/lib/mcp/client.ts`) for AI server communication
+- Real-time bidirectional communication through Model Context Protocol
+- User context management for personalized AI responses
+- Access to comprehensive database tools and smart analytics
+
 **Path Aliases (tsconfig.json):**
 - `@components/*` → `src/components/*`
 - `@lib/*` → `src/lib/*`
@@ -119,6 +125,49 @@ NEXTAUTH_SECRET=your_secret_key
 3. Run `npx prisma db push` to sync schema
 4. Use `npx prisma studio` for database management
 
+## MCP Client Integration
+
+The web application integrates with the AI server through a comprehensive MCP client:
+
+**Client Setup (`src/lib/mcp/client.ts`):**
+```typescript
+// Connect to AI server
+const mcpClient = getMCPClient();
+await mcpClient.connect();
+
+// Set user context for personalized responses
+await mcpClient.setUserContext(userId);
+
+// Access AI server resources
+const userProfile = await mcpClient.readResource('user://profile');
+const recentRuns = await mcpClient.readResource('runs://user/{userId}/recent');
+
+// Execute AI server tools
+const result = await mcpClient.callTool({
+  name: 'add_run',
+  arguments: { 
+    user_id: userId, 
+    date: '2024-01-15', 
+    duration: '00:30:00',
+    distance: 5.0,
+    distance_unit: 'miles' 
+  }
+});
+```
+
+**Available MCP Features:**
+- **Resources**: Read user profiles, run data, shoe collections from AI server
+- **Tools**: Create runs, manage shoes, analyze patterns through AI server
+- **Context Management**: Set user context for personalized AI interactions
+- **Smart Analytics**: Access AI-powered insights and motivational content
+- **Session Management**: Track user sessions and conversation intelligence
+
+**Integration Points:**
+- Chat interface (`src/components/chat/`) uses MCP for AI responses
+- Run tracking components leverage MCP tools for data operations
+- User profile components sync with MCP user context management
+- Training plan generation utilizes MCP pattern analysis tools
+
 ## Development Practices
 
 - TypeScript strict mode throughout
@@ -127,3 +176,5 @@ NEXTAUTH_SECRET=your_secret_key
 - Test utility functions individually
 - Run `npm run lint` and `npm test` before commits
 - Follow existing code patterns and component structure
+- **MCP Integration**: Always set user context before using MCP tools
+- **Error Handling**: Handle MCP connection failures and tool errors gracefully
