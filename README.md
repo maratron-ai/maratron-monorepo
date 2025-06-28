@@ -181,6 +181,8 @@ uv run pytest --cov=src         # With coverage
 
 ## 🤖 Claude Code Development Tools
 
+[SuperClaude](https://github.com/NomenAK/SuperClaude/tree/master) was used as a pair coder. See flag usage [here](https://github.com/NomenAK/SuperClaude/blob/master/.claude/commands/shared/flag-inheritance.yml)
+
 When working with [Claude Code](https://docs.anthropic.com/en/docs/claude-code), the following MCP tools are available for enhanced development:
 
 ### 🎨 Component Development
