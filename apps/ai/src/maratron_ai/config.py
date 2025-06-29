@@ -184,7 +184,8 @@ class Config(BaseSettings):
         elif env == Environment.PRODUCTION:
             return os.getenv('PRODUCTION_DATABASE_URL', self.database.url)
         else:
-            return self.database.url
+            # For development, check for generic DATABASE_URL first, then fall back to default
+            return os.getenv('DATABASE_URL', self.database.url)
     
     def is_development(self) -> bool:
         """Check if running in development environment."""

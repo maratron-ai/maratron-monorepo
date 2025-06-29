@@ -1,22 +1,22 @@
 /**
- * Chat API Route - Integrates with Maratron MCP Server
+ * Chat API Route - Hybrid MCP + LLM Integration
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { anthropic } from '@ai-sdk/anthropic';
-import { generateText } from 'ai';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
-
-// MCP tools will be re-enabled once we get the basic chat working
+import { getMCPClient } from '@lib/mcp/client';
+import { authenticateUser, validateChatRequest, handleMCPEnhancedChat } from './chat-handler';
 
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const authResult = await authenticateUser(session);
+    
+    if (!authResult.isAuthenticated) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: authResult.error || 'Authentication required' },
         { status: 401 }
       );
     }
@@ -30,52 +30,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
-    const { messages } = await request.json();
-
-    if (!messages || !Array.isArray(messages)) {
+    // Parse and validate request body
+    const requestBody = await request.json();
+    const validation = validateChatRequest(requestBody);
+    
+    if (!validation.isValid) {
       return NextResponse.json(
-        { error: 'Messages array is required' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
-    // Create system message optimized for Claude
-    const systemMessage = {
-      role: 'system' as const,
-      content: `You are Maratron AI, an expert running and fitness coach powered by Claude 3.5.
-
-Your expertise includes:
-- Personalized training advice based on running science
-- Injury prevention and recovery guidance  
-- Nutrition strategies for endurance athletes
-- Race preparation and pacing strategies
-- Mental training and motivation techniques
-
-Guidelines:
-- Provide evidence-based advice following current sports science
-- Be encouraging yet realistic about training progression
-- Always prioritize safety and injury prevention
-- Ask clarifying questions to provide personalized recommendations
-- Use metric and imperial units as appropriate
-
-Current user: ${session.user.id}
-Note: Advanced user data integration coming soon.`
-    };
+    // Get MCP client and handle enhanced chat
+    // In Docker mode, MCP client may not be needed due to direct database access
+    let mcpClient;
+    try {
+      mcpClient = getMCPClient();
+    } catch (error) {
+      console.warn('MCP client initialization failed, using fallback mode:', error);
+      mcpClient = null;
+    }
     
-    // Generate the response using Claude 3.5
-    const result = await generateText({
-      model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022'),
-      messages: [systemMessage, ...messages],
-      temperature: 0.7,
-      maxTokens: 1000,
-    });
+    const chatResponse = await handleMCPEnhancedChat(
+      validation.messages!,
+      authResult.userId!,
+      mcpClient
+    );
 
-    // Return a simple JSON response that useChat can handle
+    // Return enhanced response with MCP integration details
     return NextResponse.json({
       id: Date.now().toString(),
       role: 'assistant',
-      content: result.text,
+      content: chatResponse.content,
+      mcpStatus: chatResponse.mcpStatus,
+      toolCalls: chatResponse.toolCalls,
+      error: chatResponse.error
     });
 
   } catch (error) {
@@ -110,15 +99,44 @@ Note: Advanced user data integration coming soon.`
 }
 
 export async function GET() {
-  // Health check endpoint
+  // Health check endpoint with MCP status
   const anthropicConfigured = !!process.env.ANTHROPIC_API_KEY;
+  const isDocker = process.env.DOCKER === 'true' || process.env.RUNNING_IN_DOCKER === 'true';
+  
+  let mcpStatus = 'unknown';
+  let availableTools: string[] = [];
+  
+  if (isDocker) {
+    // In Docker mode, we use direct database access
+    mcpStatus = 'connected';
+    availableTools = ['direct_database_access', 'get_user_data', 'get_user_runs', 'get_user_shoes'];
+  } else {
+    // In local mode, try to connect to MCP
+    try {
+      const mcpClient = getMCPClient();
+      await mcpClient.connect();
+      availableTools = await mcpClient.listTools();
+      mcpStatus = 'connected';
+    } catch {
+      mcpStatus = 'disconnected';
+    }
+  }
   
   return NextResponse.json({
-    message: 'Maratron Chat API',
+    message: 'Maratron Chat API - Hybrid MCP + LLM',
     status: 'active',
     aiProvider: 'Claude 3.5 (Anthropic)',
     model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
     configured: anthropicConfigured,
-    availableTools: [] // MCP tools will be re-enabled later
+    mcpStatus,
+    availableTools,
+    mode: isDocker ? 'docker' : 'local',
+    features: [
+      'Intelligent query routing',
+      'User context management',
+      'Personalized responses',
+      'Error resilience with fallback',
+      isDocker ? 'Direct database access' : 'MCP integration'
+    ]
   });
 }

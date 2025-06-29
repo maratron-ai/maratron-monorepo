@@ -56,6 +56,7 @@ RUN uv sync
 # Set up environment variables
 ENV NODE_ENV=development
 ENV ENVIRONMENT=development
+ENV DOCKER=true
 ENV DATABASE_URL=postgresql://maratron:yourpassword@host.docker.internal:5432/maratrondb
 ENV NEXTAUTH_URL=http://localhost:3000
 ENV NEXTAUTH_SECRET=a5f8c2e7b1d9f4a6c8e3b7f2d5a9c4e6b8f1d3a7c9e2b5f8a1d4c7e9b2f5a8c1d4e7

@@ -20,6 +20,7 @@ services:
       - NEXTAUTH_SECRET=a5f8c2e7b1d9f4a6c8e3b7f2d5a9c4e6b8f1d3a7c9e2b5f8a1d4c7e9b2f5a8c1d4e7
       - NODE_ENV=development
       - ENVIRONMENT=development
+      - DOCKER=true
     extra_hosts:
       # Allow container to connect to host machine
       - "host.docker.internal:host-gateway"
