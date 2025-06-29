@@ -45,6 +45,30 @@ npm run db:studio               # Open Prisma Studio
 npm run clean                   # Clean Docker environment
 ```
 
+### 🧪 **Testing Protocol**
+**IMPORTANT: When testing features, always use the full Docker stack:**
+
+```bash
+# 1. Start the complete environment (from repository root)
+npm run dev    # Starts DB + web app + AI server in Docker
+
+# 2. Test your features at http://localhost:3000
+
+# 3. When finished, ALWAYS clean up Docker resources
+npm run clean  # Stops containers and cleans up volumes
+```
+
+#### Use sub-agents:
+  /Task "Start Docker environment" → Full setup + verification
+  [test your features]
+  /Task "Clean Docker environment" → Complete cleanup + reporting
+
+**Why Docker for Testing:**
+- Ensures consistent database state across tests
+- AI server MCP integration requires proper networking
+- Simulates production environment accurately
+- Prevents port conflicts and dependency issues
+
 ### Local Development
 ```bash
 # Terminal 1: Start AI server

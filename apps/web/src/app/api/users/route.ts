@@ -1,6 +1,7 @@
 // src/app/api/users/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@lib/prisma";
+import { hashPassword } from "@lib/utils/passwordUtils";
 import { Prisma } from "@prisma/client";
 
 export async function GET() {
@@ -20,11 +21,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log("Request body:", body);
-    const { email } = body;
+    const { email, password, ...userData } = body;
 
-    // Check if email is provided
+    // Check if email and password are provided
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (!password) {
+      return NextResponse.json({ error: "Password is required" }, { status: 400 });
     }
 
     // Check if a user with this email already exists
@@ -38,9 +43,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the new user
+    // Hash the password before storing
+    const passwordHash = await hashPassword(password);
+
+    // Create the new user with hashed password
     const newUser = await prisma.user.create({
-      data: { ...body, VDOT: body.VDOT ?? 30 },
+      data: { 
+        ...userData, 
+        email,
+        passwordHash,
+        VDOT: userData.VDOT ?? 30 
+      },
+      select: {
+        // Return user data without passwordHash for security
+        id: true,
+        name: true,
+        email: true,
+        age: true,
+        gender: true,
+        trainingLevel: true,
+        VDOT: true,
+        goals: true,
+        avatarUrl: true,
+        yearsRunning: true,
+        weeklyMileage: true,
+        height: true,
+        weight: true,
+        injuryHistory: true,
+        preferredTrainingDays: true,
+        preferredTrainingEnvironment: true,
+        device: true,
+        defaultDistanceUnit: true,
+        defaultElevationUnit: true,
+        createdAt: true,
+        updatedAt: true,
+      }
     });
     return NextResponse.json(newUser, { status: 201 });
   } catch (error: unknown) {

@@ -1,5 +1,5 @@
 import { PrismaClient, DistanceUnit, TrainingLevel, Gender, Device, TrainingEnvironment } from '@prisma/client';
-import { hash } from 'bcryptjs';
+import { hashPassword } from '../src/lib/utils/passwordUtils';
 
 const prisma = new PrismaClient();
 
@@ -22,12 +22,17 @@ async function main() {
 
   console.log('🧹 Cleaned existing data');
 
+  // Hash the default password for all development users
+  const defaultPasswordHash = await hashPassword('password');
+  console.log('🔒 Generated password hash for development users');
+
   // Create Users
   const users = await Promise.all([
     prisma.user.create({
       data: {
         name: 'John Runner',
         email: 'john@example.com',
+        passwordHash: defaultPasswordHash,
         age: 28,
         gender: Gender.Male,
         trainingLevel: TrainingLevel.intermediate,
@@ -47,6 +52,7 @@ async function main() {
       data: {
         name: 'Sarah Speedster',
         email: 'sarah@example.com',
+        passwordHash: defaultPasswordHash,
         age: 24,
         gender: Gender.Female,
         trainingLevel: TrainingLevel.advanced,
@@ -66,6 +72,7 @@ async function main() {
       data: {
         name: 'Mike Marathoner',
         email: 'mike@example.com',
+        passwordHash: defaultPasswordHash,
         age: 35,
         gender: Gender.Male,
         trainingLevel: TrainingLevel.advanced,
@@ -85,6 +92,7 @@ async function main() {
       data: {
         name: 'Emily Endurance',
         email: 'emily@example.com',
+        passwordHash: defaultPasswordHash,
         age: 31,
         gender: Gender.Female,
         trainingLevel: TrainingLevel.intermediate,
@@ -104,6 +112,7 @@ async function main() {
       data: {
         name: 'Jackson Thetford',
         email: 'jackson@maratron.ai',
+        passwordHash: defaultPasswordHash,
         age: 29,
         gender: Gender.Male,
         trainingLevel: TrainingLevel.advanced,
@@ -123,6 +132,7 @@ async function main() {
       data: {
         name: 'Alex TrailRunner',
         email: 'alex@example.com',
+        passwordHash: defaultPasswordHash,
         age: 26,
         gender: Gender.Male,
         trainingLevel: TrainingLevel.intermediate,
@@ -142,6 +152,7 @@ async function main() {
       data: {
         name: 'Lisa Pacer',
         email: 'lisa@example.com',
+        passwordHash: defaultPasswordHash,
         age: 33,
         gender: Gender.Female,
         trainingLevel: TrainingLevel.beginner,
@@ -161,6 +172,7 @@ async function main() {
       data: {
         name: 'David Sprinter',
         email: 'david@example.com',
+        passwordHash: defaultPasswordHash,
         age: 22,
         gender: Gender.Male,
         trainingLevel: TrainingLevel.advanced,
@@ -180,6 +192,7 @@ async function main() {
       data: {
         name: 'Rachel Recovery',
         email: 'rachel@example.com',
+        passwordHash: defaultPasswordHash,
         age: 40,
         gender: Gender.Female,
         trainingLevel: TrainingLevel.intermediate,
@@ -199,6 +212,7 @@ async function main() {
       data: {
         name: 'Tom Triathlete',
         email: 'tom@example.com',
+        passwordHash: defaultPasswordHash,
         age: 37,
         gender: Gender.Male,
         trainingLevel: TrainingLevel.advanced,
@@ -1463,7 +1477,7 @@ async function main() {
 - 👥 ${followRelationships.length} follow relationships created
 - 💬 Extensive comments and likes
 
-You can now log in with:
+🔐 You can now log in with any of these accounts using password: "password"
 - john@example.com (Marathon enthusiast)
 - sarah@example.com (Track specialist)
 - mike@example.com (Boston qualifier hunter)
@@ -1474,6 +1488,8 @@ You can now log in with:
 - david@example.com (College sprinter)
 - rachel@example.com (Injury prevention focused)
 - tom@example.com (Triathlete)
+
+🛡️  All passwords are securely hashed with bcrypt (12 salt rounds)
 `);
 }
 

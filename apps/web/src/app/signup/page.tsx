@@ -22,7 +22,7 @@ export default function SignupPage() {
     }
 
     try {
-      const createUserRes = await createUser({ name, email });
+      const createUserRes = await createUser({ name, email, password });
 
       if (createUserRes?.status === 201 || createUserRes?.status === 200) {
         // Now sign in the new user

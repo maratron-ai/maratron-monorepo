@@ -14,6 +14,15 @@ npm install
 npm run dev    # Starts Next.js with Turbopack
 ```
 
+**Full Stack Development (Recommended for Testing):**
+```bash
+# From repository root - starts Docker containers for DB, web app, and AI server
+npm run dev    # Equivalent to: docker-compose up --build
+
+# When finished testing, always clean up:
+npm run clean  # Equivalent to: docker-compose down
+```
+
 **Build and testing:**
 ```bash
 npm run build  # Production build

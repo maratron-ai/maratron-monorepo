@@ -88,14 +88,15 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     if (session?.user && !isInitialized && messages.length === 0) {
       const welcomeMessage = `Hello ${session.user.name || 'there'}! 👋 
 
-I'm your Maratron AI assistant. I can help you with:
+I'm your Maratron AI coach, powered by Claude 3.5. I specialize in:
 
-🏃‍♂️ **Analyzing your runs** - View recent activities, pace trends, and performance insights
-👟 **Managing your shoes** - Track mileage and get retirement recommendations  
-📊 **Training insights** - Get personalized advice based on your data
-🎯 **Goal setting** - Plan your next race or fitness milestone
+🏃‍♂️ **Training Science** - Evidence-based running advice and periodization
+🩹 **Injury Prevention** - Form analysis and recovery strategies  
+🥗 **Sports Nutrition** - Fueling strategies for training and racing
+🎯 **Race Preparation** - Pacing, tapering, and mental strategies
+💪 **Performance Analysis** - Help you understand your data and progress
 
-What would you like to know about your training?`;
+I'm here to help you become a stronger, healthier runner. What would you like to discuss about your training?`;
 
       append({
         role: 'assistant',
@@ -157,7 +158,7 @@ What would you like to know about your training?`;
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Activity className="h-4 w-4" />
-            <span>Connected</span>
+            <span>Claude 3.5</span>
           </div>
         </div>
         <Separator />

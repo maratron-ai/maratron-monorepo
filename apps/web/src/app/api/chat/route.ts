@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { openai } from '@ai-sdk/openai';
+import { anthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
@@ -21,6 +21,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate Anthropic API key
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('Missing ANTHROPIC_API_KEY environment variable');
+      return NextResponse.json(
+        { error: 'AI service unavailable' },
+        { status: 503 }
+      );
+    }
+
     // Parse request body
     const { messages } = await request.json();
 
@@ -31,27 +40,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create system message
+    // Create system message optimized for Claude
     const systemMessage = {
       role: 'system' as const,
-      content: `You are Maratron AI, a helpful running and fitness assistant. 
+      content: `You are Maratron AI, an expert running and fitness coach powered by Claude 3.5.
 
-You can help users with:
-- General running advice and training tips
-- Answering questions about fitness and nutrition
-- Providing motivational support
-- Discussing running techniques and strategies
+Your expertise includes:
+- Personalized training advice based on running science
+- Injury prevention and recovery guidance  
+- Nutrition strategies for endurance athletes
+- Race preparation and pacing strategies
+- Mental training and motivation techniques
 
-Be encouraging, knowledgeable about running, and provide helpful advice.
+Guidelines:
+- Provide evidence-based advice following current sports science
+- Be encouraging yet realistic about training progression
+- Always prioritize safety and injury prevention
+- Ask clarifying questions to provide personalized recommendations
+- Use metric and imperial units as appropriate
 
-Note: Advanced data tools are currently being set up and will be available soon.
-
-Current user ID: ${session.user.id}`
+Current user: ${session.user.id}
+Note: Advanced user data integration coming soon.`
     };
     
-    // Generate the response (non-streaming for now to test)
+    // Generate the response using Claude 3.5
     const result = await generateText({
-      model: openai(process.env.OPENAI_MODEL || 'gpt-4o-mini'),
+      model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022'),
       messages: [systemMessage, ...messages],
       temperature: 0.7,
       maxTokens: 1000,
@@ -67,10 +81,28 @@ Current user ID: ${session.user.id}`
   } catch (error) {
     console.error('Chat API error:', error);
     
+    // Provide specific error handling for different failure modes
+    if (error instanceof Error) {
+      // Check for Anthropic API specific errors
+      if (error.message.includes('API key') || error.message.includes('authentication')) {
+        return NextResponse.json(
+          { error: 'AI service authentication failed' },
+          { status: 503 }
+        );
+      }
+      
+      if (error.message.includes('rate limit') || error.message.includes('quota')) {
+        return NextResponse.json(
+          { error: 'AI service temporarily unavailable. Please try again in a moment.' },
+          { status: 429 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { 
         error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
       },
       { status: 500 }
     );
@@ -78,9 +110,15 @@ Current user ID: ${session.user.id}`
 }
 
 export async function GET() {
+  // Health check endpoint
+  const anthropicConfigured = !!process.env.ANTHROPIC_API_KEY;
+  
   return NextResponse.json({
     message: 'Maratron Chat API',
     status: 'active',
-    availableTools: [] // MCP tools disabled - will be re-enabled later
+    aiProvider: 'Claude 3.5 (Anthropic)',
+    model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
+    configured: anthropicConfigured,
+    availableTools: [] // MCP tools will be re-enabled later
   });
 }
