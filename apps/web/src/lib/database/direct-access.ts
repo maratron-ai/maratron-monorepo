@@ -126,7 +126,9 @@ export async function getUserDataDirect(userId: string, dataTypes: string[]): Pr
 
 /**
  * Check if we're running in Docker environment
+ * Note: MCP bypass removed to maintain consistent AI intelligence across all environments
  */
 export function isDockerEnvironment(): boolean {
-  return process.env.DOCKER === 'true' || process.env.RUNNING_IN_DOCKER === 'true';
+  // Always use MCP for consistent AI capabilities - Docker bypass removed
+  return false;
 }

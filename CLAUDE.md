@@ -6,19 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Project Status & Current Focus
 - **Status**: Production-ready full-stack running/fitness platform with AI chat
-- **Architecture**: Hybrid MCP integration (Docker + local modes)
+- **Architecture**: Consistent MCP integration across all environments
 - **Test Coverage**: Comprehensive test suite with continuous expansion
 - **Active Development**: Focus on feature expansion and AI enhancement
 
 ### Key Architectural Decisions
 - **Docker-First Development**: Primary workflow uses `npm run dev` (Docker Compose)
-- **Hybrid Database Access**: Docker uses direct Prisma, local uses MCP client
+- **Consistent MCP Integration**: All environments use MCP for AI intelligence
 - **Intelligent AI**: Query routing determines when to fetch user data vs general advice
-- **Environment Detection**: Automatic switching via `isDockerEnvironment()`
+- **Environment-Aware Config**: Different MCP connection methods per environment
 
 ### Known Critical Points
-- **MCP Integration**: Requires environment-aware code paths
-- **Database Access**: Different patterns for Docker vs local environments
+- **MCP Integration**: Consistent across all environments for full AI capabilities
+- **AI Intelligence**: All environments access smart context, pattern analysis, and conversation tracking
 - **Complex Domain Logic**: Running science with VDOT, pace zones, training plans
 - **Testing Strategy**: Docker cleanup essential to prevent state leakage
 
@@ -77,16 +77,16 @@ npx prisma generate           # Regenerate Prisma client
 
 ## 🧠 LLM Decision Trees
 
-### Environment Detection Pattern
+### Consistent MCP Pattern
 ```typescript
-// Always check environment before database operations
-const isDocker = isDockerEnvironment();
-if (isDocker) {
-  // Use direct Prisma database access
-  userData = await getUserDataDirect(userId, dataTypes);
-} else {
-  // Use MCP client connection
+// Always use MCP for consistent AI intelligence across all environments
+if (mcpClient) {
+  // Set user context and gather intelligent data
+  await mcpClient.setUserContext(userId);
   userData = await gatherUserData(dataTypes, userId, mcpClient);
+} else {
+  // Fallback only when MCP is unavailable
+  mcpStatus = 'fallback';
 }
 ```
 

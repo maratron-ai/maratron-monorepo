@@ -7,7 +7,6 @@ import { generateText } from 'ai';
 import { MaratronMCPClient } from '@lib/mcp/client';
 import { MCPToolCall } from '@lib/mcp/types';
 import { needsUserData, gatherUserData, createPersonalizedPrompt } from '@lib/utils/chat-query-routing';
-import { getUserDataDirect, isDockerEnvironment } from '@lib/database/direct-access';
 
 export interface AuthResult {
   isAuthenticated: boolean;
@@ -113,22 +112,8 @@ export async function handleMCPEnhancedChat(
       const queryAnalysis = needsUserData(latestMessage.content);
       
       if (queryAnalysis.requiresData) {
-        // Use direct database access in Docker, MCP otherwise
-        if (isDockerEnvironment()) {
-          userData = await getUserDataDirect(userId, queryAnalysis.dataTypes);
-          
-          // Set basic user context for Docker mode
-          userContext = {
-            userId,
-            preferences: userData.preferences || {
-              distanceUnit: 'miles',
-              responseDetail: 'detailed',
-              maxResults: 10
-            }
-          };
-          
-          mcpStatus = 'enhanced';
-        } else if (mcpClient) {
+        // Always use MCP for consistent AI intelligence across all environments
+        if (mcpClient) {
           // Always set user context for personalization
           await mcpClient.setUserContext(userId);
           
@@ -140,7 +125,7 @@ export async function handleMCPEnhancedChat(
           
           mcpStatus = 'enhanced';
         } else {
-          console.warn('No MCP client available and not in Docker mode, using fallback');
+          console.warn('No MCP client available, using fallback');
           mcpStatus = 'fallback';
         }
         

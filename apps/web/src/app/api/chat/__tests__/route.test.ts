@@ -1,6 +1,14 @@
 /**
- * Tests for Chat API MCP Integration Business Logic
- * Following TDD approach - these tests should fail initially
+ * Tests for Chat API Consistent MCP Integration
+ * 
+ * Tests verify that MCP integration provides consistent AI intelligence across
+ * all environments (local, Docker, production). No environment-specific bypasses.
+ * 
+ * Key test coverage:
+ * - MCP client connection and tool execution
+ * - Query analysis and smart data fetching  
+ * - Graceful fallback when MCP unavailable
+ * - Consistent behavior regardless of deployment environment
  */
 
 import { 
@@ -9,7 +17,6 @@ import {
   validateChatRequest 
 } from '../chat-handler';
 import { generateText } from 'ai';
-import { getUserDataDirect, isDockerEnvironment } from '@lib/database/direct-access';
 
 // Mock dependencies
 jest.mock('@lib/mcp/client');
@@ -17,16 +24,9 @@ jest.mock('@ai-sdk/anthropic');
 jest.mock('ai', () => ({
   generateText: jest.fn()
 }));
-jest.mock('@lib/database/direct-access', () => ({
-  getUserDataDirect: jest.fn(),
-  isDockerEnvironment: jest.fn()
-}));
 
 const mockGenerateText = generateText as jest.MockedFunction<typeof generateText>;
-const mockGetUserDataDirect = getUserDataDirect as jest.MockedFunction<typeof getUserDataDirect>;
-const mockIsDockerEnvironment = isDockerEnvironment as jest.MockedFunction<typeof isDockerEnvironment>;
 
-// This module doesn't exist yet - tests will fail initially
 describe('Chat API MCP Integration', () => {
   const mockMCPClient = {
     connect: jest.fn(),
@@ -34,7 +34,7 @@ describe('Chat API MCP Integration', () => {
     callTool: jest.fn(),
     getUserContext: jest.fn(),
     disconnect: jest.fn(),
-  };
+  } as any; // Type assertion for test mock
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -44,15 +44,6 @@ describe('Chat API MCP Integration', () => {
       text: 'Mock AI response',
       finishReason: 'stop',
       usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 }
-    });
-    
-    // Default to local mode (not Docker) for most tests
-    mockIsDockerEnvironment.mockReturnValue(false);
-    
-    // Default mock for direct database access
-    mockGetUserDataDirect.mockResolvedValue({
-      profile: { name: 'Test User', defaultDistanceUnit: 'miles' },
-      preferences: { distance_unit: 'miles', response_detail: 'detailed', max_results: 10 }
     });
   });
 
@@ -175,9 +166,6 @@ describe('Chat API MCP Integration', () => {
     });
 
     it('should handle general queries without MCP data calls', async () => {
-      // Ensure we're not in Docker mode so MCP client is used
-      mockIsDockerEnvironment.mockReturnValue(false);
-      
       mockMCPClient.setUserContext.mockResolvedValue(undefined);
       mockMCPClient.getUserContext.mockResolvedValue(null);
 
@@ -263,21 +251,48 @@ describe('Chat API MCP Integration', () => {
       consoleWarnSpy.mockRestore();
     });
 
-    it('should use direct database access in Docker mode', async () => {
-      // Enable Docker mode
-      mockIsDockerEnvironment.mockReturnValue(true);
-      
+    it('should always use MCP for consistent AI intelligence', async () => {
       const dataQuery = [
         { role: 'user', content: 'Show me my shoes' }
       ];
 
+      mockMCPClient.setUserContext.mockResolvedValue(undefined);
+      mockMCPClient.getUserContext.mockResolvedValue(null);
+      mockMCPClient.callTool.mockResolvedValue({
+        content: [{ type: 'text', text: JSON.stringify({ shoes: [] }) }],
+        isError: false
+      });
+
       const result = await handleMCPEnhancedChat(dataQuery, userId, mockMCPClient);
 
-      // In Docker mode, should use direct database access instead of MCP
-      expect(mockGetUserDataDirect).toHaveBeenCalledWith(userId, ['shoes']);
-      expect(mockMCPClient.setUserContext).not.toHaveBeenCalled();
-      expect(mockMCPClient.callTool).not.toHaveBeenCalled();
+      // Always use MCP for consistent AI intelligence across all environments
+      expect(mockMCPClient.setUserContext).toHaveBeenCalledWith(userId);
+      expect(mockMCPClient.callTool).toHaveBeenCalledWith({
+        name: 'get_smart_user_context',
+        arguments: {}
+      });
       expect(result.mcpStatus).toBe('enhanced');
+    });
+
+    it('should fallback when MCP client is not available', async () => {
+      // Silence expected console.warn for this test
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      
+      const dataQuery = [
+        { role: 'user', content: 'Show me my recent runs' }
+      ];
+
+      // Pass null as MCP client to simulate unavailable MCP
+      const result = await handleMCPEnhancedChat(dataQuery, userId, null);
+
+      expect(result.mcpStatus).toBe('fallback');
+      expect(result.content).toBeDefined();
+      
+      // Verify the warning was called
+      expect(consoleWarnSpy).toHaveBeenCalledWith('No MCP client available, using fallback');
+      
+      // Restore console.warn
+      consoleWarnSpy.mockRestore();
     });
 
     it('should return appropriate response structure', async () => {

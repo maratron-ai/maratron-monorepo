@@ -106,24 +106,18 @@ export async function GET() {
   let mcpStatus = 'unknown';
   let availableTools: string[] = [];
   
-  if (isDocker) {
-    // In Docker mode, we use direct database access
+  // Always use MCP for consistent AI intelligence across all environments
+  try {
+    const mcpClient = getMCPClient();
+    await mcpClient.connect();
+    availableTools = await mcpClient.listTools();
     mcpStatus = 'connected';
-    availableTools = ['direct_database_access', 'get_user_data', 'get_user_runs', 'get_user_shoes'];
-  } else {
-    // In local mode, try to connect to MCP
-    try {
-      const mcpClient = getMCPClient();
-      await mcpClient.connect();
-      availableTools = await mcpClient.listTools();
-      mcpStatus = 'connected';
-    } catch {
-      mcpStatus = 'disconnected';
-    }
+  } catch {
+    mcpStatus = 'disconnected';
   }
   
   return NextResponse.json({
-    message: 'Maratron Chat API - Hybrid MCP + LLM',
+    message: 'Maratron Chat API - Consistent MCP + LLM',
     status: 'active',
     aiProvider: 'Claude 3.5 (Anthropic)',
     model: process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
@@ -136,7 +130,7 @@ export async function GET() {
       'User context management',
       'Personalized responses',
       'Error resilience with fallback',
-      isDocker ? 'Direct database access' : 'MCP integration'
+      'Consistent MCP integration across all environments'
     ]
   });
 }

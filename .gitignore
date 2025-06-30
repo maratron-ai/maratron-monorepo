@@ -16,8 +16,8 @@ apps/ai/build/
 .env.development.local
 .env.test.local
 .env.production.local
-apps/web/.env*
-apps/ai/.env*
+apps/web/.env
+apps/ai/.env
 
 # Database
 *.db
