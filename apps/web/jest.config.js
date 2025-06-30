@@ -14,6 +14,9 @@ const config = {
     '\\.(css|less|scss)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot|svg|png|jpg|jpeg)$': '<rootDir>/test/__mocks__/fileMock.js',
     
+    // Handle framer-motion
+    '^framer-motion$': '<rootDir>/test/__mocks__/framer-motion.js',
+    
     // Path aliases - be very explicit
     '^@components/(.*)$': '<rootDir>/src/components/$1',
     '^@lib/api/social$': '<rootDir>/src/lib/api/social/index.ts',

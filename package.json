@@ -56,5 +56,8 @@
       "cd apps/ai && uv run ruff format",
       "cd apps/ai && uv run ruff check --fix"
     ]
+  },
+  "dependencies": {
+    "framer-motion": "^12.20.1"
   }
 }
