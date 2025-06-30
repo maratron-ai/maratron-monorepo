@@ -64,7 +64,7 @@ User Query → Phase 1: Tool Planning → Phase 2: Tool Execution → Phase 3: R
 
 ```mermaid
 graph TD
-    A[User Message: "Show me my shoes"] --> B[Next.js Chat API]
+    A[User Message: Show me my shoes] --> B[Next.js Chat API]
     B --> C[Authentication Check]
     C --> D[MCP Client Connection]
     D --> E[Auto Set User Context]
@@ -72,7 +72,7 @@ graph TD
     F --> G[Claude 3.5 Function Calling]
     
     G --> H{Claude Analyzes Query}
-    H --> I["Claude Decides: 'I need shoe data'"]
+    H --> I[Claude Decides: I need shoe data]
     I --> J[Claude Calls: listUserShoes tool]
     J --> K[Tool Execution via MCP]
     K --> L[MCP Server processes request]
@@ -95,20 +95,20 @@ graph TD
 graph LR
     A[User Query] --> B{Claude Analysis}
     
-    B --> C["Query: 'Show shoes'"]
+    B --> C[Query: Show shoes]
     C --> D[listUserShoes]
     
-    B --> E["Query: 'Recent runs'"]
+    B --> E[Query: Recent runs]
     E --> F[getUserRuns]
     
-    B --> G["Query: 'Training analysis'"]
+    B --> G[Query: Training analysis]
     G --> H[Multiple Tools]
     H --> I[getUserRuns + analyzeUserPatterns + getMotivationalContext]
     
-    B --> J["Query: 'Log run'"]
+    B --> J[Query: Log run]
     J --> K[addRun]
     
-    B --> L["Query: 'General chat'"]
+    B --> L[Query: General chat]
     L --> M[updateConversationIntelligence]
     
     style B fill:#e1f5fe
@@ -128,7 +128,7 @@ sequenceDiagram
     
     Note over U,DB: Three-Phase Function Calling Implementation
     
-    U->>C: "Show me my shoes"
+    U->>C: Show me my shoes
     
     Note over C,CH: Phase 1: Tool Planning
     C->>CH: Generate with tools (planning)
@@ -139,7 +139,7 @@ sequenceDiagram
     MC->>MS: set_current_user_tool
     MS->>DB: Set user context
     
-    CH->>MC: callTool("get_user_shoes")
+    CH->>MC: callTool(get_user_shoes)
     MC->>MS: get_user_shoes with context
     MS->>DB: SELECT shoes WHERE userId
     DB-->>MS: Actual shoe data
@@ -149,7 +149,7 @@ sequenceDiagram
     Note over C,CH: Phase 3: Response Synthesis
     CH->>C: Generate final response with tool results
     C-->>CH: Natural response with shoe data
-    CH-->>U: "Here are your 3 shoes: Nike Vaporfly..."
+    CH-->>U: Here are your 3 shoes: Nike Vaporfly...
 ```
 
 ---
