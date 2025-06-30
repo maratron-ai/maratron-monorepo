@@ -6,6 +6,17 @@ import { PrismaClient } from '@prisma/client';
 import { authOptions } from '../auth';
 import { hashPassword } from '../utils/passwordUtils';
 
+// Types for the test
+interface CredentialsProvider {
+  options: {
+    authorize: (credentials: Record<string, unknown>) => Promise<unknown>;
+  };
+}
+
+interface MockPrismaUser {
+  findUnique: jest.Mock;
+}
+
 // Don't mock NextAuth for this test - we want to test the real implementation
 
 // Create a test database instance with minimal logging
@@ -62,7 +73,7 @@ describe('Authentication Security', () => {
     });
 
     it('should authenticate user with correct credentials', async () => {
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
       
       const result = await credentialsProvider.options.authorize({
         email: 'test-auth-user@example.com',
@@ -76,7 +87,7 @@ describe('Authentication Security', () => {
     });
 
     it('should reject user with incorrect password', async () => {
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
 
       const result = await credentialsProvider.options.authorize({
         email: 'test-auth-user@example.com',
@@ -87,7 +98,7 @@ describe('Authentication Security', () => {
     });
 
     it('should reject non-existent user', async () => {
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
 
       const result = await credentialsProvider.options.authorize({
         email: 'nonexistent@example.com',
@@ -98,7 +109,7 @@ describe('Authentication Security', () => {
     });
 
     it('should reject empty credentials', async () => {
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
 
       const result1 = await credentialsProvider.options.authorize({
         email: '',
@@ -118,7 +129,7 @@ describe('Authentication Security', () => {
     });
 
     it('should handle malformed credentials gracefully', async () => {
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
 
       const result = await credentialsProvider.options.authorize({
         email: 'test-auth-user@example.com',
@@ -140,7 +151,7 @@ describe('Authentication Security', () => {
         }
       });
 
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
 
       const result = await credentialsProvider.options.authorize({
         email: 'test-auth-security@example.com',
@@ -166,7 +177,7 @@ describe('Authentication Security', () => {
         }
       });
 
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
 
       // Should work with correct password
       const correctResult = await credentialsProvider.options.authorize({
@@ -192,9 +203,9 @@ describe('Authentication Security', () => {
     it('should handle database errors gracefully', async () => {
       // Temporarily break database connection
       const originalFindUnique = prisma.user.findUnique;
-      prisma.user.findUnique = jest.fn().mockRejectedValue(new Error('Database connection error'));
+      (prisma.user as MockPrismaUser).findUnique = jest.fn().mockRejectedValue(new Error('Database connection error'));
 
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
 
       const result = await credentialsProvider.options.authorize({
         email: 'test@example.com',
@@ -217,7 +228,7 @@ describe('Authentication Security', () => {
         }
       });
 
-      const credentialsProvider = authOptions.providers[0] as any;
+      const credentialsProvider = authOptions.providers[0] as CredentialsProvider;
 
       const result = await credentialsProvider.options.authorize({
         email: 'test-auth-corrupted@example.com',
@@ -246,7 +257,7 @@ describe('Authentication Security', () => {
     it('should have credentials provider properly configured', () => {
       const credentialsProvider = authOptions.providers[0];
       expect(credentialsProvider).toBeDefined();
-      expect((credentialsProvider as any).authorize).toBeDefined();
+      expect((credentialsProvider as CredentialsProvider).options.authorize).toBeDefined();
     });
   });
 });

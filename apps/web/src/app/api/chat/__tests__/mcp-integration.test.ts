@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { handleMCPEnhancedChat, ChatResponse } from '../chat-handler';
+import { handleMCPEnhancedChat } from '../chat-handler';
 import { MaratronMCPClient } from '@lib/mcp/client';
 
 // Mock the Anthropic SDK
@@ -39,11 +39,12 @@ describe('MCP Enhanced Chat Handler', () => {
       connect: jest.fn(),
       disconnect: jest.fn(),
       listTools: jest.fn()
-    } as any;
+    } as jest.Mocked<MaratronMCPClient>;
 
     // Setup AI SDK mock
     mockGenerateText = jest.fn();
-    (require('ai') as any).generateText = mockGenerateText;
+    const ai = jest.requireMock('ai') as { generateText: jest.Mock };
+    ai.generateText = mockGenerateText;
   });
 
   describe('Function Calling Integration', () => {

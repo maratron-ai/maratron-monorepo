@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { handleMCPEnhancedChat, ChatResponse } from '../chat-handler';
+import { handleMCPEnhancedChat } from '../chat-handler';
 import { MaratronMCPClient } from '@lib/mcp/client';
 
 // Mock the Anthropic SDK
@@ -42,11 +42,12 @@ describe('Advanced MCP Integration Tests', () => {
       connect: jest.fn(),
       disconnect: jest.fn(),
       listTools: jest.fn()
-    } as any;
+    } as jest.Mocked<MaratronMCPClient>;
 
     // Setup AI SDK mock
     mockGenerateText = jest.fn();
-    (require('ai') as any).generateText = mockGenerateText;
+    const ai = jest.requireMock('ai') as { generateText: jest.Mock };
+    ai.generateText = mockGenerateText;
   });
 
   describe('Training Plan Tools', () => {
@@ -164,7 +165,7 @@ describe('Advanced MCP Integration Tests', () => {
         content: 'Show me my current training plan progress' 
       }];
       
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockMCPClient.callTool).toHaveBeenCalledWith({
         name: 'get_active_training_plan',
@@ -182,7 +183,7 @@ describe('Advanced MCP Integration Tests', () => {
       mockGenerateText.mockResolvedValue(mockResponse);
 
       const messages = [{ role: 'user' as const, content: 'I want to set a running goal' }];
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockGenerateText).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -227,7 +228,7 @@ describe('Advanced MCP Integration Tests', () => {
         content: 'I want to set a goal to run 20 miles by the end of the year' 
       }];
       
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockMCPClient.callTool).toHaveBeenCalledWith({
         name: 'set_running_goal',
@@ -250,7 +251,7 @@ describe('Advanced MCP Integration Tests', () => {
       mockGenerateText.mockResolvedValue(mockResponse);
 
       const messages = [{ role: 'user' as const, content: 'Analyze my running performance' }];
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockGenerateText).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -290,7 +291,7 @@ describe('Advanced MCP Integration Tests', () => {
         content: 'Show me my performance trends over the last 6 months' 
       }];
       
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockMCPClient.callTool).toHaveBeenCalledWith({
         name: 'get_performance_trends',
@@ -330,7 +331,7 @@ describe('Advanced MCP Integration Tests', () => {
         content: 'What time should I expect for a half marathon on October 15th?' 
       }];
       
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockMCPClient.callTool).toHaveBeenCalledWith({
         name: 'predict_race_time',
@@ -352,7 +353,7 @@ describe('Advanced MCP Integration Tests', () => {
       mockGenerateText.mockResolvedValue(mockResponse);
 
       const messages = [{ role: 'user' as const, content: 'Show me my social feed' }];
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockGenerateText).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -392,7 +393,7 @@ describe('Advanced MCP Integration Tests', () => {
         content: 'Show me my social feed with recent posts' 
       }];
       
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockMCPClient.callTool).toHaveBeenCalledWith({
         name: 'get_social_feed',
@@ -432,7 +433,7 @@ describe('Advanced MCP Integration Tests', () => {
         content: 'Share my latest run with caption "Amazing morning run in the park!" to all my groups' 
       }];
       
-      const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
+      await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(mockMCPClient.callTool).toHaveBeenCalledWith({
         name: 'create_run_post',

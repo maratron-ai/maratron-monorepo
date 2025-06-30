@@ -1060,7 +1060,7 @@ The user's context is automatically set - you can immediately use any tool to ac
     console.log(`📋 Planning result - tool calls: ${planningResult.toolCalls?.length || 0}`);
 
     // Phase 2: Execute tools and collect results
-    let toolResults: string[] = [];
+    const toolResults: string[] = [];
     if (planningResult.toolCalls && planningResult.toolCalls.length > 0) {
       console.log('🔄 Phase 2: Executing tools...');
       
@@ -1084,7 +1084,7 @@ The user's context is automatically set - you can immediately use any tool to ac
           console.log(`🛠️ Executing tool: ${toolCall.toolName}`);
           const toolFunction = tools[toolCall.toolName as keyof typeof tools];
           if (toolFunction && 'execute' in toolFunction) {
-            const toolResult = await toolFunction.execute(toolCall.args as any);
+            const toolResult = await toolFunction.execute(toolCall.args as Record<string, unknown>);
             toolResults.push(toolResult);
             console.log(`✅ Tool ${toolCall.toolName} returned ${String(toolResult).length} characters`);
           }

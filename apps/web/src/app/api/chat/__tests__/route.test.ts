@@ -38,7 +38,7 @@ describe('Chat API MCP Integration', () => {
     callTool: jest.fn(),
     getUserContext: jest.fn(),
     disconnect: jest.fn(),
-  } as any; // Type assertion for test mock
+  } as jest.Mocked<typeof mockMCPClient>; // Type assertion for test mock
 
   beforeEach(() => {
     jest.clearAllMocks();
