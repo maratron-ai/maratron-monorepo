@@ -104,6 +104,7 @@ uv run pytest        # Run tests
 
 Comprehensive documentation is available in the `docs/` directory:
 
+- **[MCP-LLM Integration](docs/MCP_LLM_INTEGRATION.md)** - 🔥 **NEW**: Technical deep-dive into the function calling architecture
 - **[Architecture Overview](docs/architecture.md)** - System design and component relationships
 - **[Web Application](docs/web-app.md)** - Next.js frontend with social features and run tracking  
 - **[AI MCP Server](docs/ai-server.md)** - Python MCP server with database tools and context management
@@ -199,13 +200,19 @@ npm run db:seed
 - **Social Feed**: Share runs and interact with other runners
 - **Comments & Likes**: Engage with the running community
 
-### AI Integration
-- **Intelligent Chat**: Context-aware running advice with actual user data
-- **Personalized Responses**: Based on user preferences, history, and patterns
-- **Hybrid Architecture**: Docker mode uses direct database access, local mode uses MCP
-- **Smart Query Routing**: Automatically detects when user data is needed
-- **Enhanced Prompts**: LLM receives detailed run/shoe data instead of generic context
-- **MCP Protocol**: Modern AI-to-application communication with user context management
+### AI Integration ⚡
+- **Function Calling Architecture**: 🔥 **NEW** - Claude 3.5 intelligently selects and uses 9 specialized tools
+- **Automatic Context Management**: Seamless user context setting - no technical details exposed
+- **Real-Time Tool Execution**: Claude accesses user data, analyzes patterns, and adds records on-demand
+- **Intelligent Chat**: Context-aware running advice with personalized data analysis
+- **Multi-Tool Coordination**: Complex queries automatically use multiple tools (runs + patterns + motivation)
+- **Natural UX**: Users simply ask questions - tools work transparently in background
+- **MCP Protocol**: Modern AI-to-application communication with comprehensive user context
+- **Industry Best Practices**: Professional implementation following enterprise AI assistant patterns
+
+**Available AI Tools**: `getUserRuns`, `listUserShoes`, `addRun`, `addShoe`, `analyzeUserPatterns`, `getMotivationalContext`, `getSmartUserContext`, `updateConversationIntelligence`, `getDatabaseSummary`
+
+📖 **[See Technical Implementation →](docs/MCP_LLM_INTEGRATION.md)**
 
 ## 🔐 Security
 

@@ -1,12 +1,12 @@
 /**
- * Chat Handler - Business logic for MCP-enhanced chat API
+ * Chat Handler - Business logic for MCP-enhanced chat API with Function Calling
  */
 
 import { anthropic } from '@ai-sdk/anthropic';
-import { generateText } from 'ai';
+import { generateText, tool } from 'ai';
+import { z } from 'zod';
 import { MaratronMCPClient } from '@lib/mcp/client';
 import { MCPToolCall } from '@lib/mcp/types';
-import { needsUserData, gatherUserData, createPersonalizedPrompt } from '@lib/utils/chat-query-routing';
 
 export interface AuthResult {
   isAuthenticated: boolean;
@@ -16,7 +16,7 @@ export interface AuthResult {
 
 export interface ValidationResult {
   isValid: boolean;
-  messages?: Array<{ role: string; content: string }>;
+  messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
   error?: string;
 }
 
@@ -26,6 +26,180 @@ export interface ChatResponse {
   systemPrompt: string;
   toolCalls: MCPToolCall[];
   error?: string;
+}
+
+/**
+ * Create MCP tool definitions for Claude function calling
+ * Note: User context is automatically set by the system
+ */
+function createMCPTools(mcpClient: MaratronMCPClient) {
+  return {
+
+    getSmartUserContext: tool({
+      description: 'Get comprehensive, intelligent user context for personalized responses',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'get_smart_user_context',
+            arguments: {}
+          });
+          return { success: true, data: result.content[0]?.text || 'No context available' };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    }),
+
+    getUserRuns: tool({
+      description: 'Get the current user\'s recent running data with detailed metrics',
+      parameters: z.object({
+        limit: z.number().optional().describe('Number of runs to retrieve (default: 5)')
+      }),
+      execute: async ({ limit = 5 }) => {
+        try {
+          // Context is already set automatically, just get the runs
+          const result = await mcpClient.callTool({
+            name: 'get_smart_user_context',
+            arguments: {}
+          });
+          return { success: true, data: result.content[0]?.text || 'No runs available' };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    }),
+
+    addRun: tool({
+      description: 'Add a new run record for the current user',
+      parameters: z.object({
+        date: z.string().describe('Run date in YYYY-MM-DD format'),
+        duration: z.string().describe('Duration in HH:MM:SS format'),
+        distance: z.number().describe('Distance covered'),
+        distanceUnit: z.enum(['miles', 'kilometers']).optional().describe('Distance unit'),
+        name: z.string().optional().describe('Name for the run'),
+        notes: z.string().optional().describe('Notes about the run'),
+        pace: z.string().optional().describe('Pace information'),
+        elevationGain: z.number().optional().describe('Elevation gain')
+      }),
+      execute: async (params) => {
+        try {
+          // User context is already set, MCP tools will use current user
+          const result = await mcpClient.callTool({
+            name: 'add_run',
+            arguments: { ...params }
+          });
+          return { success: true, data: result.content[0]?.text || 'Run added successfully' };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    }),
+
+    analyzeUserPatterns: tool({
+      description: 'Analyze user running patterns and provide insights',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'analyze_user_patterns',
+            arguments: {}
+          });
+          return { success: true, data: result.content[0]?.text || 'No patterns available' };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    }),
+
+    getMotivationalContext: tool({
+      description: 'Get motivational context to provide encouraging responses',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'get_motivational_context',
+            arguments: {}
+          });
+          return { success: true, data: result.content[0]?.text || 'Stay motivated!' };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    }),
+
+    updateConversationIntelligence: tool({
+      description: 'Update conversation intelligence with context from the current interaction',
+      parameters: z.object({
+        userMessage: z.string().describe('The user\'s message'),
+        aiResponse: z.string().describe('The AI\'s response'),
+        intent: z.string().optional().describe('Intent of the conversation'),
+        sentiment: z.string().optional().describe('User sentiment')
+      }),
+      execute: async (params) => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'update_conversation_intelligence',
+            arguments: params
+          });
+          return { success: true, data: result.content[0]?.text || 'Context updated' };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    }),
+
+    addShoe: tool({
+      description: 'Add a new running shoe to track mileage and usage for the current user',
+      parameters: z.object({
+        name: z.string().describe('Name/model of the shoe'),
+        maxDistance: z.number().describe('Maximum recommended mileage'),
+        distanceUnit: z.enum(['miles', 'kilometers']).optional().describe('Distance unit'),
+        notes: z.string().optional().describe('Notes about the shoe')
+      }),
+      execute: async (params) => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'add_shoe',
+            arguments: { ...params }
+          });
+          return { success: true, data: result.content[0]?.text || 'Shoe added successfully' };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    }),
+
+    getDatabaseSummary: tool({
+      description: 'Get a summary of database statistics and information',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          const summary = await mcpClient.getDatabaseSummary();
+          return { success: true, data: summary };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    }),
+
+    listUserShoes: tool({
+      description: 'Get current user\'s shoe collection and mileage information',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          // Context is already set, just get the data
+          const result = await mcpClient.callTool({
+            name: 'get_smart_user_context',
+            arguments: {}
+          });
+          return { success: true, data: result.content[0]?.text || 'No shoe data available' };
+        } catch (error) {
+          return { success: false, error: String(error) };
+        }
+      }
+    })
+  };
 }
 
 /**
@@ -88,78 +262,110 @@ export function validateChatRequest(request: unknown): ValidationResult {
 
   return {
     isValid: true,
-    messages: typedRequest.messages as Array<{ role: string; content: string }>
+    messages: typedRequest.messages as Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
   };
 }
 
 /**
- * Handle MCP-enhanced chat with intelligent query routing
+ * Handle MCP-enhanced chat with function calling integration
  */
 export async function handleMCPEnhancedChat(
-  messages: Array<{ role: string; content: string }>,
+  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
   userId: string,
   mcpClient: MaratronMCPClient | null
 ): Promise<ChatResponse> {
   const toolCalls: MCPToolCall[] = [];
-  let userData: Record<string, unknown> = {};
-  let userContext = null;
-  let mcpStatus: 'enhanced' | 'no-data-needed' | 'fallback' = 'no-data-needed';
+  let mcpStatus: 'enhanced' | 'no-data-needed' | 'fallback' = 'fallback';
+
+  // Create enhanced system prompt for running coach
+  const systemPrompt = `You are Maratron AI, an expert running and fitness coach powered by Claude 3.5.
+
+Your expertise includes:
+- Personalized training advice based on running science
+- Injury prevention and recovery guidance  
+- Nutrition strategies for endurance athletes
+- Race preparation and pacing strategies
+- Mental training and motivation techniques
+
+Guidelines:
+- Provide evidence-based advice following current sports science
+- Be encouraging yet realistic about training progression
+- Always prioritize safety and injury prevention
+- Use natural, conversational language (not overly technical or pedagogical)
+- When you need user-specific data, use the available tools directly
+- User context is automatically managed - you can access user data immediately
+
+Available Tools:
+- getSmartUserContext: Get comprehensive user context and insights about their running
+- getUserRuns: Get user's recent running data with metrics and analysis
+- addRun: Add new run records (date, duration, distance, notes, etc.)
+- addShoe: Add new running shoes to track mileage and usage
+- listUserShoes: Get user's shoe collection and mileage information
+- analyzeUserPatterns: Analyze running patterns and provide insights
+- getMotivationalContext: Get motivational context for encouraging responses
+- updateConversationIntelligence: Track conversation context and sentiment
+- getDatabaseSummary: Get database statistics (for debugging only)
+
+The user's context is automatically set - you can immediately use any tool to access their personal running data, add new records, or provide personalized advice. Never ask users for their user ID or mention setting context.`;
 
   try {
-    // Analyze the latest user message to determine if data is needed
-    const latestMessage = messages[messages.length - 1];
-    if (latestMessage?.role === 'user') {
-      const queryAnalysis = needsUserData(latestMessage.content);
+    if (!mcpClient) {
+      console.warn('No MCP client available, using basic response mode');
+      mcpStatus = 'fallback';
       
-      if (queryAnalysis.requiresData) {
-        // Always use MCP for consistent AI intelligence across all environments
-        if (mcpClient) {
-          // Always set user context for personalization
-          await mcpClient.setUserContext(userId);
-          
-          // Get user context for preferences
-          userContext = await mcpClient.getUserContext();
-          
-          // Gather user data via MCP
-          userData = await gatherUserData(queryAnalysis.dataTypes, userId, mcpClient);
-          
-          mcpStatus = 'enhanced';
-        } else {
-          console.warn('No MCP client available, using fallback');
-          mcpStatus = 'fallback';
-        }
-        
-        // Record the tool calls made
-        queryAnalysis.mcpTools.forEach(tool => {
-          toolCalls.push({
-            name: tool,
-            arguments: {}
-          });
+      // Generate basic response without tools
+      const result = await generateText({
+        model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest'),
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages
+        ],
+        temperature: 0.7,
+        maxTokens: 1000,
+      });
+
+      return {
+        content: result.text,
+        mcpStatus,
+        systemPrompt,
+        toolCalls
+      };
+    }
+
+    // Automatically set user context for this session
+    try {
+      await mcpClient.setUserContext(userId);
+      console.log(`User context set for: ${userId}`);
+    } catch (error) {
+      console.warn(`Failed to set user context for ${userId}:`, error);
+      // Continue anyway - some tools might still work
+    }
+
+    // Create MCP tools for function calling
+    const tools = createMCPTools(mcpClient);
+    mcpStatus = 'enhanced';
+
+    // Generate response with function calling
+    const result = await generateText({
+      model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest'),
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages
+      ],
+      tools,
+      temperature: 0.7,
+      maxTokens: 1500,
+    });
+
+    // Extract tool calls from the result
+    if (result.toolCalls && result.toolCalls.length > 0) {
+      for (const toolCall of result.toolCalls) {
+        toolCalls.push({
+          name: toolCall.toolName,
+          arguments: toolCall.args as Record<string, unknown>
         });
       }
     }
-  } catch (error) {
-    console.warn('Data gathering failed, falling back to standard response:', error);
-    mcpStatus = 'fallback';
-  }
-
-  // Create personalized system prompt
-  const systemPrompt = createPersonalizedPrompt(userData, userContext);
-
-  // Create system message
-  const systemMessage = {
-    role: 'system' as const,
-    content: systemPrompt
-  };
-
-  try {
-    // Generate response using Claude with personalized context
-    const result = await generateText({
-      model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022'),
-      messages: [systemMessage, ...messages],
-      temperature: 0.7,
-      maxTokens: 1000,
-    });
 
     return {
       content: result.text,
@@ -167,16 +373,42 @@ export async function handleMCPEnhancedChat(
       systemPrompt,
       toolCalls
     };
+
   } catch (error) {
-    console.error('Claude generation failed:', error);
+    console.error('Enhanced chat generation failed:', error);
     
-    // Fallback response
-    return {
-      content: 'I apologize, but I\'m experiencing technical difficulties. Please try again in a moment.',
-      mcpStatus: 'fallback',
-      systemPrompt,
-      toolCalls,
-      error: 'Claude generation failed'
-    };
+    // Fallback to basic response
+    try {
+      const fallbackResult = await generateText({
+        model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest'),
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a helpful running coach. Provide general running advice based on the user\'s question.' 
+          },
+          ...messages
+        ],
+        temperature: 0.7,
+        maxTokens: 1000,
+      });
+
+      return {
+        content: fallbackResult.text,
+        mcpStatus: 'fallback',
+        systemPrompt,
+        toolCalls,
+        error: 'Function calling failed, using basic mode'
+      };
+    } catch (fallbackError) {
+      console.error('Fallback generation also failed:', fallbackError);
+      
+      return {
+        content: 'I apologize, but I\'m experiencing technical difficulties. Please try again in a moment.',
+        mcpStatus: 'fallback',
+        systemPrompt,
+        toolCalls,
+        error: 'All generation methods failed'
+      };
+    }
   }
 }

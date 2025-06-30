@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚀 **NEW: Function Calling Architecture**
+
+This MCP server now powers an **advanced function calling implementation** with Claude 3.5:
+- **9 Intelligent Tools**: Claude selects appropriate tools automatically
+- **Smart Context Assembly**: Provides rich, personalized data to LLM
+- **Automatic User Context**: Transparent context management
+- **Multi-Tool Coordination**: Handles complex analysis requests seamlessly
+
+**Key Files**:
+- `smart_tools.py` - LLM-optimized context generation
+- `intelligence.py` - Pattern analysis and insights
+- `tools.py` - User context management
+- `server.py` - Tool definitions and MCP protocol handling
+
+📖 **[Complete Technical Documentation →](../../docs/MCP_LLM_INTEGRATION.md)**
+
+---
+
 ## Project Overview
 
 Maratron AI is a FastMCP server that provides database utilities for a PostgreSQL-based running/fitness application. The project uses the Model Context Protocol (MCP) to expose database operations as tools that can be used by AI assistants.

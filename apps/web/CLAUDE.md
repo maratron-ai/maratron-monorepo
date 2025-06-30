@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚀 **NEW: Advanced MCP-LLM Integration** 
+
+The chatbot now uses **Claude 3.5 Function Calling** with 9 intelligent tools for personalized running advice:
+- **Auto Context Management**: User context set automatically from session
+- **Real-Time Tool Selection**: Claude intelligently chooses relevant tools
+- **Natural UX**: No technical details exposed to users
+- **Multi-Tool Coordination**: Complex analysis uses multiple tools simultaneously
+
+📖 **[Complete Technical Documentation →](../../docs/MCP_LLM_INTEGRATION.md)**
+
 ## Development Commands
 
 **Setup:**

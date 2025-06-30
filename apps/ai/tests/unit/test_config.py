@@ -199,8 +199,9 @@ class TestMainConfig:
         """Test getting database URL for different environments."""
         config = Config()
 
-        # Test default environment
-        assert config.get_database_url() == config.database.url
+        # Test default environment - should return DATABASE_URL from environment if set
+        expected_url = os.getenv('DATABASE_URL', config.database.url)
+        assert config.get_database_url() == expected_url
 
         # Test with environment variables
         with patch.dict(os.environ, {
