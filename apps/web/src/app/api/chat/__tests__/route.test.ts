@@ -233,7 +233,7 @@ describe('Chat API MCP Integration', () => {
 
       const result = await handleMCPEnhancedChat(dataQuery, userId, mockMCPClient);
 
-      expect(result.systemPrompt).toContain('recent runs');
+      expect(result.systemPrompt).toContain('Recent runs');
       expect(result.systemPrompt).toContain('miles');
       expect(result.mcpStatus).toBe('enhanced');
     });

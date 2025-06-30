@@ -165,19 +165,46 @@ Guidelines:
 
     // Add recent runs data
     if (userData?.recent_runs && Array.isArray(userData.recent_runs)) {
-      prompt += `\n- recent runs: ${userData.recent_runs.length} runs available`;
+      prompt += `\n- Recent runs (${userData.recent_runs.length} available):`;
       
       if (userData.recent_runs.length > 0) {
-        const latestRun = userData.recent_runs[0];
-        if (latestRun.distance && latestRun.pace) {
-          prompt += ` (latest: ${latestRun.distance} miles at ${latestRun.pace} pace)`;
-        }
+        userData.recent_runs.forEach((run, index) => {
+          const date = run.date ? new Date(run.date).toLocaleDateString() : 'Unknown date';
+          const distance = run.distance || 0;
+          const unit = run.distanceUnit || 'miles';
+          const duration = run.duration || 'Unknown time';
+          const pace = run.pace || 'Unknown pace';
+          const name = run.name || 'Untitled run';
+          
+          prompt += `\n  ${index + 1}. ${name} (${date}): ${distance} ${unit} in ${duration}`;
+          if (pace !== 'Unknown pace') {
+            prompt += ` at ${pace} pace`;
+          }
+          if (run.notes) {
+            prompt += ` - ${run.notes}`;
+          }
+        });
       }
     }
 
     // Add shoes data
     if (userData?.shoes && Array.isArray(userData.shoes)) {
-      prompt += `\n- Active shoes: ${userData.shoes.length} pairs being tracked`;
+      prompt += `\n- Shoes (${userData.shoes.length} pairs):`;
+      
+      if (userData.shoes.length > 0) {
+        userData.shoes.forEach((shoe, index) => {
+          const current = shoe.currentDistance || 0;
+          const max = shoe.maxDistance || 0;
+          const unit = shoe.distanceUnit || 'miles';
+          const percentage = max > 0 ? ((current / max) * 100).toFixed(1) : '0';
+          const status = shoe.retired ? 'retired' : 'active';
+          
+          prompt += `\n  ${index + 1}. ${shoe.name}: ${current}/${max} ${unit} (${percentage}% used, ${status})`;
+          if (shoe.notes) {
+            prompt += ` - ${shoe.notes}`;
+          }
+        });
+      }
     }
 
     // Add goals/training data

@@ -8,10 +8,43 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export interface UserDataResult {
-  profile?: any;
-  recent_runs?: any[];
-  shoes?: any[];
-  preferences?: any;
+  profile?: {
+    id: string;
+    name: string | null;
+    email: string;
+    trainingLevel: string | null;
+    defaultDistanceUnit: string | null;
+    yearsRunning: number | null;
+    weeklyMileage: number | null;
+    goals: string | null;
+    createdAt: Date;
+  } | null;
+  recent_runs?: {
+    id: string;
+    date: Date;
+    distance: number;
+    distanceUnit: string;
+    duration: string;
+    pace: string | null;
+    elevationGain: number | null;
+    name: string | null;
+    notes: string | null;
+  }[];
+  shoes?: {
+    id: string;
+    name: string;
+    currentDistance: number;
+    maxDistance: number;
+    distanceUnit: string;
+    retired: boolean;
+    notes: string | null;
+    createdAt: Date;
+  }[];
+  preferences?: {
+    distance_unit: string;
+    response_detail: string;
+    max_results: number;
+  };
 }
 
 /**

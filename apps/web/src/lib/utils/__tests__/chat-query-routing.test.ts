@@ -213,9 +213,9 @@ describe('Chat Query Routing', () => {
 
       const prompt = createPersonalizedPrompt(userData, null);
 
-      expect(prompt).toContain('recent runs');
-      expect(prompt).toContain('5 mile');
-      expect(prompt).toContain('8:00');
+      expect(prompt).toContain('Recent runs');
+      expect(prompt).toContain('5 miles');
+      expect(prompt).toContain('8:00 pace');
     });
 
     it('should include user preferences in prompt', () => {
