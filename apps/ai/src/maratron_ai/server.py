@@ -34,6 +34,43 @@ from .user_context.smart_tools import (
     get_motivational_context_tool,
     update_conversation_intelligence_tool
 )
+from .advanced_tools import (
+    generate_training_plan_tool,
+    get_active_training_plan_tool,
+    set_running_goal_tool,
+    get_goal_progress_tool,
+    get_performance_trends_tool,
+    predict_race_time_tool,
+    get_social_feed_tool,
+    create_run_post_tool
+)
+from .health_recovery_tools import (
+    analyze_injury_risk_tool,
+    get_recovery_recommendations_tool,
+    analyze_training_load_tool,
+    get_health_insights_tool
+)
+from .route_environment_tools import (
+    analyze_environment_impact_tool,
+    get_route_recommendations_tool,
+    analyze_elevation_impact_tool,
+    get_seasonal_training_advice_tool,
+    optimize_training_environment_tool
+)
+from .equipment_gear_tools import (
+    analyze_shoe_rotation_tool,
+    get_gear_recommendations_tool,
+    track_equipment_maintenance_tool,
+    optimize_gear_selection_tool,
+    plan_equipment_lifecycle_tool
+)
+from .competition_racing_tools import (
+    create_race_strategy_tool,
+    analyze_race_readiness_tool,
+    benchmark_performance_tool,
+    plan_race_calendar_tool,
+    analyze_post_race_performance_tool
+)
 from .user_context.context import get_current_user_id
 from .security import secure_db, require_user_context, DataAccessViolationError
 
@@ -937,6 +974,326 @@ async def get_user_shoes(limit: int = 10) -> str:
     
     track_last_action("get_user_shoes")
     return result
+
+
+# =============================================================================
+# ADVANCED TRAINING & ANALYTICS TOOLS  
+# =============================================================================
+
+@mcp.tool()
+async def generate_training_plan(goal_type: str, target_distance: float, 
+                               target_time: str = None, weeks: int = 12,
+                               distance_unit: str = "miles") -> str:
+    """Generate an intelligent training plan based on user's current fitness and goals.
+    
+    Args:
+        goal_type: Type of goal ('race', 'distance', 'speed', 'endurance')
+        target_distance: Target distance for the goal
+        target_time: Optional target time (HH:MM:SS format)
+        weeks: Number of weeks for the plan (default: 12)
+        distance_unit: 'miles' or 'kilometers'
+    """
+    track_last_action("generate_training_plan")
+    return await generate_training_plan_tool(goal_type, target_distance, target_time, weeks, distance_unit)
+
+
+@mcp.tool()
+async def get_active_training_plan() -> str:
+    """Get the current active training plan with progress tracking."""
+    track_last_action("get_training_plan")
+    return await get_active_training_plan_tool()
+
+
+@mcp.tool()
+async def set_running_goal(goal_type: str, target_value: float, 
+                          target_date: str = None, description: str = None) -> str:
+    """Set a specific running goal with tracking.
+    
+    Args:
+        goal_type: Type of goal ('distance_pr', 'race_time', 'weekly_mileage', 'consistency')
+        target_value: Numeric target (distance, time in minutes, etc.)
+        target_date: Optional target date (YYYY-MM-DD)
+        description: Optional description of the goal
+    """
+    track_last_action("set_goal")
+    return await set_running_goal_tool(goal_type, target_value, target_date, description)
+
+
+@mcp.tool()
+async def get_goal_progress() -> str:
+    """Get progress tracking for all active goals."""
+    track_last_action("get_goal_progress")
+    return await get_goal_progress_tool()
+
+
+@mcp.tool()
+async def get_performance_trends(period: str = "3months") -> str:
+    """Get detailed performance trends and analytics.
+    
+    Args:
+        period: Analysis period ('1month', '3months', '6months', '1year')
+    """
+    track_last_action("get_performance_trends")
+    return await get_performance_trends_tool(period)
+
+
+@mcp.tool()
+async def predict_race_time(distance: float, goal_date: str, 
+                           distance_unit: str = "miles") -> str:
+    """Predict race time based on current fitness and training.
+    
+    Args:
+        distance: Race distance
+        goal_date: Race date (YYYY-MM-DD)
+        distance_unit: 'miles' or 'kilometers'
+    """
+    track_last_action("predict_race_time")
+    return await predict_race_time_tool(distance, goal_date, distance_unit)
+
+
+@mcp.tool()
+async def get_social_feed(limit: int = 10) -> str:
+    """Get personalized social feed with posts from followed users and groups.
+    
+    Args:
+        limit: Number of posts to retrieve (default: 10)
+    """
+    track_last_action("get_social_feed")
+    return await get_social_feed_tool(limit)
+
+
+@mcp.tool()
+async def create_run_post(run_id: str, caption: str = None, 
+                         share_to_groups: str = "false") -> str:
+    """Create a social post from a run.
+    
+    Args:
+        run_id: ID of the run to share
+        caption: Optional caption for the post
+        share_to_groups: "true" to share to all joined groups
+    """
+    track_last_action("create_run_post")
+    return await create_run_post_tool(run_id, caption, share_to_groups)
+
+
+# =============================================================================
+# HEALTH & RECOVERY TOOLS
+# =============================================================================
+
+@mcp.tool()
+async def analyze_injury_risk(time_period: str = "4weeks") -> str:
+    """Analyze injury risk based on training load and patterns.
+    
+    Args:
+        time_period: Period to analyze ('2weeks', '4weeks', '8weeks', '12weeks')
+    """
+    track_last_action("analyze_injury_risk")
+    return await analyze_injury_risk_tool(time_period)
+
+
+@mcp.tool()
+async def get_recovery_recommendations(focus_area: str = "general") -> str:
+    """Get personalized recovery recommendations.
+    
+    Args:
+        focus_area: Focus area ('general', 'legs', 'aerobic', 'strength', 'flexibility')
+    """
+    track_last_action("get_recovery_recommendations")
+    return await get_recovery_recommendations_tool(focus_area)
+
+
+@mcp.tool()
+async def analyze_training_load(period: str = "4weeks") -> str:
+    """Analyze training load progression and optimization.
+    
+    Args:
+        period: Analysis period ('2weeks', '4weeks', '8weeks', '12weeks')
+    """
+    track_last_action("analyze_training_load")
+    return await analyze_training_load_tool(period)
+
+
+@mcp.tool()
+async def get_health_insights() -> str:
+    """Get comprehensive health insights based on training patterns."""
+    track_last_action("get_health_insights")
+    return await get_health_insights_tool()
+
+
+# =============================================================================
+# ROUTE & ENVIRONMENT TOOLS
+# =============================================================================
+
+@mcp.tool()
+async def analyze_environment_impact(time_period: str = "4weeks") -> str:
+    """Analyze how different training environments affect performance.
+    
+    Args:
+        time_period: Period to analyze ('2weeks', '4weeks', '8weeks', '12weeks')
+    """
+    track_last_action("analyze_environment_impact")
+    return await analyze_environment_impact_tool(time_period)
+
+
+@mcp.tool()
+async def get_route_recommendations(goal_type: str = "general", distance: float = 5.0, 
+                                  conditions: str = "any") -> str:
+    """Get intelligent route recommendations based on goals and conditions.
+    
+    Args:
+        goal_type: Type of training ('speed', 'endurance', 'recovery', 'hills', 'general')
+        distance: Target distance for the route
+        conditions: Weather/environmental conditions ('hot', 'cold', 'rainy', 'windy', 'any')
+    """
+    track_last_action("get_route_recommendations")
+    return await get_route_recommendations_tool(goal_type, distance, conditions)
+
+
+@mcp.tool()
+async def analyze_elevation_impact() -> str:
+    """Analyze how elevation affects performance and provide training recommendations."""
+    track_last_action("analyze_elevation_impact")
+    return await analyze_elevation_impact_tool()
+
+
+@mcp.tool()
+async def get_seasonal_training_advice(season: str = "current") -> str:
+    """Get seasonal training advice based on current conditions.
+    
+    Args:
+        season: Season to get advice for ('spring', 'summer', 'fall', 'winter', 'current')
+    """
+    track_last_action("get_seasonal_training_advice")
+    return await get_seasonal_training_advice_tool(season)
+
+
+@mcp.tool()
+async def optimize_training_environment() -> str:
+    """Analyze training environment patterns and suggest optimizations."""
+    track_last_action("optimize_training_environment")
+    return await optimize_training_environment_tool()
+
+
+# =============================================================================
+# EQUIPMENT & GEAR TOOLS
+# =============================================================================
+
+@mcp.tool()
+async def analyze_shoe_rotation() -> str:
+    """Analyze shoe rotation patterns and provide optimization recommendations."""
+    track_last_action("analyze_shoe_rotation")
+    return await analyze_shoe_rotation_tool()
+
+
+@mcp.tool()
+async def get_gear_recommendations(scenario: str = "general", season: str = "current") -> str:
+    """Get intelligent gear recommendations based on training goals and conditions.
+    
+    Args:
+        scenario: Training scenario ('racing', 'long_runs', 'speed_work', 'trails', 'weather', 'general')
+        season: Season for recommendations ('spring', 'summer', 'fall', 'winter', 'current')
+    """
+    track_last_action("get_gear_recommendations")
+    return await get_gear_recommendations_tool(scenario, season)
+
+
+@mcp.tool()
+async def track_equipment_maintenance(equipment_type: str = "shoes") -> str:
+    """Track equipment maintenance needs and provide scheduling recommendations.
+    
+    Args:
+        equipment_type: Type of equipment to track ('shoes', 'all')
+    """
+    track_last_action("track_equipment_maintenance")
+    return await track_equipment_maintenance_tool(equipment_type)
+
+
+@mcp.tool()
+async def optimize_gear_selection(run_type: str = "general", distance: float = 5.0) -> str:
+    """Get optimized gear selection recommendations for specific runs.
+    
+    Args:
+        run_type: Type of run ('easy', 'tempo', 'intervals', 'long', 'race', 'recovery')
+        distance: Distance of the planned run
+    """
+    track_last_action("optimize_gear_selection")
+    return await optimize_gear_selection_tool(run_type, distance)
+
+
+@mcp.tool()
+async def plan_equipment_lifecycle() -> str:
+    """Plan equipment lifecycle and replacement strategies."""
+    track_last_action("plan_equipment_lifecycle")
+    return await plan_equipment_lifecycle_tool()
+
+
+# =============================================================================
+# COMPETITION & RACING TOOLS
+# =============================================================================
+
+@mcp.tool()
+async def create_race_strategy(race_distance: float, goal_time: str, 
+                              race_date: str, course_type: str = "road") -> str:
+    """Create a comprehensive race strategy based on fitness and race details.
+    
+    Args:
+        race_distance: Distance of the race in miles
+        goal_time: Target finish time (HH:MM:SS format)
+        race_date: Race date (YYYY-MM-DD format)
+        course_type: Type of course ('road', 'trail', 'track', 'hilly', 'flat')
+    """
+    track_last_action("create_race_strategy")
+    return await create_race_strategy_tool(race_distance, goal_time, race_date, course_type)
+
+
+@mcp.tool()
+async def analyze_race_readiness(race_distance: float, race_date: str) -> str:
+    """Analyze readiness for an upcoming race based on training history.
+    
+    Args:
+        race_distance: Distance of the upcoming race
+        race_date: Date of the race (YYYY-MM-DD format)
+    """
+    track_last_action("analyze_race_readiness")
+    return await analyze_race_readiness_tool(race_distance, race_date)
+
+
+@mcp.tool()
+async def benchmark_performance(time_period: str = "1year") -> str:
+    """Benchmark performance against previous runs and estimated potential.
+    
+    Args:
+        time_period: Period for comparison ('3months', '6months', '1year', 'all')
+    """
+    track_last_action("benchmark_performance")
+    return await benchmark_performance_tool(time_period)
+
+
+@mcp.tool()
+async def plan_race_calendar(season: str = "current", focus: str = "general") -> str:
+    """Plan an optimal race calendar based on goals and training cycles.
+    
+    Args:
+        season: Target season ('spring', 'summer', 'fall', 'winter', 'current', 'year')
+        focus: Training focus ('5k', '10k', 'half', 'marathon', 'trail', 'general')
+    """
+    track_last_action("plan_race_calendar")
+    return await plan_race_calendar_tool(season, focus)
+
+
+@mcp.tool()
+async def analyze_post_race_performance(race_distance: float, race_time: str, 
+                                       race_date: str, effort_level: str = "maximum") -> str:
+    """Analyze post-race performance and provide insights for future improvement.
+    
+    Args:
+        race_distance: Distance of the completed race
+        race_time: Actual finish time (HH:MM:SS format)
+        race_date: Date of the race (YYYY-MM-DD format)
+        effort_level: Perceived effort ('maximum', 'hard', 'moderate', 'easy')
+    """
+    track_last_action("analyze_post_race_performance")
+    return await analyze_post_race_performance_tool(race_distance, race_time, race_date, effort_level)
 
 
 # =============================================================================
