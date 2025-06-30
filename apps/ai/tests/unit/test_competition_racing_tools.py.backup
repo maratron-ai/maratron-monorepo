@@ -1,0 +1,667 @@
+"""Unit tests for Competition & Racing MCP Tools.
+
+These tests verify the race strategy planning, competition analysis, performance 
+benchmarking, and post-race insight tools work correctly with proper user context 
+management and error handling.
+"""
+
+import pytest
+import json
+import uuid
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
+
+# Import the tools to test
+from maratron_ai.competition_racing_tools import (
+    create_race_strategy_tool,
+    analyze_race_readiness_tool,
+    benchmark_performance_tool,
+    plan_race_calendar_tool,
+    analyze_post_race_performance_tool
+)
+
+
+class TestRaceStrategyCreation:
+    """Test race strategy creation tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        """Mock user context for tests."""
+        with patch('maratron_ai.competition_racing_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture  
+    def mock_pool(self):
+        """Mock database pool."""
+        pool = AsyncMock()
+        with patch('maratron_ai.competition_racing_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def sample_user_data(self):
+        """Sample user data for testing."""
+        return {
+            'id': 'test-user-123',
+            'name': 'Test Runner',
+            'age': 35,
+            'VDOT': 45,
+            'trainingLevel': 'intermediate',
+            'weeklyMileage': 30
+        }
+
+    @pytest.fixture
+    def training_runs(self):
+        """Sample training runs for race strategy."""
+        runs = []
+        for i in range(15):
+            runs.append({
+                'id': str(uuid.uuid4()),
+                'distance': 5.0 + (i % 8),
+                'duration': f'00:{40 + i*2}:00',
+                'date': datetime.now() - timedelta(days=i*2),
+                'pace': '8:00',
+                'elevationGain': 100
+            })
+        return runs
+
+    @pytest.mark.unit
+    async def test_create_race_strategy_no_user(self, mock_user_context, mock_pool):
+        """Test race strategy creation without user data."""
+        mock_pool.fetchrow.return_value = None
+
+        result = await create_race_strategy_tool(13.1, '1:45:00', '2024-10-15', 'road')
+
+        assert "❌ User profile not found" in result
+
+    @pytest.mark.unit
+    async def test_create_race_strategy_insufficient_training(self, mock_user_context, mock_pool, sample_user_data):
+        """Test race strategy creation with insufficient training data."""
+        mock_pool.fetchrow.return_value = sample_user_data
+        mock_pool.fetch.return_value = [
+            {'distance': 5.0, 'date': datetime.now()}
+        ]  # Only 1 run
+
+        result = await create_race_strategy_tool(13.1, '1:45:00', '2024-10-15', 'road')
+
+        assert "Race Strategy Planning" in result
+        assert "Need at least 5 recent runs" in result
+
+    @pytest.mark.unit
+    async def test_create_race_strategy_half_marathon(self, mock_user_context, mock_pool, sample_user_data, training_runs):
+        """Test race strategy creation for half marathon."""
+        mock_pool.fetchrow.return_value = sample_user_data
+        mock_pool.fetch.return_value = training_runs
+
+        result = await create_race_strategy_tool(13.1, '1:45:00', '2024-10-15', 'road')
+
+        assert "Race Strategy Planning" in result
+        assert "13.1 miles" in result
+        assert "1:45:00" in result
+        assert "Pacing Strategy:" in result
+        assert "Fueling Plan:" in result
+        assert "Race Day Timeline:" in result
+
+    @pytest.mark.unit
+    async def test_create_race_strategy_marathon(self, mock_user_context, mock_pool, sample_user_data, training_runs):
+        """Test race strategy creation for marathon."""
+        mock_pool.fetchrow.return_value = sample_user_data
+        mock_pool.fetch.return_value = training_runs
+
+        result = await create_race_strategy_tool(26.2, '3:30:00', '2024-11-15', 'road')
+
+        assert "Race Strategy Planning" in result
+        assert "26.2 miles" in result
+        assert "3:30:00" in result
+        assert "marathon" in result.lower()
+
+    @pytest.mark.unit
+    async def test_create_race_strategy_5k(self, mock_user_context, mock_pool, sample_user_data, training_runs):
+        """Test race strategy creation for 5K."""
+        mock_pool.fetchrow.return_value = sample_user_data
+        mock_pool.fetch.return_value = training_runs
+
+        result = await create_race_strategy_tool(3.1, '20:00', '2024-09-01', 'road')
+
+        assert "Race Strategy Planning" in result
+        assert "3.1 miles" in result
+        assert "20:00" in result
+
+    @pytest.mark.unit
+    async def test_create_race_strategy_different_course_types(self, mock_user_context, mock_pool, sample_user_data, training_runs):
+        """Test race strategy creation for different course types."""
+        mock_pool.fetchrow.return_value = sample_user_data
+        mock_pool.fetch.return_value = training_runs
+
+        course_types = ['road', 'trail', 'track', 'hilly', 'flat']
+        
+        for course_type in course_types:
+            result = await create_race_strategy_tool(10.0, '50:00', '2024-10-01', course_type)
+            assert "Race Strategy Planning" in result
+            assert course_type in result.lower() or "Course" in result
+
+
+class TestRaceReadinessAnalysis:
+    """Test race readiness analysis tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        with patch('maratron_ai.competition_racing_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture
+    def mock_pool(self):
+        pool = AsyncMock()
+        with patch('maratron_ai.competition_racing_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def readiness_user_data(self):
+        return {
+            'id': 'test-user-123',
+            'VDOT': 45,
+            'weeklyMileage': 40,
+            'trainingLevel': 'intermediate'
+        }
+
+    @pytest.fixture
+    def readiness_runs(self):
+        """Runs indicating good race readiness."""
+        runs = []
+        for i in range(20):
+            runs.append({
+                'distance': 6.0 + (i % 10),
+                'duration': f'00:{45 + i}:00',
+                'date': datetime.now() - timedelta(days=i*2),
+                'elevationGain': 50 + (i * 10)
+            })
+        return runs
+
+    @pytest.mark.unit
+    async def test_analyze_race_readiness_invalid_date(self, mock_user_context, mock_pool):
+        """Test race readiness analysis with invalid date format."""
+        result = await analyze_race_readiness_tool(13.1, 'invalid-date')
+
+        assert "❌ Invalid date format" in result
+        assert "YYYY-MM-DD" in result
+
+    @pytest.mark.unit
+    async def test_analyze_race_readiness_no_user(self, mock_user_context, mock_pool):
+        """Test race readiness analysis without user data."""
+        mock_pool.fetchrow.return_value = None
+
+        result = await analyze_race_readiness_tool(13.1, '2024-10-15')
+
+        assert "❌ User profile not found" in result
+
+    @pytest.mark.unit
+    async def test_analyze_race_readiness_insufficient_training(self, mock_user_context, mock_pool, readiness_user_data):
+        """Test race readiness analysis with insufficient training."""
+        mock_pool.fetchrow.return_value = readiness_user_data
+        mock_pool.fetch.return_value = [
+            {'distance': 3.0, 'date': datetime.now()}
+        ]  # Only 1 run
+
+        result = await analyze_race_readiness_tool(13.1, '2024-10-15')
+
+        assert "Race Readiness Analysis" in result
+        assert "Need more training data" in result or "insufficient" in result.lower()
+
+    @pytest.mark.unit
+    async def test_analyze_race_readiness_well_prepared(self, mock_user_context, mock_pool, readiness_user_data, readiness_runs):
+        """Test race readiness analysis for well-prepared athlete."""
+        mock_pool.fetchrow.return_value = readiness_user_data
+        mock_pool.fetch.return_value = readiness_runs
+
+        result = await analyze_race_readiness_tool(13.1, '2024-10-15')
+
+        assert "Race Readiness Analysis" in result
+        assert "13.1 miles on 2024-10-15" in result
+        assert "Training Analysis:" in result
+        assert "Readiness Score:" in result
+        assert "Key Recommendations:" in result
+
+    @pytest.mark.unit
+    async def test_analyze_race_readiness_future_vs_near_race(self, mock_user_context, mock_pool, readiness_user_data, readiness_runs):
+        """Test race readiness for different time horizons."""
+        mock_pool.fetchrow.return_value = readiness_user_data
+        mock_pool.fetch.return_value = readiness_runs
+
+        # Near race (1 week)
+        near_date = (datetime.now() + timedelta(days=7)).strftime('%Y-%m-%d')
+        result_near = await analyze_race_readiness_tool(10.0, near_date)
+        
+        # Future race (12 weeks)
+        future_date = (datetime.now() + timedelta(days=84)).strftime('%Y-%m-%d')
+        result_future = await analyze_race_readiness_tool(10.0, future_date)
+
+        assert "Race Readiness Analysis" in result_near
+        assert "Race Readiness Analysis" in result_future
+
+
+class TestPerformanceBenchmarking:
+    """Test performance benchmarking tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        with patch('maratron_ai.competition_racing_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture
+    def mock_pool(self):
+        pool = AsyncMock()
+        with patch('maratron_ai.competition_racing_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def benchmark_user_data(self):
+        return {
+            'id': 'test-user-123',
+            'VDOT': 45,
+            'age': 35,
+            'trainingLevel': 'intermediate'
+        }
+
+    @pytest.fixture
+    def benchmark_runs(self):
+        """Runs for benchmarking analysis."""
+        runs = []
+        base_date = datetime.now()
+        
+        # Create runs showing improvement over time
+        for i in range(30):
+            pace_improvement = max(0, i * 2)  # Gradual improvement
+            runs.append({
+                'distance': 5.0 + (i % 5),
+                'duration': f'00:{45 - pace_improvement}:00',
+                'date': base_date - timedelta(days=i*7),
+                'pace': f'{8 - (pace_improvement//10)}:{(pace_improvement%10)*6:02d}',
+                'VDOT': 40 + (i // 5)
+            })
+        return runs
+
+    @pytest.mark.unit
+    async def test_benchmark_performance_no_user(self, mock_user_context, mock_pool):
+        """Test performance benchmarking without user data."""
+        mock_pool.fetchrow.return_value = None
+
+        result = await benchmark_performance_tool('1year')
+
+        assert "❌ User profile not found" in result
+
+    @pytest.mark.unit
+    async def test_benchmark_performance_insufficient_data(self, mock_user_context, mock_pool, benchmark_user_data):
+        """Test performance benchmarking with insufficient data."""
+        mock_pool.fetchrow.return_value = benchmark_user_data
+        mock_pool.fetch.return_value = [
+            {'distance': 5.0, 'date': datetime.now()}
+        ]
+
+        result = await benchmark_performance_tool('1year')
+
+        assert "Performance Benchmarking" in result
+        assert "Need at least 5 runs" in result
+
+    @pytest.mark.unit
+    async def test_benchmark_performance_success(self, mock_user_context, mock_pool, benchmark_user_data, benchmark_runs):
+        """Test successful performance benchmarking."""
+        mock_pool.fetchrow.return_value = benchmark_user_data
+        mock_pool.fetch.return_value = benchmark_runs
+
+        result = await benchmark_performance_tool('1year')
+
+        assert "Performance Benchmarking (1year)" in result
+        assert "Performance Comparison:" in result
+        assert "Key Metrics:" in result
+        assert "Progress Analysis:" in result
+        assert "Recommendations:" in result
+
+    @pytest.mark.unit
+    async def test_benchmark_performance_different_periods(self, mock_user_context, mock_pool, benchmark_user_data, benchmark_runs):
+        """Test performance benchmarking with different time periods."""
+        mock_pool.fetchrow.return_value = benchmark_user_data
+        mock_pool.fetch.return_value = benchmark_runs
+
+        periods = ['3months', '6months', '1year', 'all']
+        
+        for period in periods:
+            result = await benchmark_performance_tool(period)
+            assert f"Performance Benchmarking ({period})" in result
+
+
+class TestRaceCalendarPlanning:
+    """Test race calendar planning tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        with patch('maratron_ai.competition_racing_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture
+    def mock_pool(self):
+        pool = AsyncMock()
+        with patch('maratron_ai.competition_racing_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def calendar_user_data(self):
+        return {
+            'id': 'test-user-123',
+            'VDOT': 45,
+            'trainingLevel': 'intermediate',
+            'weeklyMileage': 35
+        }
+
+    @pytest.fixture
+    def calendar_runs(self):
+        return [
+            {'distance': 5.0, 'date': datetime.now() - timedelta(days=1)},
+            {'distance': 10.0, 'date': datetime.now() - timedelta(days=7)},
+            {'distance': 8.0, 'date': datetime.now() - timedelta(days=14)}
+        ]
+
+    @pytest.mark.unit
+    async def test_plan_race_calendar_no_user(self, mock_user_context, mock_pool):
+        """Test race calendar planning without user data."""
+        mock_pool.fetchrow.return_value = None
+
+        result = await plan_race_calendar_tool('current', 'general')
+
+        assert "❌ User profile not found" in result
+
+    @pytest.mark.unit
+    async def test_plan_race_calendar_spring_5k(self, mock_user_context, mock_pool, calendar_user_data, calendar_runs):
+        """Test race calendar planning for spring 5K focus."""
+        mock_pool.fetchrow.return_value = calendar_user_data
+        mock_pool.fetch.return_value = calendar_runs
+
+        result = await plan_race_calendar_tool('spring', '5k')
+
+        assert "Race Calendar Planning" in result
+        assert "Spring" in result
+        assert "5K" in result or "5k" in result
+        assert "Recommended Races:" in result
+        assert "Training Phases:" in result
+
+    @pytest.mark.unit
+    async def test_plan_race_calendar_fall_marathon(self, mock_user_context, mock_pool, calendar_user_data, calendar_runs):
+        """Test race calendar planning for fall marathon focus."""
+        mock_pool.fetchrow.return_value = calendar_user_data
+        mock_pool.fetch.return_value = calendar_runs
+
+        result = await plan_race_calendar_tool('fall', 'marathon')
+
+        assert "Race Calendar Planning" in result
+        assert "Fall" in result
+        assert "Marathon" in result or "marathon" in result
+
+    @pytest.mark.unit
+    async def test_plan_race_calendar_year_general(self, mock_user_context, mock_pool, calendar_user_data, calendar_runs):
+        """Test race calendar planning for full year general focus."""
+        mock_pool.fetchrow.return_value = calendar_user_data
+        mock_pool.fetch.return_value = calendar_runs
+
+        result = await plan_race_calendar_tool('year', 'general')
+
+        assert "Race Calendar Planning" in result
+        assert "Year" in result
+        assert "variety" in result.lower() or "general" in result.lower()
+
+    @pytest.mark.unit
+    async def test_plan_race_calendar_all_combinations(self, mock_user_context, mock_pool, calendar_user_data, calendar_runs):
+        """Test race calendar planning for various season/focus combinations."""
+        mock_pool.fetchrow.return_value = calendar_user_data
+        mock_pool.fetch.return_value = calendar_runs
+
+        seasons = ['spring', 'summer', 'fall', 'winter', 'current']
+        focuses = ['5k', '10k', 'half', 'marathon', 'trail', 'general']
+        
+        # Test a few combinations
+        combinations = [('spring', '5k'), ('fall', 'marathon'), ('summer', '10k')]
+        
+        for season, focus in combinations:
+            result = await plan_race_calendar_tool(season, focus)
+            assert "Race Calendar Planning" in result
+
+
+class TestPostRacePerformanceAnalysis:
+    """Test post-race performance analysis tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        with patch('maratron_ai.competition_racing_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture
+    def mock_pool(self):
+        pool = AsyncMock()
+        with patch('maratron_ai.competition_racing_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def post_race_user_data(self):
+        return {
+            'id': 'test-user-123',
+            'VDOT': 45,
+            'age': 35,
+            'trainingLevel': 'intermediate'
+        }
+
+    @pytest.fixture
+    def post_race_training_runs(self):
+        """Training runs leading up to race."""
+        runs = []
+        for i in range(15):
+            runs.append({
+                'distance': 5.0 + (i % 8),
+                'duration': f'00:{40 + i}:00',
+                'date': datetime.now() - timedelta(days=i*3 + 7),  # Before race date
+            })
+        return runs
+
+    @pytest.mark.unit
+    async def test_analyze_post_race_performance_invalid_date(self, mock_user_context, mock_pool):
+        """Test post-race analysis with invalid date format."""
+        result = await analyze_post_race_performance_tool(13.1, '1:45:00', 'invalid-date', 'maximum')
+
+        assert "❌ Invalid date format" in result
+
+    @pytest.mark.unit
+    async def test_analyze_post_race_performance_no_user(self, mock_user_context, mock_pool):
+        """Test post-race analysis without user data."""
+        mock_pool.fetchrow.return_value = None
+
+        result = await analyze_post_race_performance_tool(13.1, '1:45:00', '2024-10-15', 'maximum')
+
+        assert "❌ User profile not found" in result
+
+    @pytest.mark.unit
+    async def test_analyze_post_race_performance_half_marathon_pr(self, mock_user_context, mock_pool, post_race_user_data, post_race_training_runs):
+        """Test post-race analysis for half marathon PR."""
+        mock_pool.fetchrow.return_value = post_race_user_data
+        mock_pool.fetch.return_value = post_race_training_runs
+
+        result = await analyze_post_race_performance_tool(13.1, '1:35:00', '2024-10-15', 'maximum')
+
+        assert "Post-Race Performance Analysis" in result
+        assert "13.1 miles in 1:35:00" in result
+        assert "Race Analysis:" in result
+        assert "Performance vs Training:" in result
+        assert "Key Insights:" in result
+        assert "Next Steps:" in result
+
+    @pytest.mark.unit
+    async def test_analyze_post_race_performance_marathon_struggle(self, mock_user_context, mock_pool, post_race_user_data, post_race_training_runs):
+        """Test post-race analysis for challenging marathon."""
+        mock_pool.fetchrow.return_value = post_race_user_data
+        mock_pool.fetch.return_value = post_race_training_runs
+
+        result = await analyze_post_race_performance_tool(26.2, '4:15:00', '2024-10-15', 'hard')
+
+        assert "Post-Race Performance Analysis" in result
+        assert "26.2 miles in 4:15:00" in result
+        assert "Hard effort" in result or "hard" in result.lower()
+
+    @pytest.mark.unit
+    async def test_analyze_post_race_performance_different_efforts(self, mock_user_context, mock_pool, post_race_user_data, post_race_training_runs):
+        """Test post-race analysis with different effort levels."""
+        mock_pool.fetchrow.return_value = post_race_user_data
+        mock_pool.fetch.return_value = post_race_training_runs
+
+        efforts = ['maximum', 'hard', 'moderate', 'easy']
+        
+        for effort in efforts:
+            result = await analyze_post_race_performance_tool(10.0, '45:00', '2024-10-15', effort)
+            assert "Post-Race Performance Analysis" in result
+            assert effort.title() in result or effort in result.lower()
+
+    @pytest.mark.unit
+    async def test_analyze_post_race_performance_5k_speed(self, mock_user_context, mock_pool, post_race_user_data, post_race_training_runs):
+        """Test post-race analysis for 5K race."""
+        mock_pool.fetchrow.return_value = post_race_user_data
+        mock_pool.fetch.return_value = post_race_training_runs
+
+        result = await analyze_post_race_performance_tool(3.1, '18:30', '2024-10-15', 'maximum')
+
+        assert "Post-Race Performance Analysis" in result
+        assert "3.1 miles in 18:30" in result
+
+
+class TestHelperFunctions:
+    """Test helper functions used by competition racing tools."""
+
+    def test_create_comprehensive_race_strategy(self):
+        """Test race strategy creation logic."""
+        from maratron_ai.competition_racing_tools import _create_comprehensive_race_strategy
+        
+        user_data = {
+            'VDOT': 45,
+            'trainingLevel': 'intermediate',
+            'weeklyMileage': 35
+        }
+        
+        recent_runs = [
+            {'distance': 10.0, 'duration': '01:20:00'},
+            {'distance': 5.0, 'duration': '00:40:00'}
+        ]
+        
+        strategy = _create_comprehensive_race_strategy(
+            13.1, '1:45:00', '2024-10-15', 'road', user_data, recent_runs
+        )
+        
+        assert 'pacing_strategy' in strategy
+        assert 'fueling_plan' in strategy
+        assert 'race_day_timeline' in strategy
+        assert 'weather_considerations' in strategy
+
+    def test_analyze_race_readiness(self):
+        """Test race readiness analysis logic."""
+        from maratron_ai.competition_racing_tools import _analyze_race_readiness
+        
+        user_data = {'VDOT': 45, 'weeklyMileage': 40}
+        runs = [
+            {'distance': 8.0, 'date': datetime.now() - timedelta(days=1)},
+            {'distance': 12.0, 'date': datetime.now() - timedelta(days=7)},
+            {'distance': 6.0, 'date': datetime.now() - timedelta(days=14)}
+        ]
+        race_distance = 13.1
+        weeks_to_race = 4
+        
+        readiness = _analyze_race_readiness(user_data, runs, race_distance, weeks_to_race)
+        
+        assert 'readiness_score' in readiness
+        assert 'training_volume' in readiness
+        assert 'long_run_preparation' in readiness
+        assert 'recommendations' in readiness
+
+    def test_benchmark_performance_analysis(self):
+        """Test performance benchmarking logic."""
+        from maratron_ai.competition_racing_tools import _benchmark_performance_analysis
+        
+        user_data = {'VDOT': 45, 'age': 35}
+        runs = [
+            {'distance': 5.0, 'pace': '8:00', 'date': datetime.now()},
+            {'distance': 5.0, 'pace': '8:10', 'date': datetime.now() - timedelta(days=90)},
+            {'distance': 5.0, 'pace': '8:20', 'date': datetime.now() - timedelta(days=180)}
+        ]
+        
+        benchmark = _benchmark_performance_analysis(user_data, runs, '1year')
+        
+        assert 'current_fitness' in benchmark
+        assert 'historical_comparison' in benchmark
+        assert 'improvement_trends' in benchmark
+        assert 'recommendations' in benchmark
+
+    def test_create_race_calendar(self):
+        """Test race calendar creation logic."""
+        from maratron_ai.competition_racing_tools import _create_race_calendar
+        
+        season = 'spring'
+        focus = '5k'
+        user_data = {'trainingLevel': 'intermediate', 'VDOT': 45}
+        
+        calendar = _create_race_calendar(season, focus, user_data, [])
+        
+        assert 'recommended_races' in calendar
+        assert 'training_phases' in calendar
+        assert 'peak_races' in calendar
+        assert 'preparation_timeline' in calendar
+
+
+# Pytest configuration for competition racing tools tests
+if __name__ == '__main__':
+    pytest.main([__file__, '-v', '--tb=short'])

@@ -1,0 +1,479 @@
+"""Unit tests for Health & Recovery MCP Tools.
+
+These tests verify the health monitoring, injury prevention, recovery analysis, 
+and training load management tools work correctly with proper user context 
+management and error handling.
+"""
+
+import pytest
+import json
+import uuid
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
+
+# Import the tools to test
+from maratron_ai.health_recovery_tools import (
+    analyze_injury_risk_tool,
+    get_recovery_recommendations_tool,
+    analyze_training_load_tool,
+    get_health_insights_tool
+)
+
+
+class TestInjuryRiskAnalysis:
+    """Test injury risk analysis tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        """Mock user context for tests."""
+        with patch('maratron_ai.health_recovery_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture  
+    def mock_pool(self):
+        """Mock database pool."""
+        pool = AsyncMock()
+        with patch('maratron_ai.health_recovery_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def sample_user_data(self):
+        """Sample user data for testing."""
+        return {
+            'id': 'test-user-123',
+            'name': 'Test Runner',
+            'age': 35,
+            'trainingLevel': 'intermediate',
+            'weeklyMileage': 30,
+            'injuryHistory': json.dumps(['shin_splints_2023', 'it_band_2022'])
+        }
+
+    @pytest.fixture
+    def high_risk_runs(self):
+        """Sample runs indicating high injury risk."""
+        return [
+            {
+                'id': str(uuid.uuid4()),
+                'distance': 12.0,
+                'duration': '01:30:00',
+                'date': datetime.now() - timedelta(days=1),
+                'notes': 'Felt some knee pain'
+            },
+            {
+                'id': str(uuid.uuid4()),
+                'distance': 15.0,
+                'duration': '02:00:00',
+                'date': datetime.now() - timedelta(days=2),
+                'notes': 'Very tired afterwards'
+            },
+            {
+                'id': str(uuid.uuid4()),
+                'distance': 8.0,
+                'duration': '01:00:00',
+                'date': datetime.now() - timedelta(days=3),
+                'notes': 'Good run'
+            }
+        ]
+
+    @pytest.fixture
+    def low_risk_runs(self):
+        """Sample runs indicating low injury risk."""
+        return [
+            {
+                'id': str(uuid.uuid4()),
+                'distance': 5.0,
+                'duration': '00:40:00',
+                'date': datetime.now() - timedelta(days=1),
+                'notes': 'Easy pace, felt great'
+            },
+            {
+                'id': str(uuid.uuid4()),
+                'distance': 6.0,
+                'duration': '00:48:00',
+                'date': datetime.now() - timedelta(days=3),
+                'notes': 'Comfortable run'
+            },
+            {
+                'id': str(uuid.uuid4()),
+                'distance': 4.0,
+                'duration': '00:32:00',
+                'date': datetime.now() - timedelta(days=5),
+                'notes': 'Recovery run'
+            }
+        ]
+
+    @pytest.mark.unit
+    async def test_analyze_injury_risk_insufficient_data(self, mock_user_context, mock_pool):
+        """Test injury risk analysis with insufficient data."""
+        mock_pool.fetchrow.return_value = {'injuryHistory': None}
+        mock_pool.fetch.return_value = [
+            {'distance': 5.0, 'date': datetime.now()}
+        ]  # Only 1 run
+
+        result = await analyze_injury_risk_tool('4weeks')
+
+        assert "Injury Risk Analysis (4weeks)" in result
+        assert "Need at least 5 runs" in result
+
+    @pytest.mark.unit
+    async def test_analyze_injury_risk_high_risk(self, mock_user_context, mock_pool, sample_user_data, high_risk_runs):
+        """Test injury risk analysis detecting high risk."""
+        mock_pool.fetchrow.return_value = sample_user_data
+        mock_pool.fetch.return_value = high_risk_runs * 3  # Repeat to get enough data
+
+        result = await analyze_injury_risk_tool('4weeks')
+
+        assert "Injury Risk Analysis (4weeks)" in result
+        assert "🟥" in result or "High" in result
+        assert "Risk Factors" in result
+        assert "Prevention Strategies" in result
+
+    @pytest.mark.unit
+    async def test_analyze_injury_risk_low_risk(self, mock_user_context, mock_pool, sample_user_data, low_risk_runs):
+        """Test injury risk analysis detecting low risk."""
+        sample_user_data['injuryHistory'] = None  # No injury history
+        mock_pool.fetchrow.return_value = sample_user_data
+        mock_pool.fetch.return_value = low_risk_runs * 3  # Repeat to get enough data
+
+        result = await analyze_injury_risk_tool('4weeks')
+
+        assert "Injury Risk Analysis (4weeks)" in result
+        assert "🟩" in result or "Low" in result
+        assert "Keep up the great work" in result
+
+    @pytest.mark.unit
+    async def test_analyze_injury_risk_different_periods(self, mock_user_context, mock_pool, sample_user_data, low_risk_runs):
+        """Test injury risk analysis with different time periods."""
+        mock_pool.fetchrow.return_value = sample_user_data
+        mock_pool.fetch.return_value = low_risk_runs * 5
+
+        for period in ['2weeks', '8weeks', '12weeks']:
+            result = await analyze_injury_risk_tool(period)
+            assert f"Injury Risk Analysis ({period})" in result
+
+
+class TestRecoveryRecommendations:
+    """Test recovery recommendation tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        with patch('maratron_ai.health_recovery_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture
+    def mock_pool(self):
+        pool = AsyncMock()
+        with patch('maratron_ai.health_recovery_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def intense_recent_runs(self):
+        """Sample runs indicating need for recovery."""
+        return [
+            {
+                'distance': 15.0,
+                'duration': '02:00:00',
+                'date': datetime.now() - timedelta(days=1),
+                'notes': 'Hard long run'
+            },
+            {
+                'distance': 8.0,
+                'duration': '00:50:00',
+                'date': datetime.now() - timedelta(days=2),
+                'notes': 'Tempo run'
+            }
+        ]
+
+    @pytest.mark.unit
+    async def test_get_recovery_recommendations_no_runs(self, mock_user_context, mock_pool):
+        """Test recovery recommendations with no recent runs."""
+        mock_pool.fetchrow.return_value = {'age': 35, 'trainingLevel': 'intermediate'}
+        mock_pool.fetch.return_value = []
+
+        result = await get_recovery_recommendations_tool('general')
+
+        assert "Recovery Recommendations (General)" in result
+        assert "No recent runs found" in result
+        assert "active recovery" in result
+
+    @pytest.mark.unit
+    async def test_get_recovery_recommendations_general(self, mock_user_context, mock_pool, intense_recent_runs):
+        """Test general recovery recommendations."""
+        mock_pool.fetchrow.return_value = {'age': 35, 'trainingLevel': 'intermediate'}
+        mock_pool.fetch.return_value = intense_recent_runs
+
+        result = await get_recovery_recommendations_tool('general')
+
+        assert "Recovery Recommendations (General)" in result
+        assert "Training Load Assessment" in result
+        assert "Recovery Priorities" in result
+        assert "Specific Recommendations" in result
+
+    @pytest.mark.unit
+    async def test_get_recovery_recommendations_legs(self, mock_user_context, mock_pool, intense_recent_runs):
+        """Test leg-focused recovery recommendations."""
+        mock_pool.fetchrow.return_value = {'age': 35, 'trainingLevel': 'intermediate'}
+        mock_pool.fetch.return_value = intense_recent_runs
+
+        result = await get_recovery_recommendations_tool('legs')
+
+        assert "Recovery Recommendations (Legs)" in result
+        assert "foam rolling" in result or "stretching" in result
+        assert "elevation" in result or "massage" in result
+
+    @pytest.mark.unit
+    async def test_get_recovery_recommendations_all_focus_areas(self, mock_user_context, mock_pool, intense_recent_runs):
+        """Test recovery recommendations for all focus areas."""
+        mock_pool.fetchrow.return_value = {'age': 35, 'trainingLevel': 'intermediate'}
+        mock_pool.fetch.return_value = intense_recent_runs
+
+        focus_areas = ['general', 'legs', 'aerobic', 'strength', 'flexibility']
+        
+        for focus in focus_areas:
+            result = await get_recovery_recommendations_tool(focus)
+            assert f"Recovery Recommendations ({focus.title()})" in result
+
+
+class TestTrainingLoadAnalysis:
+    """Test training load analysis tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        with patch('maratron_ai.health_recovery_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture
+    def mock_pool(self):
+        pool = AsyncMock()
+        with patch('maratron_ai.health_recovery_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def progressive_runs(self):
+        """Sample runs showing progressive training load."""
+        runs = []
+        for i in range(20):
+            runs.append({
+                'id': str(uuid.uuid4()),
+                'distance': 4.0 + (i * 0.5),  # Progressive increase
+                'duration': f'00:{30 + i*2}:00',
+                'date': datetime.now() - timedelta(days=i),
+                'elevationGain': 100 + (i * 20)
+            })
+        return runs
+
+    @pytest.mark.unit
+    async def test_analyze_training_load_insufficient_data(self, mock_user_context, mock_pool):
+        """Test training load analysis with insufficient data."""
+        mock_pool.fetch.return_value = [
+            {'distance': 5.0, 'date': datetime.now()}
+        ]  # Only 1 run
+
+        result = await analyze_training_load_tool('4weeks')
+
+        assert "Training Load Analysis (4weeks)" in result
+        assert "Need at least 5 runs" in result
+
+    @pytest.mark.unit
+    async def test_analyze_training_load_success(self, mock_user_context, mock_pool, progressive_runs):
+        """Test successful training load analysis."""
+        mock_pool.fetch.return_value = progressive_runs
+
+        result = await analyze_training_load_tool('4weeks')
+
+        assert "Training Load Analysis (4weeks)" in result
+        assert "Load Progression:" in result
+        assert "Weekly Breakdown:" in result
+        assert "Load Metrics:" in result
+        assert "Optimization Recommendations:" in result
+
+    @pytest.mark.unit
+    async def test_analyze_training_load_different_periods(self, mock_user_context, mock_pool, progressive_runs):
+        """Test training load analysis with different periods."""
+        mock_pool.fetch.return_value = progressive_runs
+
+        for period in ['2weeks', '8weeks', '12weeks']:
+            result = await analyze_training_load_tool(period)
+            assert f"Training Load Analysis ({period})" in result
+
+
+class TestHealthInsights:
+    """Test comprehensive health insights tools."""
+
+    @pytest.fixture
+    def mock_user_context(self):
+        with patch('maratron_ai.health_recovery_tools.get_current_user_id') as mock_user, \
+             patch('maratron_ai.user_context.context.get_current_user_id') as mock_user_2, \
+             patch('maratron_ai.security.data_isolation.get_current_user_id') as mock_user_3, \
+             patch('maratron_ai.user_context.context.get_current_user_session') as mock_session:
+            mock_user.return_value = 'test-user-123'
+            mock_user_2.return_value = 'test-user-123'
+            mock_user_3.return_value = 'test-user-123'
+            mock_session.return_value = {
+                'user_id': 'test-user-123',
+                'session_id': 'test-session-123',
+                'started_at': datetime.now()
+            }
+            yield mock_user
+
+    @pytest.fixture
+    def mock_pool(self):
+        pool = AsyncMock()
+        with patch('maratron_ai.health_recovery_tools.get_pool', return_value=pool):
+            yield pool
+
+    @pytest.fixture
+    def comprehensive_user_data(self):
+        """Comprehensive user data for health insights."""
+        return {
+            'id': 'test-user-123',
+            'name': 'Test Runner',
+            'age': 35,
+            'trainingLevel': 'intermediate',
+            'weeklyMileage': 30,
+            'VDOT': 45,
+            'injuryHistory': json.dumps(['shin_splints_2023']),
+            'goals': json.dumps([{
+                'goal_type': 'race_time',
+                'target_value': 105,  # 1:45:00 in minutes
+                'target_date': '2024-10-15',
+                'description': 'Sub 1:45 half marathon'
+            }])
+        }
+
+    @pytest.fixture
+    def comprehensive_runs(self):
+        """Comprehensive run data for health insights."""
+        runs = []
+        for i in range(15):
+            runs.append({
+                'id': str(uuid.uuid4()),
+                'distance': 5.0 + (i % 8),
+                'duration': f'00:{40 + i*2}:00',
+                'date': datetime.now() - timedelta(days=i*2),
+                'notes': 'Good run' if i % 3 == 0 else None,
+                'elevationGain': 50 + (i * 10),
+                'pace': '8:00'
+            })
+        return runs
+
+    @pytest.mark.unit
+    async def test_get_health_insights_no_data(self, mock_user_context, mock_pool):
+        """Test health insights with minimal data."""
+        mock_pool.fetchrow.return_value = {'age': 35, 'trainingLevel': 'beginner'}
+        mock_pool.fetch.return_value = []
+
+        result = await get_health_insights_tool()
+
+        assert "Comprehensive Health Insights" in result
+        assert "Getting Started" in result or "beginner" in result
+
+    @pytest.mark.unit
+    async def test_get_health_insights_comprehensive(self, mock_user_context, mock_pool, comprehensive_user_data, comprehensive_runs):
+        """Test comprehensive health insights."""
+        mock_pool.fetchrow.return_value = comprehensive_user_data
+        mock_pool.fetch.return_value = comprehensive_runs
+
+        result = await get_health_insights_tool()
+
+        assert "Comprehensive Health Insights" in result
+        assert "Training Status:" in result
+        assert "Health Metrics:" in result
+        assert "Risk Assessment:" in result
+        assert "Personalized Recommendations:" in result
+        assert "Action Items:" in result
+
+
+class TestHelperFunctions:
+    """Test helper functions used by health recovery tools."""
+
+    def test_analyze_training_load_risk(self):
+        """Test training load risk analysis."""
+        from maratron_ai.health_recovery_tools import _analyze_training_load_risk
+        
+        runs = [
+            {'distance': 15.0, 'date': datetime.now()},
+            {'distance': 12.0, 'date': datetime.now() - timedelta(days=1)},
+            {'distance': 10.0, 'date': datetime.now() - timedelta(days=2)}
+        ]
+        
+        user_data = {'weeklyMileage': 25}
+        
+        risk = _analyze_training_load_risk(runs, user_data)
+        
+        assert 'weekly_increase' in risk
+        assert 'load_spike_risk' in risk
+        assert 'consistency_score' in risk
+
+    def test_generate_recovery_recommendations(self):
+        """Test recovery recommendation generation."""
+        from maratron_ai.health_recovery_tools import _generate_recovery_recommendations
+        
+        focus_area = 'legs'
+        user_data = {'age': 35, 'trainingLevel': 'intermediate'}
+        recent_runs = [
+            {'distance': 10.0, 'duration': '01:20:00', 'date': datetime.now()}
+        ]
+        
+        recommendations = _generate_recovery_recommendations(focus_area, user_data, recent_runs)
+        
+        assert 'priority_level' in recommendations
+        assert 'specific_activities' in recommendations
+        assert 'timeframe' in recommendations
+
+    def test_calculate_injury_risk_score(self):
+        """Test injury risk score calculation."""
+        from maratron_ai.health_recovery_tools import _calculate_injury_risk_score
+        
+        user_data = {
+            'age': 35,
+            'injuryHistory': json.dumps(['shin_splints_2023'])
+        }
+        
+        runs = [
+            {'distance': 12.0, 'notes': 'knee pain'},
+            {'distance': 8.0, 'notes': 'good run'}
+        ]
+        
+        score = _calculate_injury_risk_score(user_data, runs)
+        
+        assert isinstance(score, (int, float))
+        assert 0 <= score <= 100
+
+
+# Pytest configuration for health recovery tools tests
+if __name__ == '__main__':
+    pytest.main([__file__, '-v', '--tb=short'])
