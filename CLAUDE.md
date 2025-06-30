@@ -2,348 +2,366 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Repository Structure
+## 🚨 Critical Context (Read First)
 
-Maratron is a monorepo containing a full-stack running/fitness application:
+### Project Status & Current Focus
+- **Status**: Production-ready full-stack running/fitness platform with AI chat
+- **Architecture**: Hybrid MCP integration (Docker + local modes)
+- **Test Coverage**: Comprehensive test suite with continuous expansion
+- **Active Development**: Focus on feature expansion and AI enhancement
+
+### Key Architectural Decisions
+- **Docker-First Development**: Primary workflow uses `npm run dev` (Docker Compose)
+- **Hybrid Database Access**: Docker uses direct Prisma, local uses MCP client
+- **Intelligent AI**: Query routing determines when to fetch user data vs general advice
+- **Environment Detection**: Automatic switching via `isDockerEnvironment()`
+
+### Known Critical Points
+- **MCP Integration**: Requires environment-aware code paths
+- **Database Access**: Different patterns for Docker vs local environments
+- **Complex Domain Logic**: Running science with VDOT, pace zones, training plans
+- **Testing Strategy**: Docker cleanup essential to prevent state leakage
+
+## ⚡ Quick Reference
+
+### Essential Commands (Priority Order)
+```bash
+# Primary development workflow
+npm run dev                    # Start Docker Compose stack (primary)
+npm run clean                  # Clean Docker environment (essential)
+npm run db:seed               # Load comprehensive test data
+
+# Testing & validation
+npm test                      # Web app tests (all current tests)
+npm run test:ai               # AI server tests with pytest
+npm run lint                  # Code quality validation
+
+# Database operations
+npm run db:studio             # Prisma Studio GUI
+npx prisma db push            # Push schema changes
+npx prisma generate           # Regenerate Prisma client
 ```
-maratron/
+
+### Critical File Locations
+```
+🔧 Core Architecture
+├── docker-compose.yml              # Primary development orchestration
+├── apps/web/src/lib/mcp/client.ts  # MCP client integration
+├── apps/web/src/lib/database/direct-access.ts  # Docker bypass logic
+└── apps/web/prisma/schema.prisma   # Database schema (278 lines)
+
+🧠 AI Intelligence
+├── apps/web/src/lib/utils/chat-query-routing.ts  # Query intelligence
+├── apps/web/src/app/api/chat/chat-handler.ts     # Business logic
+└── apps/ai/src/maratron_ai/user_context/         # AI context management
+
+🏃 Domain Logic
+├── apps/web/src/lib/utils/running/               # Running calculations
+├── apps/web/src/lib/utils/running/jackDaniels.ts # VDOT methodology
+└── apps/web/src/lib/utils/running/plans/         # Training plan generation
+
+🧪 Testing
+├── apps/web/src/**/__tests__/                    # Jest tests (expanding)
+├── apps/ai/tests/unit/                          # Python unit tests
+└── apps/ai/tests/integration/                   # Python integration tests
+```
+
+### Path Aliases & Import Patterns
+```typescript
+@lib/          -> src/lib/
+@components/   -> src/components/
+@utils/        -> src/lib/utils/
+@maratypes/    -> src/maratypes/
+@hooks/        -> src/hooks/
+```
+
+## 🧠 LLM Decision Trees
+
+### Environment Detection Pattern
+```typescript
+// Always check environment before database operations
+const isDocker = isDockerEnvironment();
+if (isDocker) {
+  // Use direct Prisma database access
+  userData = await getUserDataDirect(userId, dataTypes);
+} else {
+  // Use MCP client connection
+  userData = await gatherUserData(dataTypes, userId, mcpClient);
+}
+```
+
+### Query Intelligence Routing
+```typescript
+// Determine if user query needs personalized data
+const queryAnalysis = needsUserData(userMessage);
+if (queryAnalysis.requiresData) {
+  // Fetch actual user data for personalized response
+  // LLM gets detailed run/shoe data instead of generic advice
+} else {
+  // Provide general running advice
+}
+```
+
+### Testing Strategy Decision
+```
+Adding new feature →
+1. Write tests first (TDD approach)
+2. Place in appropriate __tests__ directory
+3. Use Jest for web app, pytest for AI server
+4. Add markers for AI tests: -m unit, -m integration, -m slow
+5. Ensure Docker cleanup after integration tests
+```
+
+## 🔧 Development Workflows
+
+### Adding New Features
+1. **Environment Setup**: Start with `npm run dev` (Docker)
+2. **Database Changes**: Edit `prisma/schema.prisma` → `npx prisma db push`
+3. **AI Integration**: Consider query routing in `chat-query-routing.ts`
+4. **Testing**: Add tests in appropriate `__tests__/` directory
+5. **Types**: Update types in `maratypes/` if needed
+
+### Working with MCP Integration
+```typescript
+// Web app (apps/web/src/lib/mcp/client.ts)
+const mcpClient = getMCPClient();
+await mcpClient.setUserContext(userId);
+
+// AI server (apps/ai/src/maratron_ai/user_context/tools.py)
+@mcp.tool()
+async def get_smart_user_context() -> str:
+    # Returns comprehensive user context for AI
+```
+
+### Running Domain Patterns
+```typescript
+// VDOT calculations (apps/web/src/lib/utils/running/jackDaniels.ts)
+const vdot = calculateVDOTFromRace(distance, time);
+const paces = calculateRacePaces(vdot);
+
+// Training plans (apps/web/src/lib/utils/running/plans/)
+const plan = generateLongDistancePlan(goalRace, currentFitness, weeks);
+```
+
+### Database Patterns
+```typescript
+// Prisma queries (web app)
+const runs = await prisma.run.findMany({
+  where: { userId },
+  orderBy: { date: 'desc' },
+  include: { user: true }
+});
+
+// Direct queries (AI server)
+async with get_db_connection() as conn:
+    runs = await conn.fetch(
+        'SELECT * FROM "Runs" WHERE "userId" = $1 ORDER BY date DESC',
+        user_id
+    )
+```
+
+## 🧪 Testing Patterns
+
+### Web Application Testing
+```bash
+# Run all tests
+npm test
+
+# Run specific test files
+npm test -- src/lib/utils/__tests__/chat-query-routing.test.ts
+
+# Run with coverage
+npm test -- --coverage
+
+# Watch mode for development
+npm test -- --watch
+```
+
+### AI Server Testing
+```bash
+# Unit tests (mocked database)
+uv run pytest tests/unit/ -m unit
+
+# Integration tests (real database)
+uv run pytest tests/integration/ -m integration
+
+# Coverage report
+uv run pytest --cov=src --cov-report=html
+
+# Specific test markers
+uv run pytest -m slow  # Long-running tests
+```
+
+### Test Data & Seeding
+```bash
+# Load comprehensive test data (run from apps/web)
+npm run db:seed
+
+# Includes:
+# - 10 diverse users (beginner to Olympic Trials level)
+# - 27 shoes across various brands
+# - 26 recent runs with comprehensive metrics
+# - Complete social graph (posts, comments, likes, follows)
+# - Training plans and group memberships
+```
+
+## 🚨 Common Issues & Solutions
+
+### Docker Environment Issues
+```bash
+# Container conflicts
+npm run clean && npm run dev
+
+# Database connection issues
+docker-compose logs postgres
+docker-compose restart postgres
+
+# Volume permissions
+docker-compose down -v
+docker system prune -f
+```
+
+### MCP Integration Failures
+```typescript
+// Check environment first
+if (!isDockerEnvironment()) {
+  try {
+    mcpClient = getMCPClient();
+    // Use MCP tools
+  } catch (error) {
+    // Fallback to direct database access
+  }
+}
+```
+
+### Jest Path Resolution
+```javascript
+// Common issue: Module resolution fails
+// Solution: Use path aliases defined in jest.config.js
+import { needsUserData } from '@lib/utils/chat-query-routing';
+// Instead of: '../../../lib/utils/chat-query-routing'
+```
+
+### Database Schema Changes
+```bash
+# After editing schema.prisma
+npx prisma db push      # Push changes to database
+npx prisma generate     # Regenerate client types
+npm run test           # Verify tests still pass
+```
+
+## 🏗️ Architecture Deep Dive
+
+### Monorepo Structure
+```
+maratron-monorepo/
 ├── apps/
-│   ├── web/          # Next.js web application with social features, run tracking, and AI chat
-│   └── ai/           # Python MCP server providing AI-powered database tools and user context management
-├── docs/             # Documentation
-├── assets/           # Shared assets (logos, etc.)
-├── Dockerfile        # Multi-service container
-├── docker-compose.yml # Development orchestration
+│   ├── web/          # Next.js 15 app with Turbopack
+│   └── ai/           # FastMCP Python server
+├── assets/           # Shared brand assets
+├── docs/             # Comprehensive documentation
 └── package.json      # Root workspace configuration
 ```
 
-## Development Commands
+### Database Schema Key Entities
+- **Users**: Core profiles with training preferences, VDOT calculations
+- **Runs**: Comprehensive tracking (distance, pace, elevation, GPS, heart rate)
+- **Shoes**: Mileage tracking with retirement management
+- **Social**: Posts, comments, likes, follows, groups, run sharing
+- **Training**: Plans with progressive overload and periodization
 
-### Docker Development (Recommended)
-```bash
-# Start everything with Docker Compose
-docker-compose up --build
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-
-# Rebuild and restart
-docker-compose up --build --force-recreate
+### AI Integration Architecture
+```
+User Chat Query →
+├── Query Intelligence (needsUserData) →
+├── Environment Detection (isDockerEnvironment) →
+├── Data Fetching (getUserDataDirect OR gatherUserData) →
+├── Enhanced System Prompt (createPersonalizedPrompt) →
+└── LLM Response with actual user data
 ```
 
-### Root Commands (Recommended)
-```bash
-npm run dev                      # Start with Docker Compose
-npm run build                    # Build web application
-npm run test                     # Run web tests
-npm run test:ai                  # Run AI server tests
-npm run lint                     # Lint web application
-npm run db:studio               # Open Prisma Studio
-npm run clean                   # Clean Docker environment
-```
+## 🎯 Code Quality Standards
 
-### 🧪 **Testing Protocol**
-**IMPORTANT: When testing features, always use the full Docker stack:**
+### TypeScript Patterns
+- **Strict Mode**: No `any` types in production code
+- **Type Safety**: Comprehensive interfaces in `maratypes/`
+- **Error Handling**: Result types and graceful degradation
 
-```bash
-# 1. Start the complete environment (from repository root)
-npm run dev    # Starts DB + web app + AI server in Docker
+### Testing Expectations
+- **TDD Approach**: Write tests first for new features
+- **Coverage**: Maintain comprehensive test coverage
+- **Markers**: Use pytest markers for AI server tests
+- **Cleanup**: Always clean Docker state after integration tests
 
-# 2. Test your features at http://localhost:3000
+### File Organization
+- **Feature-Based**: Components organized by domain (runs, shoes, social)
+- **Utility Functions**: Extensively tested in `lib/utils/`
+- **API Routes**: RESTful design with consistent error handling
+- **Types**: Centralized in `maratypes/` matching database schema
 
-# 3. When finished, ALWAYS clean up Docker resources
-npm run clean  # Stops containers and cleans up volumes
-```
+## 📚 Domain Knowledge Context
 
-#### Use sub-agents:
-  /Task "Start Docker environment" → Full setup + verification
-  [test your features]
-  /Task "Clean Docker environment" → Complete cleanup + reporting
+### Running Science Concepts
+- **VDOT**: Jack Daniels' fitness metric for training pace prescription
+- **Progressive Overload**: Gradual training load increases
+- **Periodization**: Training phases (base building, sharpening, peak, recovery)
+- **Pace Zones**: Easy, threshold, interval, repetition paces
 
-**Why Docker for Testing:**
-- Ensures consistent database state across tests
-- AI server MCP integration requires proper networking
-- Simulates production environment accurately
-- Prevents port conflicts and dependency issues
+### Training Plan Logic
+- **Base Building**: 80% easy pace, 20% threshold work
+- **Cutback Weeks**: Every 4th week reduces volume 25-30%
+- **Peak Phases**: Higher intensity, reduced volume
+- **Taper**: 2-3 weeks before goal race
 
-### Local Development
-```bash
-# Terminal 1: Start AI server
-cd apps/ai && python run_server.py 
+### Social Features
+- **User Profiles**: Public running stats and achievements
+- **Run Sharing**: Post runs with photos, routes, metrics
+- **Group Training**: Join local running groups and challenges
+- **Motivation**: Comment, like, and encourage other runners
 
-# Terminal 2: Start web application  
-cd apps/web && npm run dev
-```
+## 🚀 Production Considerations
 
-### Web Application (apps/web/)
-```bash
-npm install                      # Install dependencies
-npm run dev                      # Development server with Turbopack
-npm run build                    # Production build
-npm run lint                     # ESLint validation
-npm test                         # Jest test suites
-npx prisma studio               # Database GUI
-npx prisma generate             # Generate Prisma client
-npx prisma db push              # Push schema changes
-```
+### Performance Patterns
+- **Database Optimization**: Proper indexing on user queries
+- **Connection Pooling**: Configured for both Prisma and asyncpg
+- **Image Optimization**: Next.js automatic optimization
+- **Bundle Splitting**: Route-based code splitting
 
-### AI Server (apps/ai/)
-```bash
-uv sync                         # Install dependencies with uv
-python run_server.py            # Start MCP server
-mcp dev server.py               # Start server with MCP Inspector UI
-uv run pytest tests/unit/ -m unit          # Unit tests
-uv run pytest tests/integration/ -m integration  # Integration tests
-uv run pytest --cov=src --cov-report=html  # Test coverage
-```
+### Security Implementation
+- **Authentication**: NextAuth.js with secure session management
+- **Data Isolation**: User-specific data access enforcement
+- **Input Validation**: Yup schemas and server-side sanitization
+- **Rate Limiting**: AI server operations limited to prevent abuse
 
-## Architecture Overview
+### Deployment Architecture
+- **Docker Production**: Multi-stage builds for optimization
+- **Environment Variables**: Secure configuration management
+- **Database Migrations**: Prisma-managed schema evolution
+- **Error Monitoring**: Comprehensive logging and error tracking
 
-### Integration Pattern
-The web application communicates with the AI server through the Model Context Protocol (MCP):
-- Web app uses MCP client (`src/lib/mcp/client.ts`) to connect to AI server
-- AI server exposes database tools and user context management via MCP
-- Real-time bidirectional communication for chat features
+## 💡 LLM Collaboration Notes
 
-### Web Application (Next.js 15)
-- **Tech Stack**: Next.js 15, TypeScript, PostgreSQL, Prisma, NextAuth.js, Tailwind CSS
-- **Components**: Organized by feature (profile, runs, shoes, social, training, chat)
-- **API Routes**: RESTful endpoints in `app/api/` for all data operations
-- **Database**: Shared PostgreSQL database with Prisma ORM
-- **Authentication**: NextAuth.js with credential provider
+### When Adding Tests
+- Place in appropriate `__tests__/` directory
+- Follow existing naming conventions
+- Use React Testing Library for components
+- Add pytest markers for AI server tests
+- Test both happy path and error conditions
 
-### AI Server (FastMCP)
-- **Tech Stack**: Python 3.11+, FastMCP, asyncpg, Pydantic
-- **User Context**: Session management with personalized responses
-- **Security**: Rate limiting, UUID validation, input sanitization
-- **Configuration**: Environment-aware settings with validation
-- **Database**: Direct PostgreSQL access with connection pooling
+### When Modifying AI Features
+- Consider both Docker and local environments
+- Update query routing patterns if needed
+- Test with seed data users for realistic scenarios
+- Verify graceful fallback behavior
 
-### Shared Database Schema
-Core entities across both applications:
-- **Users**: Profile data, training preferences, VDOT calculations
-- **Runs**: Distance, duration, pace, elevation tracking
-- **Shoes**: Mileage tracking with retirement status
-- **Social**: Profiles, posts, follows, groups, comments, likes
-- **RunningPlans**: JSON-stored training plans
+### When Working with Database
+- Always use proper TypeScript types
+- Consider both web app (Prisma) and AI server (asyncpg) access patterns
+- Test schema changes thoroughly
+- Update seed data if new entities are added
 
-## Key Development Patterns
-
-### MCP Integration
-```typescript
-// Web app connects to AI server
-const mcpClient = getMCPClient();
-await mcpClient.setUserContext(userId);  // Set user context
-const result = await mcpClient.callTool({
-  name: 'list_recent_runs',
-  arguments: { limit: 5 }
-});
-```
-
-### User Context Management
-The AI server maintains user sessions for personalized responses:
-```python
-# Set user context (required first step)
-await set_current_user_tool("user-uuid")
-# All subsequent operations are user-aware
-await list_recent_runs(5)  # Returns runs in user's preferred units
-```
-
-### Database Naming Convention
-- Tables use PascalCase with quotes: `"Users"`, `"Runs"`, `"Shoes"`
-- All primary keys are UUID (uuid.uuid4())
-- Consistent relationship patterns across both codebases
-
-### Running Calculations
-Comprehensive running utilities in `apps/web/src/lib/utils/running/`:
-- Jack Daniels VDOT calculations and race pace predictions
-- Training plan generation (short/long distance)
-- Pace conversions and weekly mileage calculations
-- All functions have extensive test coverage
-
-## Environment Setup
-
-### Docker Environment (Recommended)
-The Docker setup automatically handles database creation and application startup:
-- PostgreSQL database runs in a separate container
-- Both applications mount source code as volumes for live editing
-- Database schema is automatically applied on startup
-- All services are orchestrated with docker-compose
-
-### Shared PostgreSQL Database
-```env
-# Both applications use the same database
-DATABASE_URL="postgresql://maratron:yourpassword@localhost:5432/maratrondb"
-```
-
-### Web Application (.env)
-```env
-DATABASE_URL="postgresql://maratron:yourpassword@localhost:5432/maratrondb"
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_secret_key
-```
-
-### AI Server (.env)
-```env
-ENVIRONMENT=development
-DATABASE_URL="postgresql://maratron:yourpassword@localhost:5432/maratrondb"
-DATABASE__MIN_CONNECTIONS=1
-DATABASE__MAX_CONNECTIONS=10
-SERVER__DEBUG=true
-SERVER__LOG_LEVEL=DEBUG
-```
-
-## Testing Strategy
-
-### Web Application
-- **Unit Tests**: Jest with React Testing Library
-- **API Tests**: Route testing in `src/lib/api/__tests__/`
-- **Utility Tests**: Comprehensive coverage in `src/lib/utils/__tests__/`
-- **Component Tests**: Social features and forms in `src/components/__tests__/`
-
-### AI Server
-- **Unit Tests**: pytest with mocked database connections (`tests/unit/`)
-- **Integration Tests**: Real database testing (`tests/integration/`)
-- **Coverage**: 74% code coverage with HTML reports
-- **Markers**: Use `-m unit`, `-m integration`, `-m slow` for test filtering
-
-## Development Practices
-
-### Code Organization
-- **Web App**: Feature-based component organization with shadcn/ui components
-- **AI Server**: Layered architecture with configuration, security, and context management
-- **Shared Types**: Consistent TypeScript interfaces match database schema
-
-### Package Management
-- **Web App**: npm with package.json
-- **AI Server**: uv (modern Python package manager) with pyproject.toml
-
-### Security
-- Input validation and sanitization across both applications
-- Rate limiting in AI server (10 requests/minute per operation)
-- Session management with 60-minute timeout
-- Never commit secrets or API keys
-
-### Database Access
-- **Web App**: Prisma ORM with type-safe queries
-- **AI Server**: Direct asyncpg with parameterized queries and connection pooling
-- **Migrations**: Use Prisma migrations for schema changes
-
-## MCP Server Tools & Resources
-
-The AI server exposes comprehensive tools and resources through the Model Context Protocol:
-
-### MCP Resources (AI-readable content)
-**Database Schema & Information:**
-- `database://schema` - Complete database schema and table structure
-- `database://stats` - Database statistics and row counts
-
-**User Profile Resources:**
-- `users://profile/{user_id}` - Complete user profile information
-- `user://profile` - Current user's profile (context-aware)
-
-**Running Data Resources:**
-- `runs://user/{user_id}/recent` - User's recent runs with detailed metrics
-- `runs://user/{user_id}/summary/{period}` - Run summaries for specific periods
-- `shoes://user/{user_id}` - User's shoe collection and usage data
-
-### MCP Tools (AI-executable actions)
-
-**Core Database Operations:**
-- `add_user(name, email)` - Create new user accounts
-- `update_user_email(user_id, email)` - Update user email addresses
-- `delete_user(user_id)` - Remove users from system
-- `add_run(user_id, date, duration, distance, ...)` - Record runs with comprehensive data
-- `add_shoe(user_id, name, max_distance, ...)` - Add shoes to user collections
-
-**User Context Management:**
-- `set_current_user_tool(user_id)` - Initialize user session (required first step)
-- `get_current_user_tool()` - Get current user profile and context
-- `switch_user_context_tool(user_id)` - Switch between user contexts
-- `clear_user_context_tool()` - Clear current user context
-- `update_user_preferences_tool(preferences_json)` - Update user preferences
-- `update_conversation_context_tool(context_json)` - Track conversation state
-- `get_session_info_tool(user_id)` - Get session information
-- `list_active_sessions_tool()` - List all active user sessions
-
-**Smart Intelligence Tools:**
-- `get_smart_user_context()` - Get comprehensive personalized context
-- `analyze_user_patterns()` - Analyze running patterns and provide insights
-- `get_motivational_context()` - Get context for encouraging responses
-- `update_conversation_intelligence(...)` - Track conversation intelligence
-
-### Security & Features
-
-**Data Security:**
-- Data isolation enforcement for all user-specific resources
-- UUID validation and parameterized queries for SQL injection protection
-- Rate limiting (10 requests/minute per operation)
-- Session management with 60-minute timeout
-
-**Personalization:**
-- User preference caching (distance units, timezone, response detail)
-- Conversation intelligence tracking (topics, mood, mentioned entities)
-- Context-aware responses based on user history and preferences
-
-**Usage Pattern:**
-```python
-# 1. Set user context (required first step)
-await set_current_user_tool("user-uuid")
-
-# 2. Access resources for AI understanding
-user_profile = await read_resource("user://profile")
-recent_runs = await read_resource("runs://user/{user_id}/recent")
-
-# 3. Use tools for data operations
-await add_run(user_id, "2024-01-15", "00:30:00", 5.0, "miles")
-
-# 4. Leverage smart context for personalized responses
-context = await get_smart_user_context()
-insights = await analyze_user_patterns()
-```
-
-All tools are async, decorated with comprehensive error handling, and provide user context awareness for personalized AI interactions.
-
-## Claude Code Development Tools
-
-When working with Claude Code (claude.ai/code), the following MCP tools are available for enhanced development:
-
-### Component Development
-- **21st Magic Component Builder** (`mcp__magic__21st_magic_component_builder`) - Generate UI components with /ui command
-- **21st Magic Component Inspiration** (`mcp__magic__21st_magic_component_inspiration`) - Browse component library for inspiration
-- **21st Magic Component Refiner** (`mcp__magic__21st_magic_component_refiner`) - Improve existing UI components
-- **Logo Search** (`mcp__magic__logo_search`) - Find company logos in JSX/TSX/SVG formats
-
-### Library Documentation
-- **Context7 Library Resolver** (`mcp__context7__resolve-library-id`) - Resolve package names to Context7 library IDs
-- **Context7 Documentation** (`mcp__context7__get-library-docs`) - Fetch up-to-date library documentation
-
-### Browser Automation
-- **Puppeteer Navigation** (`mcp__puppeteer__puppeteer_navigate`) - Navigate to URLs
-- **Puppeteer Screenshot** (`mcp__puppeteer__puppeteer_screenshot`) - Take page screenshots
-- **Puppeteer Interactions** - Click, fill, select, hover, and evaluate JavaScript on pages
-
-### Enhanced Thinking
-- **Sequential Thinking** (`mcp__sequential-thinking__sequentialthinking`) - Multi-step problem-solving with reflection and revision
-
-### Usage Examples
-
-```bash
-# Generate a new component with 21st Magic
-/ui create a dashboard card component
-
-# Search for library documentation
-# First resolve library ID, then fetch docs
-Context7: resolve "react-hook-form" -> get docs
-
-# Take screenshots for testing/documentation
-Puppeteer: navigate to localhost:3000 -> screenshot dashboard
-
-# Complex problem solving with reflection
-Sequential thinking: plan feature implementation with multiple revision cycles
-```
-
-These tools extend Claude Code's capabilities for modern web development, UI design, and automated testing workflows.
+### When Debugging Issues
+- Check environment detection first
+- Verify Docker container health
+- Test with clean environment (`npm run clean`)
+- Use comprehensive logging for troubleshooting
