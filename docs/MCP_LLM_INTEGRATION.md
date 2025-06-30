@@ -42,12 +42,17 @@ This document details the comprehensive implementation of Model Context Protocol
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Core Innovation: Function Calling Architecture
+### Core Innovation: Three-Phase Function Calling Architecture
 
 **Function Calling Flow**:
 ```
-User Query → Claude Analyzes → Claude Calls Specific Tools → Tools Execute → Claude Synthesizes → Response
+User Query → Phase 1: Tool Planning → Phase 2: Tool Execution → Phase 3: Response Synthesis → Final Response
 ```
+
+**Three-Phase Implementation**:
+1. **Planning Phase**: Claude analyzes query and decides which tools to call
+2. **Execution Phase**: Manual tool execution with user context management and result collection
+3. **Synthesis Phase**: Claude generates final response incorporating all tool results
 
 **Key Principle**: Claude actively decides what tools to use and when to use them, making intelligent choices based on the user's specific query. No data is pre-fetched or injected into prompts - everything happens dynamically through function calls.
 
@@ -110,56 +115,136 @@ graph LR
     style H fill:#f3e5f5
 ```
 
-### MCP Server Internal Flow
+### Three-Phase Execution Flow
 
 ```mermaid
 sequenceDiagram
+    participant U as User
     participant C as Claude 3.5
+    participant CH as Chat Handler
     participant MC as MCP Client
     participant MS as MCP Server
     participant DB as PostgreSQL
-    participant UC as User Context
     
-    Note over C,UC: Tool Execution Flow
+    Note over U,DB: Three-Phase Function Calling Implementation
     
-    C->>MC: callTool("listUserShoes", {})
-    MC->>MS: MCP Protocol Request
-    MS->>UC: Check Current User Context
-    UC-->>MS: user_cm5zqbpzv0000uey1r4yrfhny
-    MS->>DB: SELECT * FROM "Shoes" WHERE "userId"=$1
-    DB-->>MS: Shoe Data Results
-    MS->>MS: Smart Context Assembly
-    MS-->>MC: Structured JSON Response
-    MC-->>C: Tool Result with Shoe Data
-    C->>C: Synthesize Natural Response
-    C-->>MC: "Here are your running shoes..."
+    U->>C: "Show me my shoes"
+    
+    Note over C,CH: Phase 1: Tool Planning
+    C->>CH: Generate with tools (planning)
+    CH-->>C: Tool calls: [listUserShoes]
+    
+    Note over C,DB: Phase 2: Manual Tool Execution
+    CH->>MC: setUserContext(userId)
+    MC->>MS: set_current_user_tool
+    MS->>DB: Set user context
+    
+    CH->>MC: callTool("get_user_shoes")
+    MC->>MS: get_user_shoes with context
+    MS->>DB: SELECT shoes WHERE userId
+    DB-->>MS: Actual shoe data
+    MS-->>MC: Formatted shoe analysis
+    MC-->>CH: Tool result (315 chars)
+    
+    Note over C,CH: Phase 3: Response Synthesis
+    CH->>C: Generate final response with tool results
+    C-->>CH: Natural response with shoe data
+    CH-->>U: "Here are your 3 shoes: Nike Vaporfly..."
 ```
 
 ---
 
 ## Implementation Details
 
-### 1. Function Calling Tool Definitions
+### 1. Three-Phase Chat Handler Implementation
 
-Each tool is defined with precise Zod schemas for Claude's function calling:
+The chat handler implements the three-phase approach to ensure tool results are properly incorporated:
 
 ```typescript
 // apps/web/src/app/api/chat/chat-handler.ts
 
-function createMCPTools(mcpClient: MaratronMCPClient) {
+export async function handleMCPEnhancedChat(
+  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+  userId: string,
+  mcpClient: MaratronMCPClient | null
+): Promise<ChatResponse> {
+  
+  // Phase 1: Tool Planning
+  console.log('🔄 Phase 1: Determine tool usage...');
+  const planningResult = await generateText({
+    model: anthropic('claude-3-5-sonnet-20241022'),
+    messages: [{ role: 'system', content: systemPrompt }, ...messages],
+    tools: createMCPTools(mcpClient, userId),
+    temperature: 0.7,
+    maxTokens: 1500,
+  });
+
+  // Phase 2: Manual Tool Execution
+  let toolResults: string[] = [];
+  if (planningResult.toolCalls && planningResult.toolCalls.length > 0) {
+    console.log('🔄 Phase 2: Executing tools...');
+    
+    // Ensure user context is set before executing any tools
+    await mcpClient.setUserContext(userId);
+    
+    for (const toolCall of planningResult.toolCalls) {
+      const toolFunction = tools[toolCall.toolName as keyof typeof tools];
+      const toolResult = await toolFunction.execute(toolCall.args);
+      toolResults.push(toolResult);
+    }
+
+    // Phase 3: Final Response with Tool Results
+    console.log('🔄 Phase 3: Generating final response with tool data...');
+    const finalMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages,
+      { 
+        role: 'user', 
+        content: `Based on the following tool execution results, provide a comprehensive response:\n\n${toolResults.join('\n\n')}`
+      }
+    ];
+
+    const finalResult = await generateText({
+      model: anthropic('claude-3-5-sonnet-20241022'),
+      messages: finalMessages,
+      temperature: 0.7,
+      maxTokens: 2000,
+    });
+
+    return { content: finalResult.text, mcpStatus: 'enhanced', toolCalls };
+  }
+}
+```
+
+### 2. Tool Definitions with User Context Management
+
+Each tool ensures proper user context before data retrieval:
+
+```typescript
+function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
   return {
     listUserShoes: tool({
       description: 'Get current user\'s shoe collection and mileage information',
-      parameters: z.object({}), // No user ID needed - context is automatic
-      execute: async () => {
+      parameters: z.object({
+        limit: z.number().optional().describe('Number of shoes to retrieve (default: 10)')
+      }),
+      execute: async ({ limit = 10 }) => {
         try {
-          const result = await mcpClient.callTool({
-            name: 'get_smart_user_context',
-            arguments: {}
+          // First set user context for this tool call
+          await mcpClient.callTool({
+            name: 'set_current_user_tool',
+            arguments: { user_id: userId }
           });
-          return { success: true, data: result.content[0]?.text || 'No shoe data available' };
+          
+          // Then retrieve user shoes data
+          const result = await mcpClient.callTool({
+            name: 'get_user_shoes',
+            arguments: { limit }
+          });
+          
+          return result.content[0]?.text || 'No shoe data available';
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
@@ -170,12 +255,22 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
         limit: z.number().optional().describe('Number of runs to retrieve (default: 5)')
       }),
       execute: async ({ limit = 5 }) => {
-        // Context already set automatically
-        const result = await mcpClient.callTool({
-          name: 'get_smart_user_context',
-          arguments: {}
-        });
-        return { success: true, data: result.content[0]?.text };
+        try {
+          // Set user context before data retrieval
+          await mcpClient.callTool({
+            name: 'set_current_user_tool',
+            arguments: { user_id: userId }
+          });
+          
+          const result = await mcpClient.callTool({
+            name: 'get_user_runs',
+            arguments: { limit }
+          });
+          
+          return result.content[0]?.text || 'No runs available';
+        } catch (error) {
+          return `Error: ${String(error)}`;
+        }
       }
     }),
 
@@ -362,43 +457,76 @@ POST /api/chat 200 in 3110ms
 
 ## Key Architecture Decisions
 
-### 1. Function Calling vs. Prompt Engineering
+### 1. Three-Phase vs. Single-Phase Function Calling
 
-**Rejected Approach**: Pre-fetch data and include in system prompt
+**Rejected Approach**: Standard AI SDK function calling
 ```typescript
-// ❌ Old approach - inflexible and limited
-const systemPrompt = `You are a coach. Here is the user's data: ${userData}...`;
+// ❌ AI SDK doesn't incorporate tool results properly
+const result = await generateText({ 
+  tools,
+  maxToolRoundtrips: 3 
+});
+// Result contains tool calls but not tool results in final text
 ```
 
-**Chosen Approach**: Real-time function calling
+**Chosen Approach**: Manual three-phase execution
 ```typescript
-// ✅ New approach - intelligent and flexible
-const tools = createMCPTools(mcpClient);
-const result = await generateText({ tools, ... });
+// ✅ Ensures tool results are incorporated into final response
+// Phase 1: Planning
+const planningResult = await generateText({ tools });
+
+// Phase 2: Manual execution  
+const toolResults = [];
+for (const toolCall of planningResult.toolCalls) {
+  const result = await executeToolManually(toolCall);
+  toolResults.push(result);
+}
+
+// Phase 3: Synthesis with tool results
+const finalResult = await generateText({
+  messages: [...messages, { content: toolResults.join('\n') }]
+});
 ```
 
 **Benefits**:
-- **Dynamic**: Claude decides what data is needed based on query
-- **Efficient**: Only fetches relevant data for each request  
-- **Scalable**: Can add new tools without changing core logic
-- **Natural**: Tool usage is transparent to users
+- **Reliable**: Tool results guaranteed to appear in final response
+- **Debuggable**: Full visibility into each phase of execution
+- **Robust**: Handles tool failures gracefully
+- **Performant**: 6-9 second response times for complex queries
 
-### 2. Automatic vs. Manual Context Management
+### 2. Explicit vs. Implicit User Context Management
 
-**Rejected**: Letting Claude manage user context
+**Challenge**: User context not persisting across tool calls
 ```typescript
-// ❌ Bad UX - exposes technical details
-setUserContext: tool({
-  parameters: z.object({
-    userId: z.string() // Claude has to know user IDs
-  })
-})
+// ❌ Context lost between individual tool executions
+await mcpClient.setUserContext(userId); // Set once
+// Tool calls lose context
 ```
 
-**Chosen**: Automatic context management
+**Solution**: Per-tool context management
 ```typescript
-// ✅ Seamless UX - context handled by system
-await mcpClient.setUserContext(userId); // Automatic from session
+// ✅ Set context before each tool execution
+function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
+  return {
+    listUserShoes: tool({
+      execute: async () => {
+        // Explicit context setting for each tool
+        await mcpClient.callTool({
+          name: 'set_current_user_tool',
+          arguments: { user_id: userId }
+        });
+        
+        // Then retrieve data
+        const result = await mcpClient.callTool({
+          name: 'get_user_shoes',
+          arguments: {}
+        });
+        
+        return result.content[0]?.text;
+      }
+    })
+  };
+}
 ```
 
 **Benefits**:
@@ -703,6 +831,87 @@ The system now provides users with an expert running coach that has instant acce
 - MCP Server: `apps/ai/src/maratron_ai/server.py`
 - Smart Tools: `apps/ai/src/maratron_ai/user_context/smart_tools.py`
 
-**Documentation Version**: 1.0.0  
-**Last Updated**: December 2024  
-**Author**: AI-Assisted Development Team
+---
+
+## Troubleshooting Guide
+
+### Common Issues and Solutions
+
+#### 1. Tools Called But No Data Returned
+
+**Symptoms**: Logs show tool execution but final response lacks user data
+```
+✅ Tool result length: 315 characters
+📋 Planning result - tool calls: 1
+📝 Generate result - text length: 54
+```
+
+**Root Cause**: AI SDK `generateText` not incorporating tool results into final response
+
+**Solution**: Use three-phase approach with manual tool execution:
+- Phase 1: Tool planning
+- Phase 2: Manual execution with result collection  
+- Phase 3: Response synthesis with tool results
+
+#### 2. User Context Not Persisting
+
+**Symptoms**: "❌ No user context set. Use set_current_user first"
+
+**Root Cause**: User context doesn't persist across individual MCP tool calls
+
+**Solution**: Set user context before each tool execution:
+```typescript
+// Before each tool call
+await mcpClient.callTool({
+  name: 'set_current_user_tool',
+  arguments: { user_id: userId }
+});
+```
+
+#### 3. Tool Return Format Issues
+
+**Symptoms**: Tools execute but data format incompatible with AI SDK
+
+**Root Cause**: Returning objects instead of strings
+
+**Solution**: Return direct strings from tools:
+```typescript
+// ❌ Wrong
+return { success: true, data: result };
+
+// ✅ Correct  
+return result.content[0]?.text || 'No data available';
+```
+
+#### 4. Invalid User ID Errors
+
+**Symptoms**: "User [id] not found" in MCP server logs
+
+**Root Cause**: Using incorrect or non-existent user IDs
+
+**Solution**: Verify user IDs exist in database:
+```sql
+SELECT id, email, name FROM "Users" LIMIT 5;
+```
+
+### Development Best Practices
+
+1. **Always Test Three Phases**: Verify planning, execution, and synthesis phases
+2. **User Context Management**: Set context before each data retrieval tool
+3. **Error Handling**: Implement graceful fallbacks for tool failures
+4. **Logging**: Use comprehensive logging to debug tool execution flow
+5. **Database Validation**: Ensure user IDs exist before testing
+
+### Performance Optimization
+
+- **Tool Caching**: Consider caching user context across tool calls
+- **Batch Operations**: Combine multiple data retrievals when possible
+- **Response Time**: Target 6-9 seconds for complex multi-tool queries
+- **Error Recovery**: Implement smart retry logic for transient failures
+
+---
+
+**Documentation Version**: 2.0.0  
+**Last Updated**: June 2025  
+**Author**: AI-Assisted Development Team  
+**Major Update**: Three-phase function calling implementation

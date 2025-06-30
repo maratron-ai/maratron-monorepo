@@ -843,6 +843,102 @@ async def update_conversation_intelligence(user_message: str, ai_response: str,
     return await update_conversation_intelligence_tool(user_message, ai_response, intent, sentiment)
 
 
+@mcp.tool()
+@handle_database_errors
+async def get_user_runs(limit: int = 5) -> str:
+    """Get the current user's recent running data with detailed metrics."""
+    user_id = get_current_user_id()
+    if not user_id:
+        return "❌ No user context set. Use set_current_user first."
+    
+    pool = await get_pool()
+    
+    # Get user's distance unit preference
+    distance_unit = get_user_distance_unit()
+    
+    # Get recent runs
+    runs = await fetch_with_timeout(
+        pool,
+        'SELECT * FROM "Runs" WHERE "userId"=$1 ORDER BY date DESC LIMIT $2',
+        user_id,
+        limit
+    )
+    
+    if not runs:
+        return "📊 No runs found for this user."
+    
+    result = f"🏃 **Recent Runs ({len(runs)} of {limit} requested)**\n\n"
+    
+    for i, run in enumerate(runs, 1):
+        date = run.get('date', 'Unknown date')
+        distance = run.get('distance', 0)
+        duration = run.get('duration', 'Unknown')
+        pace = run.get('pace', 'Unknown')
+        name = run.get('name', f'Run {i}')
+        notes = run.get('notes', '')
+        elevation = run.get('elevationGain', 0)
+        
+        result += f"**{i}. {name}** ({date})\n"
+        result += f"• Distance: {distance} {distance_unit}\n"
+        result += f"• Duration: {duration}\n"
+        result += f"• Pace: {pace}\n"
+        if elevation:
+            result += f"• Elevation: {elevation}ft\n"
+        if notes:
+            result += f"• Notes: {notes}\n"
+        result += "\n"
+    
+    track_last_action("get_user_runs")
+    return result
+
+
+@mcp.tool()
+@handle_database_errors
+async def get_user_shoes(limit: int = 10) -> str:
+    """Get the current user's shoe collection and mileage information."""
+    user_id = get_current_user_id()
+    if not user_id:
+        return "❌ No user context set. Use set_current_user first."
+    
+    pool = await get_pool()
+    
+    # Get user's distance unit preference
+    distance_unit = get_user_distance_unit()
+    
+    # Get user's shoes
+    shoes = await fetch_with_timeout(
+        pool,
+        'SELECT * FROM "Shoes" WHERE "userId"=$1 ORDER BY "createdAt" DESC LIMIT $2',
+        user_id,
+        limit
+    )
+    
+    if not shoes:
+        return "👟 No shoes found for this user."
+    
+    result = f"👟 **Shoe Collection ({len(shoes)} shoes)**\n\n"
+    
+    for i, shoe in enumerate(shoes, 1):
+        name = shoe.get('name', f'Shoe {i}')
+        current_distance = shoe.get('currentDistance', 0)
+        max_distance = shoe.get('maxDistance', 0)
+        notes = shoe.get('notes', '')
+        retired = shoe.get('retired', False)
+        
+        # Calculate usage percentage
+        usage_pct = (current_distance / max_distance * 100) if max_distance > 0 else 0
+        status = "🚫 RETIRED" if retired else f"{usage_pct:.0f}% used"
+        
+        result += f"**{i}. {name}** ({status})\n"
+        result += f"• Mileage: {current_distance}/{max_distance} {distance_unit}\n"
+        if notes:
+            result += f"• Notes: {notes}\n"
+        result += "\n"
+    
+    track_last_action("get_user_shoes")
+    return result
+
+
 # =============================================================================
 # HEALTH AND UTILITY FUNCTIONS
 # =============================================================================

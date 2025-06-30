@@ -32,7 +32,7 @@ export interface ChatResponse {
  * Create MCP tool definitions for Claude function calling
  * Note: User context is automatically set by the system
  */
-function createMCPTools(mcpClient: MaratronMCPClient) {
+function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
   return {
 
     getSmartUserContext: tool({
@@ -40,13 +40,19 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
       parameters: z.object({}),
       execute: async () => {
         try {
+          // First set user context
+          await mcpClient.callTool({
+            name: 'set_current_user_tool',
+            arguments: { user_id: userId }
+          });
+          
           const result = await mcpClient.callTool({
             name: 'get_smart_user_context',
             arguments: {}
           });
-          return { success: true, data: result.content[0]?.text || 'No context available' };
+          return result.content[0]?.text || 'No context available';
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
@@ -58,14 +64,20 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
       }),
       execute: async ({ limit = 5 }) => {
         try {
-          // Context is already set automatically, just get the runs
-          const result = await mcpClient.callTool({
-            name: 'get_smart_user_context',
-            arguments: {}
+          // First set user context
+          await mcpClient.callTool({
+            name: 'set_current_user_tool',
+            arguments: { user_id: userId }
           });
-          return { success: true, data: result.content[0]?.text || 'No runs available' };
+          
+          // Call the correct MCP tool for user runs data
+          const result = await mcpClient.callTool({
+            name: 'get_user_runs',
+            arguments: { limit }
+          });
+          return result.content[0]?.text || 'No runs available';
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
@@ -89,9 +101,9 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
             name: 'add_run',
             arguments: { ...params }
           });
-          return { success: true, data: result.content[0]?.text || 'Run added successfully' };
+          return result.content[0]?.text || 'Run added successfully';
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
@@ -105,9 +117,9 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
             name: 'analyze_user_patterns',
             arguments: {}
           });
-          return { success: true, data: result.content[0]?.text || 'No patterns available' };
+          return result.content[0]?.text || 'No patterns available';
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
@@ -121,9 +133,9 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
             name: 'get_motivational_context',
             arguments: {}
           });
-          return { success: true, data: result.content[0]?.text || 'Stay motivated!' };
+          return result.content[0]?.text || 'Stay motivated!';
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
@@ -142,9 +154,9 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
             name: 'update_conversation_intelligence',
             arguments: params
           });
-          return { success: true, data: result.content[0]?.text || 'Context updated' };
+          return result.content[0]?.text || 'Context updated';
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
@@ -163,9 +175,9 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
             name: 'add_shoe',
             arguments: { ...params }
           });
-          return { success: true, data: result.content[0]?.text || 'Shoe added successfully' };
+          return result.content[0]?.text || 'Shoe added successfully';
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
@@ -176,26 +188,40 @@ function createMCPTools(mcpClient: MaratronMCPClient) {
       execute: async () => {
         try {
           const summary = await mcpClient.getDatabaseSummary();
-          return { success: true, data: summary };
+          return summary;
         } catch (error) {
-          return { success: false, error: String(error) };
+          return `Error: ${String(error)}`;
         }
       }
     }),
 
     listUserShoes: tool({
       description: 'Get current user\'s shoe collection and mileage information',
-      parameters: z.object({}),
-      execute: async () => {
+      parameters: z.object({
+        limit: z.number().optional().describe('Number of shoes to retrieve (default: 10)')
+      }),
+      execute: async ({ limit = 10 }) => {
         try {
-          // Context is already set, just get the data
-          const result = await mcpClient.callTool({
-            name: 'get_smart_user_context',
-            arguments: {}
+          console.log(`🔍 Executing listUserShoes tool with limit: ${limit}`);
+          
+          // First set user context
+          await mcpClient.callTool({
+            name: 'set_current_user_tool',
+            arguments: { user_id: userId }
           });
-          return { success: true, data: result.content[0]?.text || 'No shoe data available' };
+          
+          // Call the correct MCP tool for user shoes data
+          const result = await mcpClient.callTool({
+            name: 'get_user_shoes',
+            arguments: { limit }
+          });
+          const data = result.content[0]?.text || 'No shoe data available';
+          console.log(`✅ Tool result length: ${data.length} characters`);
+          console.log(`📊 Tool data preview: "${data.substring(0, 100)}..."`);
+          return data;
         } catch (error) {
-          return { success: false, error: String(error) };
+          console.error(`❌ Tool execution error:`, error);
+          return `Error: ${String(error)}`;
         }
       }
     })
@@ -315,7 +341,7 @@ The user's context is automatically set - you can immediately use any tool to ac
       
       // Generate basic response without tools
       const result = await generateText({
-        model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest'),
+        model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022'),
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages
@@ -342,12 +368,15 @@ The user's context is automatically set - you can immediately use any tool to ac
     }
 
     // Create MCP tools for function calling
-    const tools = createMCPTools(mcpClient);
+    const tools = createMCPTools(mcpClient, userId);
     mcpStatus = 'enhanced';
 
-    // Generate response with function calling
-    const result = await generateText({
-      model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest'),
+    // Two-phase approach: Tool planning + execution + final response
+    console.log('🔄 Phase 1: Determine tool usage...');
+    
+    // Phase 1: Determine what tools to call
+    const planningResult = await generateText({
+      model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022'),
       messages: [
         { role: 'system', content: systemPrompt },
         ...messages
@@ -357,22 +386,80 @@ The user's context is automatically set - you can immediately use any tool to ac
       maxTokens: 1500,
     });
 
-    // Extract tool calls from the result
-    if (result.toolCalls && result.toolCalls.length > 0) {
-      for (const toolCall of result.toolCalls) {
+    console.log(`📋 Planning result - tool calls: ${planningResult.toolCalls?.length || 0}`);
+
+    // Phase 2: Execute tools and collect results
+    let toolResults: string[] = [];
+    if (planningResult.toolCalls && planningResult.toolCalls.length > 0) {
+      console.log('🔄 Phase 2: Executing tools...');
+      
+      // Ensure user context is set before executing any tools
+      try {
+        console.log(`🔧 Setting user context for tool execution: ${userId}`);
+        await mcpClient.setUserContext(userId);
+        console.log(`✅ User context confirmed for tool execution`);
+      } catch (error) {
+        console.error(`❌ Failed to set user context for tools:`, error);
+        // Still continue, but note the issue
+      }
+      
+      for (const toolCall of planningResult.toolCalls) {
         toolCalls.push({
           name: toolCall.toolName,
           arguments: toolCall.args as Record<string, unknown>
         });
-      }
-    }
 
-    return {
-      content: result.text,
-      mcpStatus,
-      systemPrompt,
-      toolCalls
-    };
+        try {
+          console.log(`🛠️ Executing tool: ${toolCall.toolName}`);
+          const toolFunction = tools[toolCall.toolName as keyof typeof tools];
+          if (toolFunction && 'execute' in toolFunction) {
+            const toolResult = await toolFunction.execute(toolCall.args as any);
+            toolResults.push(toolResult);
+            console.log(`✅ Tool ${toolCall.toolName} returned ${String(toolResult).length} characters`);
+          }
+        } catch (error) {
+          console.error(`❌ Tool ${toolCall.toolName} failed:`, error);
+          toolResults.push(`Error executing ${toolCall.toolName}: ${String(error)}`);
+        }
+      }
+
+      // Phase 3: Generate final response with tool results
+      console.log('🔄 Phase 3: Generating final response with tool data...');
+      
+      const finalMessages = [
+        { role: 'system', content: systemPrompt },
+        ...messages,
+        { 
+          role: 'user', 
+          content: `Based on the following tool execution results, provide a comprehensive response to the user:\n\n${toolResults.join('\n\n')}`
+        }
+      ];
+
+      const finalResult = await generateText({
+        model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022'),
+        messages: finalMessages,
+        temperature: 0.7,
+        maxTokens: 2000,
+      });
+
+      console.log(`✅ Final response length: ${finalResult.text.length} characters`);
+      
+      return {
+        content: finalResult.text,
+        mcpStatus,
+        systemPrompt,
+        toolCalls
+      };
+    } else {
+      // No tools needed, return planning result
+      console.log('📝 No tools needed, returning direct response');
+      return {
+        content: planningResult.text,
+        mcpStatus,
+        systemPrompt,
+        toolCalls
+      };
+    }
 
   } catch (error) {
     console.error('Enhanced chat generation failed:', error);
@@ -380,7 +467,7 @@ The user's context is automatically set - you can immediately use any tool to ac
     // Fallback to basic response
     try {
       const fallbackResult = await generateText({
-        model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest'),
+        model: anthropic(process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022'),
         messages: [
           { 
             role: 'system', 
