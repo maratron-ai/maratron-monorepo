@@ -13,7 +13,10 @@ jest.mock('@ai-sdk/anthropic', () => ({
 
 jest.mock('ai', () => ({
   generateText: jest.fn(),
-  tool: jest.fn((config) => config)
+  tool: jest.fn((config) => ({
+    ...config,
+    execute: config.execute
+  }))
 }));
 
 // Mock the MCP client
@@ -57,7 +60,6 @@ describe('MCP Enhanced Chat Handler', () => {
       expect(mockGenerateText).toHaveBeenCalledWith(
         expect.objectContaining({
           tools: expect.objectContaining({
-            setUserContext: expect.any(Object),
             getSmartUserContext: expect.any(Object),
             getUserRuns: expect.any(Object),
             addRun: expect.any(Object),
@@ -86,34 +88,49 @@ describe('MCP Enhanced Chat Handler', () => {
 
       expect(mockGenerateText).toHaveBeenCalledWith(
         expect.objectContaining({
-          tools: undefined
+          model: expect.any(String),
+          messages: expect.arrayContaining([
+            expect.objectContaining({
+              role: 'system',
+              content: expect.stringContaining('Maratron AI')
+            })
+          ])
         })
       );
+
+      // When MCP client is null, tools property should not be passed
+      const callArgs = mockGenerateText.mock.calls[0][0];
+      expect(callArgs).not.toHaveProperty('tools');
 
       expect(result.mcpStatus).toBe('fallback');
     });
 
     it('should track tool calls made by Claude', async () => {
-      const mockResponse = {
+      // Mock planning phase
+      const planningResponse = {
         text: 'I will get your user context.',
         toolCalls: [
-          {
-            toolName: 'setUserContext',
-            args: { userId: 'test-user' }
-          },
           {
             toolName: 'getSmartUserContext',
             args: {}
           }
         ]
       };
-      mockGenerateText.mockResolvedValue(mockResponse);
+      
+      // Mock synthesis phase
+      const finalResponse = {
+        text: 'Based on your context, here is my response.',
+        toolCalls: []
+      };
+      
+      mockGenerateText
+        .mockResolvedValueOnce(planningResponse) // Phase 1: Planning
+        .mockResolvedValueOnce(finalResponse);   // Phase 3: Synthesis
 
       const messages = [{ role: 'user' as const, content: 'Get my data' }];
       const result = await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       expect(result.toolCalls).toEqual([
-        { name: 'setUserContext', arguments: { userId: 'test-user' } },
         { name: 'getSmartUserContext', arguments: {} }
       ]);
     });
@@ -130,9 +147,9 @@ describe('MCP Enhanced Chat Handler', () => {
       const systemMessage = mockGenerateText.mock.calls[0][0].messages[0];
       expect(systemMessage.role).toBe('system');
       expect(systemMessage.content).toContain('Maratron AI');
-      expect(systemMessage.content).toContain('setUserContext');
       expect(systemMessage.content).toContain('Available Tools');
       expect(systemMessage.content).toContain('natural, conversational language');
+      expect(systemMessage.content).toContain('User context is automatically managed');
     });
 
     it('should include all available tools in system prompt', async () => {
@@ -144,7 +161,6 @@ describe('MCP Enhanced Chat Handler', () => {
 
       const systemMessage = mockGenerateText.mock.calls[0][0].messages[0];
       const tools = [
-        'setUserContext',
         'getSmartUserContext', 
         'getUserRuns',
         'addRun',
@@ -171,48 +187,61 @@ describe('MCP Enhanced Chat Handler', () => {
       });
     });
 
-    it('should handle setUserContext tool execution', async () => {
+    it('should automatically set user context', async () => {
       const mockResponse = {
-        text: 'Context set.',
-        toolCalls: [{
-          toolName: 'setUserContext',
-          args: { userId: 'test-user' }
-        }]
+        text: 'Hello there!',
+        toolCalls: []
       };
       mockGenerateText.mockResolvedValue(mockResponse);
 
-      const messages = [{ role: 'user' as const, content: 'Set my context' }];
+      const messages = [{ role: 'user' as const, content: 'Hello' }];
       await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
+      // User context should be set automatically during initialization
       expect(mockMCPClient.setUserContext).toHaveBeenCalledWith('test-user');
     });
 
-    it('should handle getSmartUserContext tool execution', async () => {
-      const mockResponse = {
-        text: 'Here is your context.',
+    it('should handle getSmartUserContext tool execution in three phases', async () => {
+      // Mock planning phase response
+      const planningResponse = {
+        text: 'I will get your context.',
         toolCalls: [{
           toolName: 'getSmartUserContext',
           args: {}
         }]
       };
-      mockGenerateText.mockResolvedValue(mockResponse);
+      
+      // Mock final synthesis response
+      const finalResponse = {
+        text: 'Here is your context analysis.',
+        toolCalls: []
+      };
+      
+      mockGenerateText
+        .mockResolvedValueOnce(planningResponse) // Phase 1: Planning
+        .mockResolvedValueOnce(finalResponse);   // Phase 3: Synthesis
 
       const messages = [{ role: 'user' as const, content: 'Get my context' }];
       await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
+      // Verify Phase 2: Tool execution
+      expect(mockMCPClient.callTool).toHaveBeenCalledWith({
+        name: 'set_current_user_tool',
+        arguments: { user_id: 'test-user' }
+      });
       expect(mockMCPClient.callTool).toHaveBeenCalledWith({
         name: 'get_smart_user_context',
         arguments: {}
       });
     });
 
-    it('should handle addRun tool execution', async () => {
-      const mockResponse = {
-        text: 'Run added.',
+    it('should handle addRun tool execution in three phases', async () => {
+      // Mock planning phase response
+      const planningResponse = {
+        text: 'I will add your run.',
         toolCalls: [{
           toolName: 'addRun',
           args: {
-            userId: 'test-user',
             date: '2024-01-15',
             duration: '00:30:00',
             distance: 5.0,
@@ -220,15 +249,24 @@ describe('MCP Enhanced Chat Handler', () => {
           }
         }]
       };
-      mockGenerateText.mockResolvedValue(mockResponse);
+      
+      // Mock final synthesis response
+      const finalResponse = {
+        text: 'Run added successfully!',
+        toolCalls: []
+      };
+      
+      mockGenerateText
+        .mockResolvedValueOnce(planningResponse) // Phase 1: Planning
+        .mockResolvedValueOnce(finalResponse);   // Phase 3: Synthesis
 
       const messages = [{ role: 'user' as const, content: 'Add my run' }];
       await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
+      // Verify Phase 2: Tool execution (addRun doesn't set user context internally)
       expect(mockMCPClient.callTool).toHaveBeenCalledWith({
         name: 'add_run',
         arguments: {
-          userId: 'test-user',
           date: '2024-01-15',
           duration: '00:30:00',
           distance: 5.0,

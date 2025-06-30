@@ -22,7 +22,11 @@ import { generateText } from 'ai';
 jest.mock('@lib/mcp/client');
 jest.mock('@ai-sdk/anthropic');
 jest.mock('ai', () => ({
-  generateText: jest.fn()
+  generateText: jest.fn(),
+  tool: jest.fn((config) => ({
+    ...config,
+    execute: config.execute
+  }))
 }));
 
 const mockGenerateText = generateText as jest.MockedFunction<typeof generateText>;
@@ -151,23 +155,47 @@ describe('Chat API MCP Integration', () => {
         isError: false
       });
 
+      // Mock planning phase (Claude decides to use getUserRuns tool)
+      const planningResponse = {
+        text: 'I will get your recent runs.',
+        toolCalls: [{
+          toolName: 'getUserRuns',
+          args: { limit: 5 }
+        }]
+      };
+      
+      // Mock synthesis phase
+      const finalResponse = {
+        text: 'Here are your recent runs',
+        toolCalls: []
+      };
+      
+      mockGenerateText
+        .mockResolvedValueOnce(planningResponse)
+        .mockResolvedValueOnce(finalResponse);
+
       const dataQuery = [
         { role: 'user', content: 'Show me my recent runs' }
       ];
 
       const result = await handleMCPEnhancedChat(dataQuery, userId, mockMCPClient);
 
-      expect(mockMCPClient.callTool).toHaveBeenCalledWith({
-        name: 'get_smart_user_context',
-        arguments: {}
-      });
+      // With three-phase execution, tool calls should be tracked
       expect(result.toolCalls).toBeDefined();
       expect(result.toolCalls.length).toBeGreaterThan(0);
+      expect(result.toolCalls[0].name).toBe('getUserRuns');
     });
 
     it('should handle general queries without MCP data calls', async () => {
       mockMCPClient.setUserContext.mockResolvedValue(undefined);
       mockMCPClient.getUserContext.mockResolvedValue(null);
+
+      // Mock that Claude doesn't decide to use any tools for general queries
+      const mockResponse = {
+        text: 'Running has many benefits for cardiovascular health...',
+        toolCalls: [] // No tool calls for general queries
+      };
+      mockGenerateText.mockResolvedValue(mockResponse);
 
       const generalQuery = [
         { role: 'user', content: 'What are the benefits of running?' }
@@ -175,25 +203,33 @@ describe('Chat API MCP Integration', () => {
 
       const result = await handleMCPEnhancedChat(generalQuery, userId, mockMCPClient);
 
-      // For general queries, we don't need to set user context or call tools
-      expect(mockMCPClient.callTool).not.toHaveBeenCalled();
-      expect(result.mcpStatus).toBe('no-data-needed');
+      // For general queries, Claude decides not to use tools
+      expect(result.toolCalls).toEqual([]);
+      expect(result.mcpStatus).toBe('enhanced'); // Still enhanced mode, just no tools used
     });
 
     it('should fallback gracefully when MCP fails', async () => {
       // Silence expected console.warn for this test
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       
+      // Mock that initial setUserContext fails, but handler continues
       mockMCPClient.setUserContext.mockRejectedValue(new Error('MCP failed'));
+      
+      // Mock successful fallback response
+      const mockResponse = {
+        text: 'I can provide general running advice.',
+        toolCalls: []
+      };
+      mockGenerateText.mockResolvedValue(mockResponse);
 
       const result = await handleMCPEnhancedChat(validMessages, userId, mockMCPClient);
 
-      expect(result.mcpStatus).toBe('fallback');
+      expect(result.mcpStatus).toBe('enhanced'); // Still enhanced, just warning logged
       expect(result.content).toBeDefined();
       
-      // Verify the warning was called (but silenced)
+      // Verify the warning was called (but silenced) - updated for new implementation
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'Data gathering failed, falling back to standard response:',
+        `Failed to set user context for ${userId}:`,
         expect.any(Error)
       );
       
@@ -214,6 +250,24 @@ describe('Chat API MCP Integration', () => {
         isError: false
       });
 
+      // Mock planning and synthesis phases
+      const planningResponse = {
+        text: 'I will analyze your last run.',
+        toolCalls: [{
+          toolName: 'getUserRuns',
+          args: { limit: 1 }
+        }]
+      };
+      
+      const finalResponse = {
+        text: 'Your last run was great!',
+        toolCalls: []
+      };
+      
+      mockGenerateText
+        .mockResolvedValueOnce(planningResponse)
+        .mockResolvedValueOnce(finalResponse);
+
       // Use a data-requiring query
       const dataQuery = [
         { role: 'user', content: 'How did my last run go?' }
@@ -221,8 +275,9 @@ describe('Chat API MCP Integration', () => {
 
       const result = await handleMCPEnhancedChat(dataQuery, userId, mockMCPClient);
 
-      expect(result.systemPrompt).toContain('Recent runs');
-      expect(result.systemPrompt).toContain('miles');
+      // With three-phase execution, system prompt is consistent across all requests
+      expect(result.systemPrompt).toContain('Maratron AI');
+      expect(result.systemPrompt).toContain('running and fitness coach');
       expect(result.mcpStatus).toBe('enhanced');
     });
 
@@ -236,14 +291,21 @@ describe('Chat API MCP Integration', () => {
         )
       );
 
+      // Mock successful response despite timeout
+      const mockResponse = {
+        text: 'I can provide general running advice.',
+        toolCalls: []
+      };
+      mockGenerateText.mockResolvedValue(mockResponse);
+
       const result = await handleMCPEnhancedChat(validMessages, userId, mockMCPClient);
 
-      expect(result.mcpStatus).toBe('fallback');
+      expect(result.mcpStatus).toBe('enhanced'); // Still enhanced, just context warning
       expect(result.content).toBeDefined();
       
-      // Verify the warning was called (but silenced)
+      // Verify the warning was called (but silenced) - updated for new three-phase implementation
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'Data gathering failed, falling back to standard response:',
+        `Failed to set user context for ${userId}:`,
         expect.any(Error)
       );
       
@@ -259,19 +321,35 @@ describe('Chat API MCP Integration', () => {
       mockMCPClient.setUserContext.mockResolvedValue(undefined);
       mockMCPClient.getUserContext.mockResolvedValue(null);
       mockMCPClient.callTool.mockResolvedValue({
-        content: [{ type: 'text', text: JSON.stringify({ shoes: [] }) }],
+        content: [{ type: 'text', text: 'Mock shoe data' }],
         isError: false
       });
 
+      // Mock planning and synthesis phases
+      const planningResponse = {
+        text: 'I will get your shoes.',
+        toolCalls: [{
+          toolName: 'listUserShoes',
+          args: { limit: 10 }
+        }]
+      };
+      
+      const finalResponse = {
+        text: 'Here are your shoes',
+        toolCalls: []
+      };
+      
+      mockGenerateText
+        .mockResolvedValueOnce(planningResponse)
+        .mockResolvedValueOnce(finalResponse);
+
       const result = await handleMCPEnhancedChat(dataQuery, userId, mockMCPClient);
 
-      // Always use MCP for consistent AI intelligence across all environments
+      // With three-phase execution, user context is set multiple times
       expect(mockMCPClient.setUserContext).toHaveBeenCalledWith(userId);
-      expect(mockMCPClient.callTool).toHaveBeenCalledWith({
-        name: 'get_smart_user_context',
-        arguments: {}
-      });
+      // In three-phase execution, tools are called according to Claude's planning
       expect(result.mcpStatus).toBe('enhanced');
+      expect(result.toolCalls.length).toBeGreaterThan(0);
     });
 
     it('should fallback when MCP client is not available', async () => {
@@ -288,8 +366,8 @@ describe('Chat API MCP Integration', () => {
       expect(result.mcpStatus).toBe('fallback');
       expect(result.content).toBeDefined();
       
-      // Verify the warning was called
-      expect(consoleWarnSpy).toHaveBeenCalledWith('No MCP client available, using fallback');
+      // Verify the warning was called with updated message
+      expect(consoleWarnSpy).toHaveBeenCalledWith('No MCP client available, using basic response mode');
       
       // Restore console.warn
       consoleWarnSpy.mockRestore();
