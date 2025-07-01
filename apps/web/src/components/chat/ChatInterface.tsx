@@ -21,11 +21,24 @@ interface Message {
 
 interface ChatInterfaceProps {
   className?: string;
+  // Optional external state management for persistence
+  externalMessages?: Message[];
+  onMessagesChange?: (messages: Message[]) => void;
+  isExternalLoaded?: boolean;
 }
 
-export function ChatInterface({ className }: ChatInterfaceProps) {
+export function ChatInterface({ 
+  className, 
+  externalMessages, 
+  onMessagesChange, 
+  isExternalLoaded 
+}: ChatInterfaceProps) {
   const { status } = useSession();
-  const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Use external messages if provided, otherwise use internal state
+  const [internalMessages, setInternalMessages] = useState<Message[]>([]);
+  const messages = externalMessages ?? internalMessages;
+  const setMessages = onMessagesChange ?? setInternalMessages;
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,7 +154,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     }
   };
 
-  if (status === 'loading') {
+  if (status === 'loading' || (externalMessages && !isExternalLoaded)) {
     return (
       <Card className={cn('flex items-center justify-center', className)}>
         <CardContent className="p-8">

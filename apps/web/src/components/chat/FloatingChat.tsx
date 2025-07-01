@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import { FloatingChatButton } from './FloatingChatButton';
 import { ChatModal } from './ChatModal';
+import { usePersistentChat } from '@hooks/usePersistentChat';
 
 export function FloatingChat() {
   const [isOpen, setIsOpen] = useState(false);
+  const { messages, isLoaded, setMessages } = usePersistentChat();
 
   return (
     <>
@@ -15,7 +17,10 @@ export function FloatingChat() {
       />
       <ChatModal 
         isOpen={isOpen} 
-        onOpenChange={setIsOpen} 
+        onOpenChange={setIsOpen}
+        messages={messages}
+        onMessagesChange={setMessages}
+        isLoaded={isLoaded}
       />
     </>
   );
