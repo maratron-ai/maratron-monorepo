@@ -5,6 +5,7 @@ import "./globals.css";
 import Providers from "@components/Providers";
 import Navbar from "@components/Navbar";
 import Footer from "@components/Footer";
+import { FloatingChat } from "@components/chat/FloatingChat";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,6 +27,7 @@ export default function RootLayout({
           <Navbar />
           <div className="min-h-screen">{children}</div>
           <Footer />
+          <FloatingChat />
         </Providers>
       </body>
     </html>
