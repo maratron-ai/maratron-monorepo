@@ -76,6 +76,32 @@ class DatabaseConfig(BaseModel):
         return v
 
 
+class WeatherConfig(BaseModel):
+    """Weather API configuration settings."""
+    
+    # API settings
+    api_key: Optional[str] = Field(default=None, description="OpenWeatherMap API key")
+    api_url: str = Field(default="https://api.openweathermap.org/data/2.5", description="OpenWeatherMap API base URL")
+    
+    # Cache settings
+    cache_ttl_minutes: int = Field(default=10, ge=1, le=60, description="Weather data cache TTL in minutes")
+    
+    # Request settings
+    request_timeout: float = Field(default=5.0, ge=1.0, le=30.0, description="API request timeout in seconds")
+    max_retries: int = Field(default=3, ge=0, le=5, description="Maximum retry attempts for API requests")
+    
+    # Default settings
+    default_units: str = Field(default="metric", description="Default temperature units (metric/imperial)")
+    
+    @field_validator('api_key')
+    @classmethod
+    def validate_api_key(cls, v):
+        """Validate API key format."""
+        if v is not None and (not v.strip() or len(v.strip()) < 10):
+            raise ValueError("Weather API key must be at least 10 characters long")
+        return v.strip() if v else None
+
+
 class ServerConfig(BaseModel):
     """Server configuration settings."""
     
@@ -110,6 +136,7 @@ class Config(BaseSettings):
     # Configuration sections
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     server: ServerConfig = Field(default_factory=ServerConfig)
+    weather: WeatherConfig = Field(default_factory=WeatherConfig)
     
     # Global settings
     timezone: str = Field(default="UTC")

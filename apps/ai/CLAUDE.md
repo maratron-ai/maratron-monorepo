@@ -71,6 +71,7 @@ Configuration includes connection pooling, timeouts, and retry logic.
 - **user_context.py**: User session and context management system
 - **user_context_tools.py**: MCP tools for user context operations
 - **user_context_security.py**: Security validation and rate limiting for user operations
+- **weather_tools.py**: Weather API integration with running-specific advice and forecasting
 - **schema.sql**: Complete PostgreSQL database schema with tables for users, runs, shoes, social features, and training plans
 - **pyproject.toml**: Python project configuration using uv package manager
 
@@ -138,6 +139,11 @@ The application uses a comprehensive running/fitness database with these main en
 - `get_motivational_context()` - Get motivational context to provide encouraging responses
 - `update_conversation_intelligence(user_message, ai_response, intent, sentiment)` - Update conversation intelligence with rich context tracking
 
+**Weather Integration Tools:**
+- `get_current_weather(location: str = None)` - Get current weather conditions with running-specific advice
+- `get_weather_forecast(location: str = None, days: int = 5)` - Get weather forecast for running planning (1-5 days)
+- `analyze_weather_impact(location: str = None)` - Analyze weather impact on running performance with recommendations
+
 ### Security & Advanced Features
 
 **Data Security:**
@@ -201,6 +207,12 @@ DATABASE__QUERY_TIMEOUT=30.0
 SERVER__DEBUG=true
 SERVER__LOG_LEVEL=DEBUG
 SERVER__MAX_CONCURRENT_OPERATIONS=100
+
+# Weather API
+WEATHER__API_KEY=your_openweathermap_api_key
+WEATHER__API_URL=https://api.openweathermap.org/data/2.5
+WEATHER__CACHE_TTL_MINUTES=10
+WEATHER__REQUEST_TIMEOUT=5.0
 ```
 
 ### Environment Files

@@ -7,7 +7,7 @@ import { useSocialProfile } from "@hooks/useSocialProfile";
 import CreateSocialPost from "@components/social/CreateSocialPost";
 import LikeButton from "@components/social/LikeButton";
 import CommentSection from "@components/social/CommentSection";
-import { Button, Dialog, Spinner } from "@components/ui";
+import { Button, Dialog, DialogContent, DialogTrigger, Spinner } from "@components/ui";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -23,7 +23,6 @@ export default function SocialFeed({ groupId }: Props) {
   const [visibleCount, setVisibleCount] = useState(10);
   const [loadingMore, setLoadingMore] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchFeed = async () => {
     if (!session?.user?.id) return;
@@ -117,13 +116,24 @@ export default function SocialFeed({ groupId }: Props) {
           </p>
           {post.caption && <p className="mt-2">{post.caption}</p>}
           {post.photoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={post.photoUrl}
-              alt="Run photo"
-              className="mt-2 rounded-md h-64 w-64 object-cover cursor-pointer"
-              onClick={() => setSelectedImage(post.photoUrl!)}
-            />
+            <Dialog>
+              <DialogTrigger asChild>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.photoUrl}
+                  alt="Run photo"
+                  className="mt-2 rounded-md h-64 w-64 object-cover cursor-pointer"
+                />
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.photoUrl}
+                  alt="Run photo"
+                  className="w-full h-auto object-contain"
+                />
+              </DialogContent>
+            </Dialog>
           )}
           <div className="flex items-start gap-2 mt-2">
             <LikeButton
@@ -144,21 +154,6 @@ export default function SocialFeed({ groupId }: Props) {
           <Spinner className="h-4 w-4" />
         </div>
       )}
-      <Dialog
-        open={!!selectedImage}
-        onOpenChange={(o: boolean) => !o && setSelectedImage(null)}
-      >
-        <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-lg sm:rounded-lg p-0">
-          {selectedImage && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={selectedImage}
-              alt="Run photo"
-              className="w-64 h-64 object-contain"
-            />
-          )}
-        </div>
-      </Dialog>
     </div>
   );
 }

@@ -896,6 +896,65 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
           return `Error: ${String(error)}`;
         }
       }
+    }),
+
+    // =========================================================================
+    // WEATHER TOOLS
+    // =========================================================================
+
+    getCurrentWeather: tool({
+      description: 'Get current weather conditions for running planning',
+      parameters: z.object({
+        location: z.string().optional().describe('Location name (city, state/country) or coordinates (lat,lon). If not provided, uses user default location if available.')
+      }),
+      execute: async ({ location }) => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'get_current_weather',
+            arguments: { location }
+          });
+          return result.content[0]?.text || 'Weather unavailable';
+        } catch (error) {
+          return `Error: ${String(error)}`;
+        }
+      }
+    }),
+
+    getWeatherForecast: tool({
+      description: 'Get weather forecast for running planning',
+      parameters: z.object({
+        location: z.string().optional().describe('Location name (city, state/country) or coordinates (lat,lon). If not provided, uses user default location if available.'),
+        days: z.number().optional().default(5).describe('Number of days to forecast (1-5)')
+      }),
+      execute: async ({ location, days = 5 }) => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'get_weather_forecast',
+            arguments: { location, days }
+          });
+          return result.content[0]?.text || 'Forecast unavailable';
+        } catch (error) {
+          return `Error: ${String(error)}`;
+        }
+      }
+    }),
+
+    analyzeWeatherImpact: tool({
+      description: 'Analyze weather impact on running performance and provide recommendations',
+      parameters: z.object({
+        location: z.string().optional().describe('Location name (city, state/country) or coordinates (lat,lon). If not provided, uses user default location if available.')
+      }),
+      execute: async ({ location }) => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'analyze_weather_impact',
+            arguments: { location }
+          });
+          return result.content[0]?.text || 'Weather analysis unavailable';
+        } catch (error) {
+          return `Error: ${String(error)}`;
+        }
+      }
     })
   };
 }

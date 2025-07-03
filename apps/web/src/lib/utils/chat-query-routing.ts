@@ -8,7 +8,7 @@ import { UserContext } from '@lib/mcp/types';
 
 export interface QueryAnalysisResult {
   requiresData: boolean;
-  dataTypes: ('runs' | 'shoes' | 'profile' | 'goals')[];
+  dataTypes: ('runs' | 'shoes' | 'profile' | 'goals' | 'weather')[];
   mcpTools: string[];
 }
 
@@ -37,10 +37,16 @@ export function needsUserData(message: string): QueryAnalysisResult {
     goals: [
       'training plan', 'workout', 'next run', 'should i run',
       'rest day', 'schedule', 'what should i run', 'next workout', 'goals'
+    ],
+    weather: [
+      'weather', 'temperature', 'rain', 'hot', 'cold', 'windy', 'humidity',
+      'forecast', 'conditions', 'outside', 'climate', 'sunny', 'cloudy',
+      'storm', 'snow', 'ice', 'should i run today', 'good day to run',
+      'running conditions', 'weather today', 'weather forecast', 'weather impact'
     ]
   };
 
-  const dataTypes: ('runs' | 'shoes' | 'profile' | 'goals')[] = [];
+  const dataTypes: ('runs' | 'shoes' | 'profile' | 'goals' | 'weather')[] = [];
   const mcpTools: string[] = [];
 
   // Check each pattern category
@@ -50,12 +56,17 @@ export function needsUserData(message: string): QueryAnalysisResult {
     );
     
     if (hasMatch) {
-      dataTypes.push(category as 'runs' | 'shoes' | 'profile' | 'goals');
+      dataTypes.push(category as 'runs' | 'shoes' | 'profile' | 'goals' | 'weather');
     }
   }
 
-  // If any data type is needed, we'll use the smart context tool
-  if (dataTypes.length > 0) {
+  // Add appropriate tools based on data types
+  if (dataTypes.includes('weather')) {
+    mcpTools.push('get_current_weather');
+  }
+  
+  // If any non-weather data type is needed, we'll use the smart context tool
+  if (dataTypes.some(type => type !== 'weather')) {
     mcpTools.push('get_smart_user_context');
   }
 

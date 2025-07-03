@@ -72,6 +72,11 @@ from .competition_racing_tools import (
     plan_race_calendar_tool,
     analyze_post_race_performance_tool
 )
+from .weather_tools import (
+    get_current_weather_tool,
+    get_weather_forecast_tool,
+    analyze_weather_impact_tool
+)
 from .user_context.context import get_current_user_id
 from .security import secure_db, require_user_context, DataAccessViolationError
 
@@ -1303,6 +1308,56 @@ async def get_current_datetime() -> str:
     """Get current date and time in user's timezone."""
     track_last_action("get_current_datetime")
     return await get_user_datetime()
+
+
+# =============================================================================
+# WEATHER TOOLS
+# =============================================================================
+
+@mcp.tool()
+async def get_current_weather(location: str = None) -> str:
+    """Get current weather conditions for running planning.
+    
+    Args:
+        location: Location name (city, state/country) or coordinates (lat,lon).
+                 If not provided, uses user's default location if available.
+    
+    Returns:
+        Formatted weather information with running-specific advice.
+    """
+    track_last_action("get_current_weather")
+    return await get_current_weather_tool(location)
+
+
+@mcp.tool()
+async def get_weather_forecast(location: str = None, days: int = 5) -> str:
+    """Get weather forecast for running planning.
+    
+    Args:
+        location: Location name (city, state/country) or coordinates (lat,lon).
+                 If not provided, uses user's default location if available.
+        days: Number of days to forecast (1-5).
+    
+    Returns:
+        Formatted weather forecast with running recommendations.
+    """
+    track_last_action("get_weather_forecast")
+    return await get_weather_forecast_tool(location, days)
+
+
+@mcp.tool()
+async def analyze_weather_impact(location: str = None) -> str:
+    """Analyze weather impact on running performance and provide recommendations.
+    
+    Args:
+        location: Location name (city, state/country) or coordinates (lat,lon).
+                 If not provided, uses user's default location if available.
+    
+    Returns:
+        Detailed analysis of weather impact on running performance.
+    """
+    track_last_action("analyze_weather_impact")
+    return await analyze_weather_impact_tool(location)
 
 
 # =============================================================================

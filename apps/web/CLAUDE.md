@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🚀 **NEW: Advanced MCP-LLM Integration** 
 
-The chatbot now uses **Claude 3.5 Function Calling** with 9 intelligent tools for personalized running advice:
+The chatbot now uses **Claude 3.5 Function Calling** with 12 intelligent tools for personalized running advice:
 - **Auto Context Management**: User context set automatically from session
 - **Real-Time Tool Selection**: Claude intelligently chooses relevant tools
 - **Natural UX**: No technical details exposed to users
@@ -180,6 +180,7 @@ const result = await mcpClient.callTool({
 - **Context Management**: Set user context for personalized AI interactions
 - **Smart Analytics**: Access AI-powered insights and motivational content
 - **Session Management**: Track user sessions and conversation intelligence
+- **Weather Integration**: Real-time weather conditions, forecasts, and running impact analysis
 
 **Integration Points:**
 - Chat interface (`src/components/chat/`) uses MCP for AI responses
