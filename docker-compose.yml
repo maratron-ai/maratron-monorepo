@@ -21,6 +21,8 @@ services:
       - NODE_ENV=development
       - ENVIRONMENT=development
       - DOCKER=true
+      # Weather API for running conditions
+      - WEATHER__API_KEY=da120f5f4228dc552f6b19df0704268c
     extra_hosts:
       # Allow container to connect to host machine
       - "host.docker.internal:host-gateway"
