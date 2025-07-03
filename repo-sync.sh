@@ -92,22 +92,12 @@ push_changes() {
     git push origin $current_branch
 
     echo ""
-    echo "2️⃣ Pushing web subdirectory to web-origin..."
-    if git subtree push --prefix=apps/web web-origin main 2>/dev/null; then
-        echo -e "${GREEN}✅ Web repository synced successfully${NC}"
-    else
-        echo -e "${YELLOW}⚠️  Force pushing web subdirectory...${NC}"
-        git push web-origin `git subtree split --prefix=apps/web $current_branch`:main --force
-    fi
+    echo "2️⃣ Force pushing web subdirectory to web-origin (overwriting main)..."
+    git push --force web-origin `git subtree split --prefix=apps/web $current_branch`:main
 
     echo ""
-    echo "3️⃣ Pushing AI subdirectory to ai-origin..."
-    if git subtree push --prefix=apps/ai ai-origin main 2>/dev/null; then
-        echo -e "${GREEN}✅ AI repository synced successfully${NC}"
-    else
-        echo -e "${YELLOW}⚠️  Force pushing AI subdirectory...${NC}"
-        git push ai-origin `git subtree split --prefix=apps/ai $current_branch`:main --force
-    fi
+    echo "3️⃣ Force pushing AI subdirectory to ai-origin (overwriting main)..."
+    git push --force ai-origin `git subtree split --prefix=apps/ai $current_branch`:main
 
     echo ""
     echo -e "${GREEN}✅ Push operation completed!${NC}"
@@ -155,5 +145,5 @@ echo "  - AI repo:  https://github.com/maratron-ai/maratron-ai"
 echo ""
 echo -e "${BLUE}💡 Usage tips:${NC}"
 echo "  - Use 'pull' to get external changes"
-echo "  - Use 'push' to publish your changes"
+echo "  - Use 'push' to publish your changes (overwrites main)"
 echo "  - Use 'both' for complete synchronization"
