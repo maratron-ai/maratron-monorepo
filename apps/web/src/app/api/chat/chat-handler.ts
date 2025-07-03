@@ -20,6 +20,7 @@ export interface AuthResult {
 export interface ValidationResult {
   isValid: boolean;
   messages?: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+  timezone?: string;
   error?: string;
 }
 
@@ -879,6 +880,22 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
           return `Error: ${String(error)}`;
         }
       }
+    }),
+
+    getCurrentDateTime: tool({
+      description: 'Get current date and time in user\'s timezone',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          const result = await mcpClient.callTool({
+            name: 'get_current_datetime',
+            arguments: {}
+          });
+          return result.content[0]?.text || 'Time unavailable';
+        } catch (error) {
+          return `Error: ${String(error)}`;
+        }
+      }
     })
   };
 }
@@ -906,7 +923,7 @@ export async function authenticateUser(session: unknown): Promise<AuthResult> {
  * Validate chat request format
  */
 export function validateChatRequest(request: unknown): ValidationResult {
-  const typedRequest = request as { messages?: unknown[] } | null;
+  const typedRequest = request as { messages?: unknown[]; timezone?: string } | null;
   
   if (!typedRequest?.messages || !Array.isArray(typedRequest.messages)) {
     return {
@@ -941,9 +958,13 @@ export function validateChatRequest(request: unknown): ValidationResult {
     }
   }
 
+  // Extract timezone if provided
+  const timezone = typedRequest.timezone || undefined;
+
   return {
     isValid: true,
-    messages: typedRequest.messages as Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
+    messages: typedRequest.messages as Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+    timezone
   };
 }
 
@@ -953,7 +974,8 @@ export function validateChatRequest(request: unknown): ValidationResult {
 export async function handleMCPEnhancedChat(
   messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
   userId: string,
-  mcpClient: MaratronMCPClient | null
+  mcpClient: MaratronMCPClient | null,
+  timezone?: string
 ): Promise<ChatResponse> {
   const toolCalls: MCPToolCall[] = [];
   let mcpStatus: 'enhanced' | 'no-data-needed' | 'fallback' = 'fallback';
@@ -1007,6 +1029,9 @@ Available Tools:
 **Data Management:**
 - addRun: Add new run records (date, duration, distance, notes, etc.)
 - addShoe: Add new running shoes to track mileage and usage
+
+**Date & Time Context:**
+- getCurrentDateTime: Get current date and time in user's timezone
 
 **Advanced Training & Analytics:**
 - generateTrainingPlan: Create intelligent training plans based on user's fitness and goals
@@ -1063,8 +1088,8 @@ The user's context is automatically set - you can immediately use any tool to ac
 
     // Automatically set user context for this session
     try {
-      await mcpClient.setUserContext(userId);
-      console.log(`User context set for: ${userId}`);
+      await mcpClient.setUserContext(userId, timezone);
+      console.log(`User context set for: ${userId}${timezone ? ` with timezone: ${timezone}` : ''}`);
     } catch (error) {
       console.warn(`Failed to set user context for ${userId}:`, error);
       // Continue anyway - some tools might still work

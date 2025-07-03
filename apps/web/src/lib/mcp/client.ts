@@ -77,7 +77,7 @@ export class MaratronMCPClient {
   /**
    * Set user context in the MCP server
    */
-  async setUserContext(userId: string): Promise<void> {
+  async setUserContext(userId: string, timezone?: string): Promise<void> {
     await this.connect();
     
     if (!this.client) {
@@ -85,9 +85,14 @@ export class MaratronMCPClient {
     }
 
     try {
+      const toolArgs: { user_id: string; timezone?: string } = { user_id: userId };
+      if (timezone) {
+        toolArgs.timezone = timezone;
+      }
+      
       await this.client.callTool({
         name: 'set_current_user_tool',
-        arguments: { user_id: userId }
+        arguments: toolArgs
       });
     } catch (error) {
       console.error('Failed to set user context:', error);

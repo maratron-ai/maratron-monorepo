@@ -54,7 +54,8 @@ export async function POST(request: NextRequest) {
     const chatResponse = await handleMCPEnhancedChat(
       validation.messages!,
       authResult.userId!,
-      mcpClient
+      mcpClient,
+      validation.timezone
     );
 
     // Return enhanced response with MCP integration details

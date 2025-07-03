@@ -144,7 +144,7 @@ describe('Chat API MCP Integration', () => {
 
       await handleMCPEnhancedChat(validMessages, userId, mockMCPClient);
 
-      expect(mockMCPClient.setUserContext).toHaveBeenCalledWith(userId);
+      expect(mockMCPClient.setUserContext).toHaveBeenCalledWith(userId, undefined);
     });
 
     it('should detect data queries and call MCP tools', async () => {
@@ -346,7 +346,7 @@ describe('Chat API MCP Integration', () => {
       const result = await handleMCPEnhancedChat(dataQuery, userId, mockMCPClient);
 
       // With three-phase execution, user context is set multiple times
-      expect(mockMCPClient.setUserContext).toHaveBeenCalledWith(userId);
+      expect(mockMCPClient.setUserContext).toHaveBeenCalledWith(userId, undefined);
       // In three-phase execution, tools are called according to Claude's planning
       expect(result.mcpStatus).toBe('enhanced');
       expect(result.toolCalls.length).toBeGreaterThan(0);

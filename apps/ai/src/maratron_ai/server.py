@@ -26,7 +26,8 @@ from .user_context.tools import (
     track_last_action,
     track_conversation_topic,
     get_user_distance_unit,
-    get_user_max_results
+    get_user_max_results,
+    get_current_datetime as get_user_datetime
 )
 from .user_context.smart_tools import (
     get_smart_user_context_tool,
@@ -673,16 +674,17 @@ async def add_shoe(user_id: str, name: str, max_distance: float,
 # =============================================================================
 
 @mcp.tool()
-async def set_current_user_tool(user_id: str) -> str:
+async def set_current_user_tool(user_id: str, timezone: str = None) -> str:
     """Set the current user context for subsequent operations.
     
     This must be called before using any user-specific resources.
     
     Args:
         user_id: The ID of the user to set as current context
+        timezone: Optional timezone identifier (e.g., 'America/New_York')
     """
     track_last_action("set_current_user")
-    return await set_current_user(user_id)
+    return await set_current_user(user_id, timezone)
 
 
 @mcp.tool()
@@ -1294,6 +1296,13 @@ async def analyze_post_race_performance(race_distance: float, race_time: str,
     """
     track_last_action("analyze_post_race_performance")
     return await analyze_post_race_performance_tool(race_distance, race_time, race_date, effort_level)
+
+
+@mcp.tool()
+async def get_current_datetime() -> str:
+    """Get current date and time in user's timezone."""
+    track_last_action("get_current_datetime")
+    return await get_user_datetime()
 
 
 # =============================================================================

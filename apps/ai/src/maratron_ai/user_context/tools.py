@@ -1,5 +1,7 @@
 """MCP Tools for User Context Management."""
 import json
+import pytz
+from datetime import datetime
 from typing import Optional
 from .context import (
     get_user_context_manager, 
@@ -15,11 +17,12 @@ from .security import (
 
 @handle_database_errors
 @secure_user_operation("set_current_user")
-async def set_current_user(user_id: str) -> str:
+async def set_current_user(user_id: str, timezone: str = None) -> str:
     """Set the current user context for subsequent operations.
     
     Args:
         user_id: The ID of the user to set as current context
+        timezone: Optional timezone identifier (e.g., 'America/New_York')
         
     Returns:
         Status message with user information
@@ -28,6 +31,25 @@ async def set_current_user(user_id: str) -> str:
         manager = get_user_context_manager()
         session = await manager.set_current_user(user_id)
         
+        # If timezone is provided, update user preferences
+        if timezone and timezone != 'UTC':
+            try:
+                # Validate timezone first
+                import pytz
+                pytz.timezone(timezone)  # This will raise an exception if invalid
+                
+                # Update the session preferences with the detected timezone
+                if session.preferences:
+                    session.preferences.timezone = timezone
+                else:
+                    # Create new preferences with timezone
+                    from .context import UserPreferences
+                    session.preferences = UserPreferences(timezone=timezone)
+                
+                print(f"🌍 Updated user timezone to: {timezone}")
+            except Exception as tz_error:
+                print(f"⚠️ Invalid timezone '{timezone}', keeping default: {tz_error}")
+        
         user_info = {
             'user_id': session.user_id,
             'session_id': session.session_id,
@@ -35,11 +57,14 @@ async def set_current_user(user_id: str) -> str:
             'preferences': session.preferences.dict() if session.preferences else None
         }
         
+        timezone_display = session.preferences.timezone if session.preferences else 'UTC'
+        
         return "✅ User context set successfully:\n" + \
                f"User: {user_info['user_data'].get('name', 'Unknown')} ({user_id})\n" + \
                f"Training Level: {user_info['user_data'].get('training_level', 'Not set')}\n" + \
                f"Recent Runs: {user_info['user_data'].get('recent_runs_count', 0)} in last 30 days\n" + \
                f"Distance Unit: {session.preferences.distance_unit if session.preferences else 'miles'}\n" + \
+               f"Timezone: {timezone_display}\n" + \
                f"Session ID: {session.session_id}"
                
     except ValueError as e:
@@ -316,3 +341,41 @@ def track_last_action(action: str):
     if session:
         session.conversation_context.last_action = action
         session.update_activity()
+
+
+@handle_database_errors
+async def get_current_datetime() -> str:
+    """Get current date and time in user's timezone.
+    
+    Returns:
+        Current date and time formatted for the user's timezone
+    """
+    session = get_current_user_session()
+    
+    # Get user's timezone preference, fallback to UTC
+    timezone = 'UTC'
+    if session and session.preferences and session.preferences.timezone:
+        timezone = session.preferences.timezone
+    
+    try:
+        # Get current time in user's timezone
+        tz = pytz.timezone(timezone)
+        current_time = datetime.now(tz)
+        
+        # Format for AI consumption
+        response = f"🕐 **Current Date & Time**\n\n"
+        response += f"• **Date**: {current_time.strftime('%A, %B %d, %Y')}\n"
+        response += f"• **Time**: {current_time.strftime('%I:%M %p')}\n"
+        response += f"• **Timezone**: {timezone} ({current_time.strftime('%Z %z')})\n"
+        response += f"• **ISO Format**: {current_time.isoformat()}\n\n"
+        response += f"*Use this information to provide time-aware responses and scheduling.*"
+        
+        return response
+        
+    except pytz.exceptions.UnknownTimeZoneError:
+        # Fallback to UTC if timezone is invalid
+        current_time = datetime.now(pytz.UTC)
+        return f"🕐 **Current Date & Time** (UTC - invalid timezone '{timezone}')\n\n" + \
+               f"• **Date**: {current_time.strftime('%A, %B %d, %Y')}\n" + \
+               f"• **Time**: {current_time.strftime('%I:%M %p')} UTC\n" + \
+               f"• **ISO Format**: {current_time.isoformat()}"

@@ -13,16 +13,16 @@ interface Message {
 }
 
 const STORAGE_KEY = 'maratron-chat-history';
-const MAX_MESSAGES = 50; // Limit to prevent localStorage bloat
+const MAX_MESSAGES = 50; // Limit to prevent sessionStorage bloat
 
 export function usePersistentChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load messages from localStorage on mount
+  // Load messages from sessionStorage on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsedMessages: Message[] = JSON.parse(stored);
         // Convert timestamp strings back to Date objects
@@ -39,14 +39,14 @@ export function usePersistentChat() {
     }
   }, []);
 
-  // Save messages to localStorage whenever they change
+  // Save messages to sessionStorage whenever they change
   useEffect(() => {
     if (!isLoaded) return; // Don't save until we've loaded initial state
     
     try {
       // Keep only the most recent messages to prevent storage bloat
       const messagesToStore = messages.slice(-MAX_MESSAGES);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messagesToStore));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messagesToStore));
     } catch (error) {
       console.warn('Failed to save chat history:', error);
     }
@@ -59,7 +59,7 @@ export function usePersistentChat() {
   const clearMessages = useCallback(() => {
     setMessages([]);
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
     } catch (error) {
       console.warn('Failed to clear chat history:', error);
     }

@@ -7,7 +7,7 @@ import { usePersistentChat } from '@hooks/usePersistentChat';
 
 export function FloatingChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, isLoaded, setMessages } = usePersistentChat();
+  const { messages, isLoaded, setMessages, clearMessages } = usePersistentChat();
 
   return (
     <>
@@ -20,6 +20,7 @@ export function FloatingChat() {
         onOpenChange={setIsOpen}
         messages={messages}
         onMessagesChange={setMessages}
+        onClearMessages={clearMessages}
         isLoaded={isLoaded}
       />
     </>

@@ -8,6 +8,7 @@ import { Textarea } from '@components/ui/textarea';
 import { Spinner } from '@components/ui/spinner';
 import { cn } from '@lib/utils/cn';
 import { Send, User, AlertCircle } from 'lucide-react';
+import { getUserTimezone } from '@lib/utils/time/getUserTimezone';
 
 interface Message {
   id: string;
@@ -116,7 +117,8 @@ export function ChatInterface({
           messages: [...messages, userMessage].map(msg => ({
             role: msg.role,
             content: msg.content
-          }))
+          })),
+          timezone: getUserTimezone()
         }),
       });
 
@@ -132,7 +134,7 @@ export function ChatInterface({
         timestamp: new Date()
       };
       if (onMessagesChange) {
-        onMessagesChange([...messages, newMessage]);
+        onMessagesChange([...messages, userMessage, newMessage]);
       } else {
         setInternalMessages(prev => [...prev, newMessage]);
       }
@@ -149,7 +151,7 @@ export function ChatInterface({
         timestamp: new Date()
       };
       if (onMessagesChange) {
-        onMessagesChange([...messages, errorMessage]);
+        onMessagesChange([...messages, userMessage, errorMessage]);
       } else {
         setInternalMessages(prev => [...prev, errorMessage]);
       }

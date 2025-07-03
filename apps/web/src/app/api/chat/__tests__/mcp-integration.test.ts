@@ -207,7 +207,7 @@ describe('MCP Enhanced Chat Handler', () => {
       await handleMCPEnhancedChat(messages, 'test-user', mockMCPClient);
 
       // User context should be set automatically during initialization
-      expect(mockMCPClient.setUserContext).toHaveBeenCalledWith('test-user');
+      expect(mockMCPClient.setUserContext).toHaveBeenCalledWith('test-user', undefined);
     });
 
     it('should handle getSmartUserContext tool execution in three phases', async () => {

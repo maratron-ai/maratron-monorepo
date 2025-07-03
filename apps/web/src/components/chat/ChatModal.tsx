@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { X } from 'lucide-react';
+import { X, MessageSquarePlus } from 'lucide-react';
 import { Button } from '@components/ui/button';
 import { ChatInterface } from './ChatInterface';
 
@@ -23,6 +23,7 @@ interface ChatModalProps {
   onOpenChange: (open: boolean) => void;
   messages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
+  onClearMessages?: () => void;
   isLoaded?: boolean;
 }
 
@@ -39,6 +40,7 @@ export function ChatModal({
   onOpenChange, 
   messages, 
   onMessagesChange, 
+  onClearMessages,
   isLoaded 
 }: ChatModalProps) {
   const { data: session } = useSession();
@@ -136,6 +138,17 @@ export function ChatModal({
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-400"></div>
               <span className="text-xs text-muted-foreground">Online</span>
+              {onClearMessages && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClearMessages}
+                  className="h-8 w-8 p-0 hover:bg-white/20"
+                  title="Start New Chat"
+                >
+                  <MessageSquarePlus className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
