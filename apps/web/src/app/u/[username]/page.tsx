@@ -11,7 +11,14 @@ import { PROFILE_POST_LIMIT } from "@lib/socialLimits";
 async function getProfileData(username: string) {
   const profile = await prisma.socialProfile.findUnique({
     where: { username },
-    include: {
+    select: {
+      id: true,
+      userId: true,
+      username: true,
+      bio: true,
+      profilePhoto: true,
+      createdAt: true,
+      updatedAt: true,
       user: {
         select: {
           name: true,
@@ -66,6 +73,7 @@ async function getProfileData(username: string) {
     username: profile.username,
     bio: profile.bio,
     avatarUrl: profile.user.avatarUrl,
+    profilePhoto: profile.profilePhoto,
     userCreatedAt: profile.user.createdAt,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
@@ -100,6 +108,7 @@ export default async function UserProfilePage({ params }: Props) {
     userId: data.userId,
     username: data.username,
     bio: data.bio,
+    profilePhoto: data.profilePhoto,
     avatarUrl: data.avatarUrl,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
