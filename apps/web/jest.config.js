@@ -10,8 +10,10 @@ const config = {
   
   // Module path mapping to match tsconfig.json paths
   moduleNameMapper: {
-    // Handle CSS and static assets first
-    '\\.(css|less|scss)$': 'identity-obj-proxy',
+    // Handle CSS modules with highest priority
+    '\\.module\\.(css|less|scss|sass)$': '<rootDir>/test/__mocks__/cssModuleMock.js',
+    // Handle regular CSS and static assets
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot|svg|png|jpg|jpeg)$': '<rootDir>/test/__mocks__/fileMock.js',
     
     // Handle framer-motion

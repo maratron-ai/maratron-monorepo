@@ -7,7 +7,7 @@ import { useSocialProfile } from "@hooks/useSocialProfile";
 import CreateSocialPost from "@components/social/CreateSocialPost";
 import LikeButton from "@components/social/LikeButton";
 import CommentSection from "@components/social/CommentSection";
-import { Button, Dialog, DialogContent, Spinner } from "@components/ui";
+import { Button, Dialog, Spinner } from "@components/ui";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -146,9 +146,9 @@ export default function SocialFeed({ groupId }: Props) {
       )}
       <Dialog
         open={!!selectedImage}
-        onOpenChange={(o) => !o && setSelectedImage(null)}
+        onOpenChange={(o: boolean) => !o && setSelectedImage(null)}
       >
-        <DialogContent className="p-0">
+        <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-lg sm:rounded-lg p-0">
           {selectedImage && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -157,7 +157,7 @@ export default function SocialFeed({ groupId }: Props) {
               className="w-64 h-64 object-contain"
             />
           )}
-        </DialogContent>
+        </div>
       </Dialog>
     </div>
   );

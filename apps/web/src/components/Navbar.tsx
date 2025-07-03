@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import DefaultAvatar from "@components/DefaultAvatar";
-import { Sheet, SheetContent, SheetTrigger } from "@components/ui";
+import { Sheet, SheetTrigger } from "@components/ui";
 import { Button } from "@components/ui/button";
 // import ModeToggle from "@components/ModeToggle";
 
@@ -190,7 +190,7 @@ export default function Navbar() {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-6 space-y-4 w-1/2">
+              <div className="fixed inset-y-0 left-0 z-50 w-1/2 bg-background p-6 space-y-4 shadow-lg border-r border-border">{/* SheetContent replacement */}
                 {navLinks.map((link) => (
                   <Button
                     asChild
@@ -220,7 +220,7 @@ export default function Navbar() {
                   Logout
                 </Button>
                 {/* <ModeToggle /> */}
-              </SheetContent>
+              </div>{/* End SheetContent replacement */}
             </Sheet>
           ) : (
             /* For non-logged in users, show hamburger menu */
@@ -233,7 +233,7 @@ export default function Navbar() {
                   <Menu className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-6 space-y-4 w-1/2">
+              <div className="fixed inset-y-0 left-0 z-50 w-1/2 bg-background p-6 space-y-4 shadow-lg border-r border-border">{/* SheetContent replacement */}
                 <Button
                   asChild
                   className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
@@ -248,7 +248,7 @@ export default function Navbar() {
                   Sign In
                 </Button>
                 {/* <ModeToggle /> */}
-              </SheetContent>
+              </div>{/* End SheetContent replacement */}
             </Sheet>
           )}
         </div>

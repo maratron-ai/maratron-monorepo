@@ -22,7 +22,7 @@ export default function SignupVDOTPage() {
   }
 
   const handleComplete = () => {
-    router.push("/home");
+    router.push("/signup/coach");
   };
 
   return (

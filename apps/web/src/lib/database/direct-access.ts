@@ -16,7 +16,7 @@ export interface UserDataResult {
     defaultDistanceUnit: string | null;
     yearsRunning: number | null;
     weeklyMileage: number | null;
-    goals: string | null;
+    goals: string[];
     createdAt: Date;
   } | null;
   recent_runs?: {

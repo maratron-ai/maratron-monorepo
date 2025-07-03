@@ -1,5 +1,6 @@
 import { PrismaClient, DistanceUnit, TrainingLevel, Gender, Device, TrainingEnvironment } from '@prisma/client';
 import { hashPassword } from '../src/lib/utils/passwordUtils';
+import { COACH_PERSONAS } from '../src/lib/data/coach-personas';
 
 const prisma = new PrismaClient();
 
@@ -19,12 +20,23 @@ async function main() {
   await prisma.shoe.deleteMany();
   await prisma.runningPlan.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.coachPersona.deleteMany();
 
   console.log('🧹 Cleaned existing data');
 
   // Hash the default password for all development users
   const defaultPasswordHash = await hashPassword('password');
   console.log('🔒 Generated password hash for development users');
+
+  // Create Coach Personas
+  const coaches = await Promise.all(
+    COACH_PERSONAS.map(coach => 
+      prisma.coachPersona.create({
+        data: coach
+      })
+    )
+  );
+  console.log('🧠 Created coach personas');
 
   // Create Users
   const users = await Promise.all([
@@ -46,6 +58,7 @@ async function main() {
         preferredTrainingEnvironment: TrainingEnvironment.outdoor,
         device: Device.Garmin,
         defaultDistanceUnit: DistanceUnit.miles,
+        selectedCoachId: coaches.find(c => c.name === 'Thunder McGrath')?.id, // Motivational coach for PR chasing
       },
     }),
     prisma.user.create({
@@ -66,6 +79,7 @@ async function main() {
         preferredTrainingEnvironment: TrainingEnvironment.mixed,
         device: Device.Polar,
         defaultDistanceUnit: DistanceUnit.kilometers,
+        selectedCoachId: coaches.find(c => c.name === 'Tech Thompson')?.id, // Data-driven coach for track athlete
       },
     }),
     prisma.user.create({
@@ -106,6 +120,7 @@ async function main() {
         preferredTrainingEnvironment: TrainingEnvironment.treadmill,
         device: Device.AppleWatch,
         defaultDistanceUnit: DistanceUnit.miles,
+        selectedCoachId: coaches.find(c => c.name === 'Buddy Johnson')?.id, // Encouraging coach for beginner marathoner
       },
     }),
     prisma.user.create({
@@ -126,6 +141,7 @@ async function main() {
         preferredTrainingEnvironment: TrainingEnvironment.mixed,
         device: Device.Garmin,
         defaultDistanceUnit: DistanceUnit.miles,
+        selectedCoachId: coaches.find(c => c.name === 'Rebel Chen')?.id, // Unconventional coach for elite goals
       },
     }),
     prisma.user.create({
@@ -166,6 +182,7 @@ async function main() {
         preferredTrainingEnvironment: TrainingEnvironment.mixed,
         device: Device.AppleWatch,
         defaultDistanceUnit: DistanceUnit.miles,
+        selectedCoachId: coaches.find(c => c.name === 'Zen Rodriguez')?.id, // Mindful coach for building sustainable habits
       },
     }),
     prisma.user.create({
@@ -185,7 +202,7 @@ async function main() {
         preferredTrainingDays: ['Monday', 'Tuesday', 'Thursday', 'Friday'],
         preferredTrainingEnvironment: TrainingEnvironment.outdoor,
         device: Device.Polar,
-        defaultDistanceUnit: DistanceUnit.meters,
+        defaultDistanceUnit: DistanceUnit.miles,
       },
     }),
     prisma.user.create({
@@ -206,6 +223,7 @@ async function main() {
         preferredTrainingEnvironment: TrainingEnvironment.mixed,
         device: Device.Garmin,
         defaultDistanceUnit: DistanceUnit.miles,
+        selectedCoachId: coaches.find(c => c.name === 'Coach Williams')?.id, // Traditional coach for methodical injury prevention
       },
     }),
     prisma.user.create({
@@ -1467,7 +1485,8 @@ async function main() {
   console.log('✅ Database seeding completed successfully!');
   console.log(`
 🎉 Seed data summary:
-- 👥 ${users.length} users created
+- 🧠 ${coaches.length} coach personas created
+- 👥 ${users.length} users created (${users.filter(u => u.selectedCoachId).length} assigned to coaches)
 - 👟 ${shoes.length} shoes created  
 - 🏃 ${runs.length} runs created
 - 📱 ${socialProfiles.length} social profiles created
@@ -1478,16 +1497,24 @@ async function main() {
 - 💬 Extensive comments and likes
 
 🔐 You can now log in with any of these accounts using password: "password"
-- john@example.com (Marathon enthusiast)
-- sarah@example.com (Track specialist)
-- mike@example.com (Boston qualifier hunter)
-- emily@example.com (New to running)
-- jackson@maratron.ai (Creator, Olympic Trials dreamer)
-- alex@example.com (Ultra trail runner)
-- lisa@example.com (Running newbie)
-- david@example.com (College sprinter)
-- rachel@example.com (Injury prevention focused)
-- tom@example.com (Triathlete)
+- john@example.com (Marathon enthusiast) → Thunder McGrath coach
+- sarah@example.com (Track specialist) → Tech Thompson coach
+- mike@example.com (Boston qualifier hunter) → No coach assigned
+- emily@example.com (New to running) → Buddy Johnson coach
+- jackson@maratron.ai (Creator, Olympic Trials dreamer) → Rebel Chen coach
+- alex@example.com (Ultra trail runner) → No coach assigned
+- lisa@example.com (Running newbie) → Zen Rodriguez coach
+- david@example.com (College sprinter) → No coach assigned
+- rachel@example.com (Injury prevention focused) → Coach Williams
+- tom@example.com (Triathlete) → No coach assigned
+
+🧠 Available Coach Personas:
+- Thunder McGrath 🏃‍♂️ (Motivational high-energy coach)
+- Zen Rodriguez 🧘‍♀️ (Mindful philosophical coach)
+- Tech Thompson 🤖 (Data-driven analytical coach)
+- Buddy Johnson 😄 (Encouraging friendly coach)
+- Coach Williams 👨‍🏫 (Traditional experienced coach)
+- Rebel Chen 😎 (Unconventional creative coach)
 
 🛡️  All passwords are securely hashed with bcrypt (12 salt rounds)
 `);

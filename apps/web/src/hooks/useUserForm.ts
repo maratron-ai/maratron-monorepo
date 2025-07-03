@@ -48,7 +48,8 @@ export function useUserForm(
       if (isYupValidationError(err)) {
         setValidationErrors(err.inner.map((e) => e.message));
       } else {
-        console.error(err);
+        console.error("Error updating user:", err);
+        setValidationErrors(["Failed to update profile. Please try again."]);
       }
     }
   }, [formData, initial, onSuccess, update]);

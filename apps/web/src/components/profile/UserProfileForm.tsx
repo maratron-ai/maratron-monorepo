@@ -5,6 +5,7 @@ import BasicInfoSection from "./BasicInfoSection";
 import PhysicalStatsSection from "./PhysicalStatsSection";
 import GoalsSection from "./GoalsSection";
 import PreferencesSection from "./PreferencesSection";
+import CoachSection from "./CoachSection";
 import { useUserForm } from "@hooks/useUserForm";
 import { Button } from "@components/ui";
 
@@ -88,6 +89,11 @@ export default function UserProfileForm({
         onChange={handleChange}
       />
       <PreferencesSection
+        formData={formData}
+        isEditing={editing}
+        onChange={handleChange}
+      />
+      <CoachSection
         formData={formData}
         isEditing={editing}
         onChange={handleChange}

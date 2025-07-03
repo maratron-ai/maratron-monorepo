@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import type { RunPost } from "@maratypes/social";
 import LikeButton from "@components/social/LikeButton";
 import CommentSection from "@components/social/CommentSection";
-import { Card, Dialog, DialogContent, Spinner } from "@components/ui";
+import { Card, Dialog, Spinner } from "@components/ui";
 
 interface Props {
   posts: RunPost[];
@@ -73,13 +73,13 @@ export default function PostList({ posts }: Props) {
           <Spinner className="h-4 w-4" />
         </div>
       )}
-      <Dialog open={!!selectedImage} onOpenChange={(o) => !o && setSelectedImage(null)}>
-        <DialogContent className="p-0 max-w-3xl">
+      <Dialog open={!!selectedImage} onOpenChange={(o: boolean) => !o && setSelectedImage(null)}>
+        <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-0 border bg-background shadow-lg sm:rounded-lg p-0">
           {selectedImage && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={selectedImage} alt="Run photo" className="w-full h-full object-contain" />
           )}
-        </DialogContent>
+        </div>
       </Dialog>
     </div>
   );

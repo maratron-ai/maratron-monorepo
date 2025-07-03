@@ -151,14 +151,15 @@ Guidelines:
     
     // Add preferences
     const preferences = userData?.preferences || userContext?.preferences;
-    if (preferences) {
-      if (preferences.distance_unit || preferences.distanceUnit) {
-        const unit = preferences.distance_unit || preferences.distanceUnit;
+    if (preferences && typeof preferences === 'object' && preferences !== null) {
+      const prefsObj = preferences as Record<string, unknown>;
+      if (prefsObj['distance_unit'] || prefsObj['distanceUnit']) {
+        const unit = prefsObj['distance_unit'] || prefsObj['distanceUnit'];
         prompt += `\n- Preferred distance unit: ${unit}`;
       }
       
-      if (preferences.response_detail || preferences.responseDetail) {
-        const detail = preferences.response_detail || preferences.responseDetail;
+      if (prefsObj['response_detail'] || prefsObj['responseDetail']) {
+        const detail = prefsObj['response_detail'] || prefsObj['responseDetail'];
         prompt += `\n- Response detail preference: ${detail}`;
       }
     }

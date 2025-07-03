@@ -196,7 +196,7 @@ export default function WeeklyRuns() {
                   {/* <span className="mr-2">Day:</span> */}
                   <Select
                     value={r.day || "Sunday"}
-                    onValueChange={(val) => changeDay(i, val as typeof days[number])}
+                    onValueChange={(val: string) => changeDay(i, val as typeof days[number])}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />

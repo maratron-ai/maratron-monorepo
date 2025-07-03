@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { Spinner } from "@components/ui";
 import UserForm from "@components/profile/UserProfileForm";
 import { User } from "@maratypes/user";
-import { getUser, updateUser } from "@lib/api/user/user";
+import { getUser } from "@lib/api/user/user";
 
 export default function UserPage() {
   const { data: session, status, update } = useSession();
@@ -36,11 +36,11 @@ export default function UserPage() {
     fetchProfile();
   }, [session, status]);
 
-  // Handle save
+  // Handle save success (user already updated by useUserForm)
   const handleSave = async (updated: User) => {
     try {
       setLoading(true);
-      await updateUser(updated.id, updated);
+      // Don't call updateUser again - it was already called by useUserForm
       setProfile(updated);
       await update({
         user: {
@@ -53,7 +53,7 @@ export default function UserPage() {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
     } catch {
-      setError("Failed to update profile.");
+      setError("Failed to update session.");
     } finally {
       setLoading(false);
     }

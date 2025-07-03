@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { createUser } from "@lib/api/user/user";
 import { Card, Input, Label, Button } from "@components/ui";
 
+interface UserRegistrationData {
+  name: string;
+  email: string;
+  password: string;
+}
+
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -22,7 +28,7 @@ export default function SignupPage() {
     }
 
     try {
-      const createUserRes = await createUser({ name, email, password });
+      const createUserRes = await createUser({ name, email, password } as UserRegistrationData);
 
       if (createUserRes?.status === 201 || createUserRes?.status === 200) {
         // Now sign in the new user

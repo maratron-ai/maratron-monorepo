@@ -3,6 +3,7 @@ import * as ProgressPrimitive from "@radix-ui/react-progress";
 import { cn } from "@lib/utils/cn";
 
 interface ProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
+  className?: string;
   value?: number;
 }
 

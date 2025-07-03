@@ -1,6 +1,7 @@
 import { DayOfWeek, DistanceUnit, ElevationUnit } from "./basics";
 import { Shoe } from "./shoe"; // Import your shoe type
 import { TrainingEnvironment } from "./basics";
+import type { CoachPersona } from "./coach";
 
 export enum TrainingLevel {
   Beginner = "beginner",
@@ -45,6 +46,10 @@ export interface User {
 
   shoes?: Shoe[];
   defaultShoeId?: string;
+
+  // Coach persona
+  selectedCoachId?: string;
+  selectedCoach?: CoachPersona | null; // Will be populated with CoachPersona when included
 
   createdAt?: Date;
   updatedAt?: Date;

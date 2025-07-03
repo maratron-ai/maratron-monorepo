@@ -94,6 +94,10 @@ model User {
   defaultShoeId String? @unique
   defaultShoe   Shoe?   @relation("UserDefaultShoe", fields: [defaultShoeId], references: [id])
 
+  // Coach persona selection
+  selectedCoachId String?
+  selectedCoach   CoachPersona? @relation(fields: [selectedCoachId], references: [id])
+
   @@map("Users")
 }
 
@@ -274,4 +278,20 @@ model UserSession {
   user User @relation(fields: [userId], references: [id])
 
   @@map("UserSessions")
+}
+
+model CoachPersona {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  description  String
+  icon         String   // Emoji or icon identifier
+  systemPrompt String   // AI system prompt for this persona
+  personality  String   // Short personality descriptor (motivational, zen, analytical, etc.)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Users who have selected this coach
+  users User[]
+
+  @@map("CoachPersonas")
 }

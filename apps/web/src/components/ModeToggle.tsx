@@ -14,7 +14,7 @@ export default function ModeToggle() {
       <Sun className="h-4 w-4" />
       <Switch
         checked={theme === "dark"}
-        onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+        onCheckedChange={(checked: boolean) => setTheme(checked ? "dark" : "light")}
       />
       <Moon className="h-4 w-4" />
     </div>
