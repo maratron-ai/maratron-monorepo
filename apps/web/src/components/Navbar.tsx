@@ -9,14 +9,21 @@ import { Menu } from "lucide-react";
 import DefaultAvatar from "@components/DefaultAvatar";
 import { Sheet, SheetTrigger } from "@components/ui";
 import { Button } from "@components/ui/button";
+import { useSocialProfile } from "@hooks/useSocialProfile";
 // import ModeToggle from "@components/ModeToggle";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
+  const { profile } = useSocialProfile();
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   // const router = useRouter();
+
+  // Consistent avatar logic
+  const getAvatarUrl = () => {
+    return session?.user?.avatarUrl || profile?.profilePhoto || "/default_profile.png";
+  };
 
   // Close dropdowns when route changes
   useEffect(() => {
@@ -113,10 +120,10 @@ export default function Navbar() {
                   aria-expanded={desktopMenuOpen}
                   className="focus:outline-none bg-transparent p-0 hover:bg-transparent focus:ring-0 block w-auto text-foreground no-underline transition-colors hover:text-background hover:no-underline"
                 >
-                  {session.user?.avatarUrl ? (
+                  {getAvatarUrl() !== "/default_profile.png" ? (
                     <Image
-                      src={session.user.avatarUrl}
-                      alt={session.user.name || "User Avatar"}
+                      src={getAvatarUrl()}
+                      alt={session.user?.name || "User Avatar"}
                       width={32}
                       height={32}
                       className="w-8 h-8 rounded-full object-cover border border-brand-to bg-brand-from"
@@ -173,10 +180,10 @@ export default function Navbar() {
                   aria-label="Toggle mobile menu"
                   className="focus:outline-none bg-transparent p-2 hover:bg-transparent focus:ring-0 block w-auto"
                 >
-                  {session.user?.avatarUrl ? (
+                  {getAvatarUrl() !== "/default_profile.png" ? (
                     <Image
-                      src={session.user.avatarUrl}
-                      alt={session.user.name || "User Avatar"}
+                      src={getAvatarUrl()}
+                      alt={session.user?.name || "User Avatar"}
                       width={32}
                       height={32}
                       className="w-8 h-8 rounded-full object-cover border border-brand-to bg-brand-from"
