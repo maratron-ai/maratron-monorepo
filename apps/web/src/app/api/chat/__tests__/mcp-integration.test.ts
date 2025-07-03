@@ -3,24 +3,29 @@
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { handleMCPEnhancedChat } from '../chat-handler';
-import { MaratronMCPClient } from '@lib/mcp/client';
 
-// Mock the Anthropic SDK
+// Mock the AI SDK modules before importing any modules that use them
+jest.mock('ai', () => ({
+  generateText: jest.fn(),
+  tool: jest.fn((config) => {
+    console.log('🔧 MOCK: tool() called with description:', config?.description);
+    return {
+      description: config.description,
+      parameters: config.parameters,
+      execute: config.execute
+    };
+  })
+}));
+
 jest.mock('@ai-sdk/anthropic', () => ({
   anthropic: jest.fn(() => 'mock-model')
 }));
 
-jest.mock('ai', () => ({
-  generateText: jest.fn(),
-  tool: jest.fn((config) => ({
-    ...config,
-    execute: config.execute
-  }))
-}));
-
-// Mock the MCP client
 jest.mock('@lib/mcp/client');
+
+// Import after mocking
+import { handleMCPEnhancedChat } from '../chat-handler';
+import { MaratronMCPClient } from '@lib/mcp/client';
 
 describe('MCP Enhanced Chat Handler', () => {
   let mockMCPClient: jest.Mocked<MaratronMCPClient>;
@@ -41,9 +46,12 @@ describe('MCP Enhanced Chat Handler', () => {
       listTools: jest.fn()
     } as jest.Mocked<MaratronMCPClient>;
 
-    // Setup AI SDK mock
-    mockGenerateText = jest.fn();
-    const ai = jest.requireMock('ai') as { generateText: jest.Mock };
+    // Setup AI SDK mock - always provide a default response
+    mockGenerateText = jest.fn().mockResolvedValue({
+      text: 'Default response',
+      toolCalls: []
+    });
+    const ai = jest.requireMock('ai') as { generateText: jest.Mock, tool: jest.Mock };
     ai.generateText = mockGenerateText;
   });
 

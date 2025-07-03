@@ -7,7 +7,7 @@ import { Button } from '@components/ui/button';
 import { Textarea } from '@components/ui/textarea';
 import { Spinner } from '@components/ui/spinner';
 import { cn } from '@lib/utils/cn';
-import { Send, User, Bot, AlertCircle } from 'lucide-react';
+import { Send, User, AlertCircle } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -17,6 +17,16 @@ interface Message {
   toolCalls?: Array<{ name: string; arguments: Record<string, unknown> }>;
   error?: string;
   timestamp: Date;
+  coachName?: string;
+  coachIcon?: string;
+}
+
+interface CoachPersona {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  personality: string;
 }
 
 interface ChatInterfaceProps {
@@ -25,20 +35,21 @@ interface ChatInterfaceProps {
   externalMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
   isExternalLoaded?: boolean;
+  selectedCoach?: CoachPersona | null;
 }
 
 export function ChatInterface({ 
   className, 
   externalMessages, 
   onMessagesChange, 
-  isExternalLoaded 
+  isExternalLoaded,
+  selectedCoach 
 }: ChatInterfaceProps) {
   const { status } = useSession();
   
   // Use external messages if provided, otherwise use internal state
   const [internalMessages, setInternalMessages] = useState<Message[]>([]);
   const messages = externalMessages ?? internalMessages;
-  const setMessages = onMessagesChange ?? setInternalMessages;
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +97,11 @@ export function ChatInterface({
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    if (onMessagesChange) {
+      onMessagesChange([...messages, userMessage]);
+    } else {
+      setInternalMessages(prev => [...prev, userMessage]);
+    }
     setInputValue('');
     setIsLoading(true);
     setError(null);
@@ -112,10 +127,15 @@ export function ChatInterface({
 
       const assistantMessage = await response.json();
       
-      setMessages(prev => [...prev, {
+      const newMessage = {
         ...assistantMessage,
         timestamp: new Date()
-      }]);
+      };
+      if (onMessagesChange) {
+        onMessagesChange([...messages, newMessage]);
+      } else {
+        setInternalMessages(prev => [...prev, newMessage]);
+      }
     } catch (error) {
       console.error('Chat error:', error);
       setError(error instanceof Error ? error.message : 'Failed to send message');
@@ -128,7 +148,11 @@ export function ChatInterface({
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      if (onMessagesChange) {
+        onMessagesChange([...messages, errorMessage]);
+      } else {
+        setInternalMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -186,9 +210,23 @@ export function ChatInterface({
         <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground py-8">
-              <Bot className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">Welcome to Maratron AI!</p>
-              <p>Ask me anything about running, training, or your fitness data.</p>
+              <div className="w-16 h-16 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg border-2 border-white/50">
+                {selectedCoach?.icon || '🤖'}
+              </div>
+              <p className="text-base font-medium mb-2">
+                {selectedCoach ? `Welcome! I'm ${selectedCoach.name}` : 'Welcome to Maratron AI!'}
+              </p>
+              <p className="max-w-md mx-auto text-sm">
+                {selectedCoach 
+                  ? `${selectedCoach.description}. Ask me anything about running, training, or your fitness data!`
+                  : 'Ask me anything about running, training, or your fitness data.'
+                }
+              </p>
+              {selectedCoach && (
+                <span className="inline-block mt-3 px-3 py-1 text-xs bg-primary/10 text-primary rounded-full">
+                  {selectedCoach.personality} coach
+                </span>
+              )}
             </div>
           )}
           
@@ -201,8 +239,8 @@ export function ChatInterface({
               )}
             >
               {message.role === 'assistant' && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-primary" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-lg shadow-sm border border-white/50">
+                  {message.coachIcon || selectedCoach?.icon || '🤖'}
                 </div>
               )}
               
@@ -214,7 +252,7 @@ export function ChatInterface({
                     : 'bg-muted'
                 )}
               >
-                <div className="whitespace-pre-wrap">{message.content}</div>
+                <div className="whitespace-pre-wrap text-sm">{message.content}</div>
                 
                 {message.role === 'assistant' && message.mcpStatus && (
                   <div className="mt-2 text-xs opacity-70">
@@ -230,8 +268,8 @@ export function ChatInterface({
               </div>
               
               {message.role === 'user' && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                  <User className="w-4 h-4 text-muted-foreground" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="w-4 h-4 text-primary" />
                 </div>
               )}
             </div>
@@ -239,11 +277,14 @@ export function ChatInterface({
           
           {isLoading && (
             <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-primary" />
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-lg shadow-sm border border-white/50">
+                {selectedCoach?.icon || '🤖'}
               </div>
-              <div className="bg-muted rounded-lg px-4 py-2">
+              <div className="bg-muted rounded-lg px-4 py-2 flex items-center gap-2">
                 <Spinner className="w-4 h-4" />
+                <span className="text-sm text-muted-foreground">
+                  {selectedCoach?.name || 'AI'} is thinking...
+                </span>
               </div>
             </div>
           )}

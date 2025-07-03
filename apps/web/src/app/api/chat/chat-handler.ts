@@ -7,6 +7,9 @@ import { generateText, tool } from 'ai';
 import { z } from 'zod';
 import { MaratronMCPClient } from '@lib/mcp/client';
 import { MCPToolCall } from '@lib/mcp/types';
+import { prisma } from '@lib/prisma';
+import { buildChatSystemPrompt, hasSelectedCoach, getCoachDisplayName } from '@lib/coaches/prompt-builder';
+import type { UserWithCoach } from '@lib/coaches/prompt-builder';
 
 export interface AuthResult {
   isAuthenticated: boolean;
@@ -26,6 +29,8 @@ export interface ChatResponse {
   systemPrompt: string;
   toolCalls: MCPToolCall[];
   error?: string;
+  coachName?: string;
+  coachIcon?: string;
 }
 
 /**
@@ -707,10 +712,10 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
     optimizeGearSelection: tool({
       description: 'Get optimized gear selection recommendations for specific runs',
       parameters: z.object({
-        runType: z.enum(['easy', 'tempo', 'intervals', 'long', 'race', 'recovery']).optional().default('general').describe('Type of run'),
+        runType: z.enum(['easy', 'tempo', 'intervals', 'long', 'race', 'recovery']).optional().default('easy').describe('Type of run'),
         distance: z.number().optional().default(5.0).describe('Distance of the planned run')
       }),
-      execute: async ({ runType = 'general', distance = 5.0 }) => {
+      execute: async ({ runType = 'easy', distance = 5.0 }) => {
         try {
           await mcpClient.callTool({
             name: 'set_current_user_tool',
@@ -952,9 +957,28 @@ export async function handleMCPEnhancedChat(
 ): Promise<ChatResponse> {
   const toolCalls: MCPToolCall[] = [];
   let mcpStatus: 'enhanced' | 'no-data-needed' | 'fallback' = 'fallback';
+  let coachName: string | undefined;
+  let coachIcon: string | undefined;
 
-  // Create enhanced system prompt for running coach
-  const systemPrompt = `You are Maratron AI, an expert running and fitness coach powered by Claude 3.5.
+  // Fetch user with selected coach for persona integration
+  let user: UserWithCoach | null = null;
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { selectedCoach: true }
+    });
+
+    if (user && hasSelectedCoach(user)) {
+      coachName = getCoachDisplayName(user) || undefined;
+      coachIcon = user.selectedCoach?.icon;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch user coach information:', error);
+    // Continue with default behavior
+  }
+
+  // Create base system prompt
+  const baseSystemPrompt = `You are Maratron AI, an expert running and fitness coach powered by Claude 3.5.
 
 Your expertise includes:
 - Personalized training advice based on running science
@@ -1005,6 +1029,12 @@ You can now provide sophisticated training guidance, generate personalized train
 
 The user's context is automatically set - you can immediately use any tool to access their personal running data, add new records, or provide personalized advice. Never ask users for their user ID or mention setting context.`;
 
+  // Create coach-enhanced system prompt
+  const userContext = user ? `User: ${user.name}` : '';
+  const systemPrompt = user 
+    ? buildChatSystemPrompt(user, userContext)
+    : baseSystemPrompt;
+
   try {
     if (!mcpClient) {
       console.warn('No MCP client available, using basic response mode');
@@ -1025,7 +1055,9 @@ The user's context is automatically set - you can immediately use any tool to ac
         content: result.text,
         mcpStatus,
         systemPrompt,
-        toolCalls
+        toolCalls,
+        coachName,
+        coachIcon
       };
     }
 
@@ -1084,9 +1116,9 @@ The user's context is automatically set - you can immediately use any tool to ac
           console.log(`🛠️ Executing tool: ${toolCall.toolName}`);
           const toolFunction = tools[toolCall.toolName as keyof typeof tools];
           if (toolFunction && 'execute' in toolFunction) {
-            const toolResult = await toolFunction.execute(toolCall.args as Record<string, unknown>);
-            toolResults.push(toolResult);
-            console.log(`✅ Tool ${toolCall.toolName} returned ${String(toolResult).length} characters`);
+            const result = await (toolFunction.execute as (args: Record<string, unknown>) => Promise<string>)(toolCall.args as Record<string, unknown>);
+            toolResults.push(String(result));
+            console.log(`✅ Tool ${toolCall.toolName} returned ${String(result).length} characters`);
           }
         } catch (error) {
           console.error(`❌ Tool ${toolCall.toolName} failed:`, error);
@@ -1098,10 +1130,10 @@ The user's context is automatically set - you can immediately use any tool to ac
       console.log('🔄 Phase 3: Generating final response with tool data...');
       
       const finalMessages = [
-        { role: 'system', content: systemPrompt },
+        { role: 'system' as const, content: systemPrompt },
         ...messages,
         { 
-          role: 'user', 
+          role: 'user' as const, 
           content: `Based on the following tool execution results, provide a comprehensive response to the user:\n\n${toolResults.join('\n\n')}`
         }
       ];
@@ -1119,7 +1151,9 @@ The user's context is automatically set - you can immediately use any tool to ac
         content: finalResult.text,
         mcpStatus,
         systemPrompt,
-        toolCalls
+        toolCalls,
+        coachName,
+        coachIcon
       };
     } else {
       // No tools needed, return planning result
@@ -1128,7 +1162,9 @@ The user's context is automatically set - you can immediately use any tool to ac
         content: planningResult.text,
         mcpStatus,
         systemPrompt,
-        toolCalls
+        toolCalls,
+        coachName,
+        coachIcon
       };
     }
 
@@ -1155,7 +1191,9 @@ The user's context is automatically set - you can immediately use any tool to ac
         mcpStatus: 'fallback',
         systemPrompt,
         toolCalls,
-        error: 'Function calling failed, using basic mode'
+        error: 'Function calling failed, using basic mode',
+        coachName,
+        coachIcon
       };
     } catch (fallbackError) {
       console.error('Fallback generation also failed:', fallbackError);
@@ -1165,8 +1203,15 @@ The user's context is automatically set - you can immediately use any tool to ac
         mcpStatus: 'fallback',
         systemPrompt,
         toolCalls,
-        error: 'All generation methods failed'
+        error: 'All generation methods failed',
+        coachName,
+        coachIcon
       };
     }
   }
 }
+
+/**
+ * Alias for handleMCPEnhancedChat for backwards compatibility and testing
+ */
+export const generateEnhancedChat = handleMCPEnhancedChat;
