@@ -97,7 +97,7 @@ push_changes() {
         echo -e "${GREEN}✅ Web repository synced successfully${NC}"
     else
         echo -e "${YELLOW}⚠️  Force pushing web subdirectory...${NC}"
-        git push web-origin `git subtree split --prefix=apps/web $current_branch`:main --force
+        git push web-origin `git subtree split --prefix=apps/web $current_branch`:subtree-main --force
     fi
 
     echo ""
