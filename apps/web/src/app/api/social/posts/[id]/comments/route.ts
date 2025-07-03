@@ -23,7 +23,16 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   try {
     const comments = await prisma.comment.findMany({
       where: { postId: id },
-      include: { socialProfile: true },
+      include: { 
+        socialProfile: {
+          select: {
+            id: true,
+            username: true,
+            profilePhoto: true,
+            user: { select: { avatarUrl: true } },
+          },
+        },
+      },
       orderBy: { createdAt: "asc" },
       take: COMMENT_LIMIT,
     });

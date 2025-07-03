@@ -92,7 +92,7 @@ export default function SocialFeed({ groupId }: Props) {
           <div className="flex items-center gap-2 mb-1">
             <Image
               src={
-                post.socialProfile?.user?.avatarUrl || "/default_profile.png"
+                post.socialProfile?.user?.avatarUrl || post.socialProfile?.profilePhoto || "/default_profile.png"
               }
               alt={post.socialProfile?.username || "avatar"}
               width={32}
@@ -109,7 +109,13 @@ export default function SocialFeed({ groupId }: Props) {
             )}
           </div>
           <div className="text-sm text-foreground opacity-60 mb-2">
-            {new Date(post.createdAt).toLocaleString()}
+            {new Date(post.createdAt).toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </div>
           <p className="font-medium">
             {post.distance} mi in {post.time}

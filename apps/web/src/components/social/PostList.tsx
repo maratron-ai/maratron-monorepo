@@ -41,7 +41,13 @@ export default function PostList({ posts }: Props) {
             {post.distance} mi in {post.time}
           </p>
           <div className="text-sm text-foreground opacity-60">
-            {new Date(post.createdAt).toLocaleString()}
+            {new Date(post.createdAt).toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </div>
           {post.caption && <p className="mt-2">{post.caption}</p>}
           {post.photoUrl && (

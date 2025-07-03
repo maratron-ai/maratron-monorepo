@@ -87,7 +87,7 @@ export default function CommentSection({
             comments.map((c) => (
               <div key={c.id} className="flex items-start gap-2 text-sm">
                 <Image
-                  src={c.socialProfile?.avatarUrl || "/default_profile.png"}
+                  src={c.socialProfile?.user?.avatarUrl || c.socialProfile?.profilePhoto || "/default_profile.png"}
                   alt={c.socialProfile?.username || "avatar"}
                   width={24}
                   height={24}

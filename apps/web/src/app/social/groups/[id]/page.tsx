@@ -7,6 +7,7 @@ import { useSocialProfile } from "@hooks/useSocialProfile";
 import axios from "axios";
 import SocialFeed from "@components/social/SocialFeed";
 import GroupMembers from "@components/social/GroupMembers";
+import { SocialLeaderboard } from "@components/leaderboards/SocialLeaderboard";
 import { Button, Spinner, Card, toast } from "@components/ui";
 import type { RunGroup } from "@maratypes/social";
 
@@ -125,6 +126,13 @@ export default function GroupPage() {
             </p>
           )}
         </Card>
+        {group.isMember && (
+          <SocialLeaderboard
+            groupId={group.id}
+            title="Group Leaderboard"
+            className="mt-6"
+          />
+        )}
         {group.members && <GroupMembers members={group.members} />}
         {group.private && !group.isMember ? (
           <p>This group is private. Join to view posts.</p>

@@ -123,7 +123,7 @@ export default function ProfileSearch({ limit = 5 }: Props) {
           <Card key={p.id} className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Image
-                src={p.avatarUrl || "/default_profile.png"}
+                src={p.user?.avatarUrl || p.profilePhoto || "/default_profile.png"}
                 alt={p.username}
                 width={40}
                 height={40}

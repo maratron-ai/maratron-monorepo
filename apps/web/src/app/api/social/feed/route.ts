@@ -25,7 +25,12 @@ export async function GET(req: NextRequest) {
       },
       include: {
         socialProfile: {
-          include: { user: { select: { avatarUrl: true } } },
+          select: {
+            id: true,
+            username: true,
+            profilePhoto: true,
+            user: { select: { avatarUrl: true } },
+          },
         },
         _count: { select: { likes: true, comments: true } },
         likes: {
