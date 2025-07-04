@@ -8,6 +8,9 @@
   ],
   "scripts": {
     "dev": "docker-compose up --build",
+    "dev:hybrid": "docker-compose up postgres redis -d && sleep 5 && cd apps/web && REDIS_HOST=localhost REDIS_PORT=6379 REDIS_ENABLED=true npm run dev",
+    "dev:local": "npm run dev:redis && npm run dev:web",
+    "dev:redis": "docker-compose up redis -d",
     "dev:web": "cd apps/web && npm run dev",
     "dev:ai": "cd apps/ai && python run_server.py",
     "build": "cd apps/web && npm run build",

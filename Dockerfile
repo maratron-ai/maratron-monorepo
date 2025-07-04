@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     software-properties-common \
     postgresql-client \
+    redis-tools \
     && add-apt-repository ppa:deadsnakes/ppa \
     && apt-get update \
     && apt-get install -y \
@@ -18,6 +19,9 @@ RUN apt-get update && apt-get install -y \
     python3.11-venv \
     python3.11-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user for development with home directory
+RUN groupadd -r appuser && useradd -r -g appuser -u 1000 -m appuser
 
 # Install pip for Python 3.11 and make it the default python3
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11 \
@@ -38,16 +42,32 @@ ENV UV_PROJECT_ENVIRONMENT=/app/ai/.venv
 # Set working directory
 WORKDIR /app
 
-# Create directories for volume mounts
-RUN mkdir -p /app/web /app/ai
+# Create directories for volume mounts with proper permissions
+RUN mkdir -p /app/web /app/ai && \
+    chown -R appuser:appuser /app && \
+    chown -R appuser:appuser /home/appuser
 
 # Copy entire applications
-COPY apps/web/ /app/web/
-COPY apps/ai/ /app/ai/
+COPY --chown=appuser:appuser apps/web/ /app/web/
+COPY --chown=appuser:appuser apps/ai/ /app/ai/
+
+# Set npm global prefix to avoid permission issues
+RUN mkdir -p /home/appuser/.npm-global && \
+    chown -R appuser:appuser /home/appuser/.npm-global
+
+# Switch to non-root user
+USER appuser
+
+# Configure npm to use the user directory
+ENV NPM_CONFIG_PREFIX=/home/appuser/.npm-global
+ENV PATH=/home/appuser/.npm-global/bin:$PATH
 
 # Install Node.js dependencies
 WORKDIR /app/web
 RUN npm install
+
+# Create .next directory with proper ownership
+RUN mkdir -p .next && chown -R appuser:appuser .next
 
 # Install Python dependencies
 WORKDIR /app/ai
@@ -66,7 +86,7 @@ EXPOSE 3000 3001
 
 # Create a start script
 WORKDIR /app
-COPY start.sh /app/start.sh
+COPY --chown=appuser:appuser start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
 CMD ["/app/start.sh"]
