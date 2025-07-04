@@ -1,34 +1,96 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: maratron-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: maratron
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: maratrondb
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/web/prisma/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maratron -d maratrondb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - maratron_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: maratron-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - maratron_network
+
   maratron:
     build: .
+    container_name: maratron-app
+    restart: unless-stopped
+    env_file: .env
     ports:
       - "3000:3000"  # Next.js web app
       - "3001:3001"  # MCP server (if needed for external access)
     volumes:
-      # Mount source code for live editing
-      - ./apps/web:/app/web
-      - ./apps/ai:/app/ai
-      # Mount node_modules to preserve installed packages
+      # Mount source code for live editing with proper permissions
+      - ./apps/web:/app/web:delegated
+      - ./apps/ai:/app/ai:delegated
+      # Mount node_modules to preserve packages
       - web_node_modules:/app/web/node_modules
       - ai_venv:/app/ai/.venv
+      # Use anonymous volume for .next to prevent host permission conflicts
+      - /app/web/.next
+    user: "1000:1000"  # Match the appuser created in Dockerfile
     environment:
-      # Connect to host machine's PostgreSQL database
-      - DATABASE_URL=postgresql://maratron:yourpassword@host.docker.internal:5432/maratrondb
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=a5f8c2e7b1d9f4a6c8e3b7f2d5a9c4e6b8f1d3a7c9e2b5f8a1d4c7e9b2f5a8c1d4e7
-      - NODE_ENV=development
-      - ENVIRONMENT=development
-      - DOCKER=true
+      # Connect to containerized PostgreSQL database
+      - DATABASE_URL=postgresql://maratron:yourpassword@postgres:5432/maratrondb
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NODE_ENV=${NODE_ENV:-development}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - "DOCKER=true"
+      # Redis configuration (connect to containerized Redis)
+      - "REDIS_HOST=redis"
+      - "REDIS_PORT=6379"
+      - "REDIS_ENABLED=true"
+      - "REDIS_KEY_PREFIX=maratron:dev:"
       # Weather API for running conditions
-      - WEATHER__API_KEY=da120f5f4228dc552f6b19df0704268c
-    extra_hosts:
-      # Allow container to connect to host machine
-      - "host.docker.internal:host-gateway"
+      - WEATHER__API_KEY=${WEATHER__API_KEY}
+      # AI API configuration
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - maratron_network
     stdin_open: true
     tty: true
 
 volumes:
+  postgres_data:
+  redis_data:
   web_node_modules:
   ai_venv:
+
+networks:
+  maratron_network:
+    driver: bridge
