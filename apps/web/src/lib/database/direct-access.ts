@@ -1,6 +1,6 @@
 /**
- * Direct database access for Docker environment
- * Bypasses MCP when running in same container
+ * Direct database access utilities for user data retrieval
+ * Note: MCP is used consistently across all environments for AI intelligence
  */
 
 import { prisma } from '../prisma';

@@ -121,6 +121,7 @@ npm run dev:ai           # Local AI server only
 # Database operations
 npm run db:studio        # Open Prisma Studio GUI
 npm run db:seed          # Load comprehensive test data (10 users, 27 shoes, 26 runs)
+npm run db:seed:verbose  # Load seed data with detailed logging output
 npm run db:push          # Push schema changes to database
 npm run db:generate      # Generate Prisma client types
 npm run db:reset         # Reset database and re-seed
@@ -161,6 +162,7 @@ npm run format:check     # Check formatting without changes
 
 # Database
 npm run db:seed          # Load comprehensive seed data
+npm run db:seed:verbose  # Load seed data with detailed logging output
 npm run db:studio        # Open Prisma Studio on localhost:5555
 npx prisma generate      # Regenerate Prisma client
 npx prisma migrate dev   # Create and apply new migration

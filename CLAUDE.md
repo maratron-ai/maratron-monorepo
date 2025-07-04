@@ -19,6 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Known Critical Points
 - **MCP Integration**: Consistent across all environments for full AI capabilities
 - **AI Intelligence**: All environments access smart context, pattern analysis, and conversation tracking
+- **Redis Caching**: Core development dependency for performance and testing consistency
 - **Complex Domain Logic**: Running science with VDOT, pace zones, training plans
 - **Testing Strategy**: Docker cleanup essential to prevent state leakage
 
@@ -32,6 +33,7 @@ npm test                       # Run test suite
 npm run db:seed                # Load test data
 
 # Quick reference
+npm run db:seed:verbose        # Load test data with detailed output
 npm run clean                  # Clean Docker environment
 npm run db:studio              # Database GUI
 ```

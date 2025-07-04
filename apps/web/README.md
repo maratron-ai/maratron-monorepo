@@ -7,7 +7,7 @@ The Next.js frontend for the Maratron AI-powered running and fitness platform. F
 ### Prerequisites
 - Node.js 20+
 - PostgreSQL database
-- Redis (optional, for caching)
+- Redis (required for development caching)
 
 ### Development Options
 
@@ -43,7 +43,7 @@ NEXTAUTH_SECRET=your_secret_key_here
 # AI Integration
 ANTHROPIC_API_KEY=your_anthropic_key_here
 
-# Redis Caching (Optional)
+# Redis Caching (Required for Development)
 REDIS_URL=redis://localhost:6379
 ```
 
