@@ -156,6 +156,6 @@ export const listGroups = async (
   const url = profileId
     ? `/api/social/groups?profileId=${profileId}`
     : `/api/social/groups`;
-  const { data: groups } = await axios.get<RunGroup[]>(url);
-  return groups;
+  const { data } = await axios.get<{ groups: RunGroup[] }>(url);
+  return data.groups;
 };

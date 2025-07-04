@@ -76,6 +76,6 @@ export const deleteRun = async (runId: string): Promise<void> => {
 };
 
 export const listRuns = async (userId: string): Promise<Run[]> => {
-  const { data } = await axios.get<RawRunDto[]>(`/api/runs?userId=${userId}`);
-  return data.map(mapRun);
+  const { data } = await axios.get<{ runs: RawRunDto[] }>(`/api/runs?userId=${userId}`);
+  return data.runs.map(mapRun);
 };

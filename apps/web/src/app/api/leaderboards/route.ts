@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@lib/auth";
+import { requireAuth, unauthorizedResponse } from "@lib/middleware/auth";
+import { withRateLimit, RATE_LIMITS } from "@lib/middleware/rateLimit";
+import { cache } from "@lib/cache/cache-manager";
 import {
   calculateLeaderboardRankings,
   filterRunsByPeriod,
@@ -19,8 +22,15 @@ import { DistanceUnit } from "@maratypes/basics";
 const VALID_PERIODS: LeaderboardPeriod[] = ["weekly", "monthly"];
 const VALID_TYPES: LeaderboardType[] = ["group"];
 
-export async function GET(req: NextRequest): Promise<NextResponse<LeaderboardResponse>> {
-  try {
+export const GET = withRateLimit(RATE_LIMITS.API, "leaderboards-get")(
+  async (req: NextRequest): Promise<NextResponse<LeaderboardResponse>> => {
+    // Require authentication for leaderboard access
+    const authResult = await requireAuth(req);
+    if (!authResult.isAuthenticated) {
+      return unauthorizedResponse(authResult.error) as NextResponse<LeaderboardResponse>;
+    }
+
+    try {
     const searchParams = req.nextUrl.searchParams;
     
     // Parse and validate parameters
@@ -90,83 +100,97 @@ export async function GET(req: NextRequest): Promise<NextResponse<LeaderboardRes
       });
     }
 
-    // Fetch runs for the period
-    const runQuery = {
-      where: {
-        userId: { in: userIds },
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            defaultDistanceUnit: true,
+    // OPTIMIZED: Cache leaderboard data
+    const leaderboardData = await cache.leaderboard(groupId, period, metric, async () => {
+      // Single query to fetch runs with user data
+      const runs = await prisma.run.findMany({
+        where: {
+          userId: { in: userIds },
+          date: {
+            gte: startDate,
+            lte: endDate,
           },
         },
-      },
-    };
-
-    const runs = await prisma.run.findMany(runQuery);
-    
-    // Filter runs by period (additional filtering if needed)
-    const filteredRuns = filterRunsByPeriod(runs, period, startDate, endDate);
-
-    // Get users for the leaderboard with social profiles
-    const users = await prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        avatarUrl: true,
-        defaultDistanceUnit: true,
-        socialProfile: {
-          select: {
-            username: true,
-            profilePhoto: true,
+        select: {
+          id: true,
+          userId: true,
+          date: true,
+          distance: true,
+          distanceUnit: true,
+          duration: true,
+          createdAt: true,
+          // Include user data in the same query to avoid N+1
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              defaultDistanceUnit: true,
+              socialProfile: {
+                select: {
+                  username: true,
+                  profilePhoto: true,
+                },
+              },
+            },
           },
         },
-      },
+        // Add reasonable limit to prevent memory issues
+        take: 10000, // Limit to 10k runs max for leaderboard calculations
+        orderBy: { date: 'desc' },
+      });
+      
+      // Filter runs by period (additional filtering if needed)
+      const filteredRuns = filterRunsByPeriod(runs, period, startDate, endDate);
+
+      // Extract unique users from the runs data (already included)
+      const userMap = new Map();
+      runs.forEach(run => {
+        if (!userMap.has(run.userId)) {
+          userMap.set(run.userId, run.user);
+        }
+      });
+      const users = Array.from(userMap.values());
+
+      // Calculate rankings
+      const defaultDistanceUnit: DistanceUnit = "miles"; // Could be made configurable
+      const rankings = calculateLeaderboardRankings(
+        filteredRuns,
+        users,
+        metric,
+        defaultDistanceUnit
+      );
+
+      return {
+        period,
+        metric,
+        type,
+        entries: rankings,
+        totalParticipants: rankings.length,
+        groupId: groupId,
+        lastUpdated: new Date(),
+      };
     });
-
-    // Calculate rankings
-    const defaultDistanceUnit: DistanceUnit = "miles"; // Could be made configurable
-    const rankings = calculateLeaderboardRankings(
-      filteredRuns,
-      users,
-      metric,
-      defaultDistanceUnit
-    );
-
-    // Apply limit
-    const limitedRankings = rankings.slice(0, limit);
-
+    
+    // Apply limit and add user entry
+    const limitedRankings = leaderboardData.entries.slice(0, limit);
+    
     // Find current user's entry if they are a group member
     let userEntry;
     const session = await getServerSession(authOptions);
     if (session?.user?.id && userIds.includes(session.user.id)) {
-      userEntry = rankings.find(entry => entry.userId === session.user.id);
+      userEntry = leaderboardData.entries.find(entry => entry.userId === session.user.id);
     }
 
-    const leaderboardData: LeaderboardData = {
-      period,
-      metric,
-      type,
+    const finalLeaderboardData: LeaderboardData = {
+      ...leaderboardData,
       entries: limitedRankings,
-      totalParticipants: rankings.length,
       userEntry,
-      groupId: groupId,
-      lastUpdated: new Date(),
     };
 
     return NextResponse.json({
       success: true,
-      data: leaderboardData,
+      data: finalLeaderboardData,
     });
 
   } catch (error) {
@@ -177,4 +201,4 @@ export async function GET(req: NextRequest): Promise<NextResponse<LeaderboardRes
       data: {} as LeaderboardData,
     }, { status: 500 });
   }
-}
+});

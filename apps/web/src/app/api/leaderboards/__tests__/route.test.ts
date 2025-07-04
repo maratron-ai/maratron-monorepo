@@ -32,6 +32,25 @@ jest.mock('@lib/utils/leaderboard', () => ({
   getLeaderboardPeriodRange: jest.fn(),
 }));
 
+// Mock auth middleware
+jest.mock('@lib/middleware/auth', () => ({
+  requireAuth: jest.fn(),
+  unauthorizedResponse: jest.fn(),
+}));
+
+// Mock rate limiting
+jest.mock('@lib/middleware/rateLimit', () => ({
+  withRateLimit: jest.fn(() => (handler) => handler),
+  RATE_LIMITS: { API: {} },
+}));
+
+// Mock cache
+jest.mock('@lib/cache/cache-manager', () => ({
+  cache: {
+    leaderboard: jest.fn(),
+  },
+}));
+
 import { GET } from '../route';
 import { prisma } from '@lib/prisma';
 import { NextRequest } from 'next/server';
@@ -40,10 +59,23 @@ import {
   filterRunsByPeriod,
   getLeaderboardPeriodRange,
 } from '@lib/utils/leaderboard';
+import { requireAuth } from '@lib/middleware/auth';
+import { cache } from '@lib/cache/cache-manager';
 
 describe('GET /api/leaderboards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock successful authentication by default
+    (requireAuth as jest.Mock).mockResolvedValue({
+      isAuthenticated: true,
+      userId: 'test-user-id',
+    });
+    
+    // Mock cache.leaderboard to use fallback
+    (cache.leaderboard as jest.Mock).mockImplementation(async (groupId, period, metric, fallback) => {
+      return await fallback();
+    });
   });
 
   const mockUsers = [

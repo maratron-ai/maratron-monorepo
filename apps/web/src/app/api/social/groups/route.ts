@@ -5,31 +5,58 @@ import bcrypt from "bcryptjs";
 
 export async function GET(req: NextRequest) {
   const profileId = req.nextUrl.searchParams.get("profileId");
+  const page = parseInt(req.nextUrl.searchParams.get("page") || "0");
+  const limit = Math.min(parseInt(req.nextUrl.searchParams.get("limit") || GROUP_LIST_LIMIT.toString()), 100);
+  
   try {
-    const groups = await prisma.runGroup.findMany({
-      include: { _count: { select: { members: true, posts: true } } },
-      orderBy: { createdAt: "desc" },
-      take: GROUP_LIST_LIMIT,
-    });
-    let memberships: Set<string> | null = null;
-    if (profileId) {
-      const memberRows = await prisma.runGroupMember.findMany({
-        where: { socialProfileId: profileId },
-        select: { groupId: true },
-      });
-      memberships = new Set(memberRows.map((m) => m.groupId));
-    }
+    // OPTIMIZED: Single query with conditional membership include
+    const [groups, totalCount] = await Promise.all([
+      prisma.runGroup.findMany({
+        include: { 
+          _count: { select: { members: true, posts: true } },
+          // Conditionally include user's membership status
+          ...(profileId && {
+            members: {
+              where: { socialProfileId: profileId },
+              select: { socialProfileId: true },
+              take: 1, // Only need to know if user is a member
+            }
+          })
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: page * limit,
+      }),
+      prisma.runGroup.count()
+    ]);
+
     const mapped = groups.map((g) => {
-      const { password: _password, ...rest } = g;
+      const { password: _password, members, ...rest } = g;
       void _password;
       return {
         ...rest,
         memberCount: g._count.members,
         postCount: g._count.posts,
-        isMember: memberships ? memberships.has(g.id) : undefined,
+        isMember: profileId ? (members && members.length > 0) : undefined,
       };
     });
-    return NextResponse.json(mapped);
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages - 1;
+    const hasPreviousPage = page > 0;
+
+    return NextResponse.json({
+      groups: mapped,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      }
+    });
   } catch (err) {
     console.error("Error listing groups", err);
     return NextResponse.json({ error: "Failed" }, { status: 500 });

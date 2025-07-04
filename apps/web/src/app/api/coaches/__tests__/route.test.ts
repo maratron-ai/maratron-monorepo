@@ -14,13 +14,32 @@ jest.mock('@lib/prisma', () => ({
   },
 }));
 
+// Mock auth middleware
+jest.mock('@lib/middleware/auth', () => ({
+  requireAuth: jest.fn(),
+  unauthorizedResponse: jest.fn(),
+}));
+
+// Mock rate limiting
+jest.mock('@lib/middleware/rateLimit', () => ({
+  withRateLimit: jest.fn(() => (handler) => handler),
+  RATE_LIMITS: { API: {} },
+}));
+
 import { GET } from '../route';
 import { prisma } from '@lib/prisma';
 import { NextRequest } from 'next/server';
+import { requireAuth } from '@lib/middleware/auth';
 
 describe('GET /api/coaches (TDD - Failing Tests)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock successful authentication by default
+    (requireAuth as jest.Mock).mockResolvedValue({
+      isAuthenticated: true,
+      userId: 'test-user-id',
+    });
   });
 
   it('should return all coach personas', async () => {

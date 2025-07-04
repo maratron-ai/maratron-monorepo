@@ -180,7 +180,8 @@ describe("social api helpers", () => {
 
   it("listGroups gets data", async () => {
     const groups: RunGroup[] = [];
-    mockedAxios.get.mockResolvedValue({ data: groups });
+    // The API returns a paginated response with groups array
+    mockedAxios.get.mockResolvedValue({ data: { groups } });
     const result = await listGroups("p1");
     expect(mockedAxios.get).toHaveBeenCalledWith(
       "/api/social/groups?profileId=p1"

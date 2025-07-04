@@ -88,7 +88,7 @@ describe('Coach Integration Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
       
-      console.log(`Coach-enhanced chat completed in ${duration.toFixed(2)}ms`);
+      // Performance benchmark: Coach-enhanced chat completed in ${duration.toFixed(2)}ms
       
       // Target: <100ms for chat processing (excluding AI model inference)
       expect(duration).toBeLessThan(100);
@@ -108,7 +108,7 @@ describe('Coach Integration Performance Tests', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
       
-      console.log(`Coach lookup and prompt building completed in ${duration.toFixed(2)}ms`);
+      // Performance benchmark: Coach lookup and prompt building completed in ${duration.toFixed(2)}ms
       
       // Target: <20ms for coach-specific operations
       expect(duration).toBeLessThan(20);

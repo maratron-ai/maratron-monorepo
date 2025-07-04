@@ -1393,6 +1393,18 @@ async def health_check() -> bool:
 
 def main():
     """Main entry point for the MCP server."""
+    import asyncio
+    import signal
+    
+    def signal_handler(signum, frame):
+        """Handle shutdown signals gracefully."""
+        logger.info(f"Received signal {signum}, shutting down...")
+        raise KeyboardInterrupt()
+    
+    # Set up signal handlers
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    
     try:
         # Log startup information
         logger.info(f"Starting {config.server.name} v{config.server.version}")
@@ -1408,15 +1420,30 @@ def main():
         raise
     finally:
         # Cleanup on exit
-        import asyncio
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
+            # Try to get existing event loop, create new one if none exists
+            try:
+                loop = asyncio.get_running_loop()
+                # If we have a running loop, schedule cleanup
                 loop.create_task(cleanup())
-            else:
-                loop.run_until_complete(cleanup())
+            except RuntimeError:
+                # No running loop, create a new one for cleanup
+                try:
+                    loop = asyncio.get_event_loop()
+                    if not loop.is_closed():
+                        loop.run_until_complete(cleanup())
+                        loop.close()
+                except Exception:
+                    # If all else fails, create a new loop
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(cleanup())
+                    finally:
+                        loop.close()
         except Exception as e:
             logger.error(f"Error during cleanup: {e}")
+            # Don't raise, just log the error
 
 
 if __name__ == "__main__":

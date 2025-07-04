@@ -962,6 +962,337 @@ Subscribe to newsletter.
 
 ---
 
+## Performance Monitoring & Caching
+
+### Application Performance Metrics
+
+```http
+GET /api/performance
+```
+
+Get comprehensive application performance metrics.
+
+**Response**:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:00:00.000Z",
+  "uptime": 123456,
+  "memory": {
+    "used": "45.2 MB",
+    "total": "512 MB",
+    "percentage": 8.8
+  },
+  "database": {
+    "healthy": true,
+    "connectionPool": {
+      "active": 2,
+      "idle": 8,
+      "total": 10
+    },
+    "averageQueryTime": "12ms"
+  },
+  "cache": {
+    "enabled": true,
+    "healthy": true,
+    "stats": {
+      "hits": 1248,
+      "misses": 152,
+      "total": 1400,
+      "hitRate": 89.1,
+      "errors": 0
+    }
+  }
+}
+```
+
+**Metrics Included**:
+- System health status
+- Memory usage
+- Database connection pool status
+- Cache performance statistics
+- Uptime tracking
+
+### Cache Health & Statistics
+
+```http
+GET /api/performance?action=cache
+```
+
+Get detailed Redis cache health and performance statistics.
+
+**Response**:
+```json
+{
+  "cache": {
+    "enabled": true,
+    "healthy": true,
+    "connectionStatus": "connected",
+    "stats": {
+      "hits": 2847,
+      "misses": 356,
+      "total": 3203,
+      "hitRate": 88.9,
+      "errors": 0,
+      "operations": {
+        "get": 3203,
+        "set": 425,
+        "delete": 89,
+        "invalidate": 12
+      }
+    },
+    "redisInfo": {
+      "redis_version": "7.0.0",
+      "used_memory_human": "2.1M",
+      "used_memory_peak_human": "3.8M",
+      "connected_clients": "3",
+      "total_commands_processed": "15234",
+      "instantaneous_ops_per_sec": "127",
+      "keyspace_hits": "2847",
+      "keyspace_misses": "356"
+    },
+    "cacheStrategies": {
+      "USER_PROFILE": {
+        "ttl": 900,
+        "hits": 1245,
+        "misses": 89,
+        "hitRate": 93.3
+      },
+      "USER_RUNS": {
+        "ttl": 300,
+        "hits": 892,
+        "misses": 156,
+        "hitRate": 85.1
+      },
+      "LEADERBOARD": {
+        "ttl": 600,
+        "hits": 456,
+        "misses": 67,
+        "hitRate": 87.2
+      },
+      "SOCIAL_FEED": {
+        "ttl": 180,
+        "hits": 254,
+        "misses": 44,
+        "hitRate": 85.2
+      }
+    }
+  }
+}
+```
+
+**Cache Strategy Details**:
+- Individual strategy performance metrics
+- Hit rates per cache type
+- TTL configuration validation
+- Memory usage per strategy
+
+### Database Performance Metrics
+
+```http
+GET /api/performance?action=database
+```
+
+Get detailed database performance and health metrics.
+
+**Response**:
+```json
+{
+  "database": {
+    "healthy": true,
+    "connectionStatus": "connected",
+    "pool": {
+      "active": 3,
+      "idle": 7,
+      "total": 10,
+      "waiting": 0
+    },
+    "performance": {
+      "averageQueryTime": "8.3ms",
+      "slowestQuery": "45ms",
+      "totalQueries": 15432,
+      "queriesPerSecond": 12.4
+    },
+    "tableStats": {
+      "Users": {
+        "rows": 156,
+        "size": "2.1MB",
+        "indexHitRate": 99.2
+      },
+      "Runs": {
+        "rows": 3245,
+        "size": "12.8MB",
+        "indexHitRate": 97.8
+      },
+      "Shoes": {
+        "rows": 489,
+        "size": "1.2MB",
+        "indexHitRate": 98.9
+      }
+    },
+    "recentSlowQueries": [
+      {
+        "query": "SELECT * FROM \"Runs\" WHERE ...",
+        "duration": "45ms",
+        "timestamp": "2024-01-15T10:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+**Database Insights**:
+- Connection pool health
+- Query performance metrics
+- Table-level statistics
+- Slow query identification
+
+### Cache Key Management
+
+```http
+GET /api/performance/cache/keys?pattern={pattern}
+```
+
+List active cache keys (development only).
+
+**Query Parameters**:
+- `pattern` (optional) - Redis pattern for key filtering (e.g., `user:*`)
+
+**Response**:
+```json
+{
+  "keys": [
+    "maratron:dev:user:profile:123e4567-e89b-12d3-a456-426614174000",
+    "maratron:dev:user:runs:123e4567-e89b-12d3-a456-426614174000:1",
+    "maratron:dev:leaderboard:group:456:weekly"
+  ],
+  "total": 247,
+  "filtered": 3,
+  "pattern": "user:*"
+}
+```
+
+**Security Note**: Only available in development environment
+
+### Cache Statistics Reset
+
+```http
+POST /api/performance/cache/reset-stats
+```
+
+Reset cache statistics counters (development only).
+
+**Response**:
+```json
+{
+  "message": "Cache statistics reset successfully",
+  "resetTime": "2024-01-15T10:00:00.000Z"
+}
+```
+
+### Performance Alerts
+
+```http
+GET /api/performance/alerts
+```
+
+Get current performance alerts and warnings.
+
+**Response**:
+```json
+{
+  "alerts": [
+    {
+      "type": "warning",
+      "category": "cache",
+      "message": "Cache hit rate below 85% for USER_RUNS strategy",
+      "metric": "hit_rate",
+      "value": 82.3,
+      "threshold": 85,
+      "timestamp": "2024-01-15T09:45:00.000Z"
+    },
+    {
+      "type": "info",
+      "category": "database",
+      "message": "Average query time increased to 15ms",
+      "metric": "avg_query_time",
+      "value": 15.2,
+      "threshold": 10,
+      "timestamp": "2024-01-15T09:30:00.000Z"
+    }
+  ],
+  "summary": {
+    "critical": 0,
+    "warning": 1,
+    "info": 1,
+    "total": 2
+  }
+}
+```
+
+**Alert Categories**:
+- `critical` - Immediate attention required
+- `warning` - Performance degradation detected
+- `info` - Notable performance changes
+
+### Cache Warmup (Development)
+
+```http
+POST /api/performance/cache/warmup
+```
+
+Trigger cache warmup for common data patterns (development only).
+
+**Request Body**:
+```json
+{
+  "strategies": ["USER_PROFILE", "LEADERBOARD"],
+  "userIds": ["123e4567-e89b-12d3-a456-426614174000"],
+  "force": false
+}
+```
+
+**Response**:
+```json
+{
+  "message": "Cache warmup completed",
+  "warmed": {
+    "USER_PROFILE": 15,
+    "LEADERBOARD": 3
+  },
+  "duration": "2.3s",
+  "timestamp": "2024-01-15T10:00:00.000Z"
+}
+```
+
+### Health Check (Simple)
+
+```http
+GET /api/health
+```
+
+Simplified health check for monitoring systems.
+
+**Response**:
+```json
+{
+  "status": "healthy",
+  "services": {
+    "database": "healthy",
+    "cache": "healthy",
+    "mcp": "healthy"
+  },
+  "timestamp": "2024-01-15T10:00:00.000Z"
+}
+```
+
+**Status Values**:
+- `healthy` - All systems operational
+- `degraded` - Some performance issues
+- `unhealthy` - Critical issues detected
+
+---
+
 ## AI Tools & Capabilities
 
 The AI chat system includes 50+ specialized tools for running advice:

@@ -81,7 +81,19 @@ describe("run api helpers", () => {
   });
 
   it("listRuns gets all runs and maps them", async () => {
-    mockedAxios.get.mockResolvedValue({ data: [apiRun] });
+    mockedAxios.get.mockResolvedValue({ 
+      data: { 
+        runs: [apiRun],
+        pagination: {
+          page: 0,
+          limit: 50,
+          totalCount: 1,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        }
+      }
+    });
     const result = await listRuns("user1");
     expect(mockedAxios.get).toHaveBeenCalledWith("/api/runs?userId=user1");
     expect(result).toEqual([mappedRun]);

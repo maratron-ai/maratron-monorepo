@@ -32,17 +32,18 @@ export function needsUserData(message: string): QueryAnalysisResult {
     profile: [
       'my vdot', 'current vdot', 'personal record', 'my pr', 'my weight', 
       'my goal', 'my stats', 'my profile', 'my information', 'about me',
-      'what\'s my', 'how much do i weigh', 'what are my goals', 'running stats', 'goals'
+      'what\'s my', 'how much do i weigh', 'what are my goals', 'my running stats'
     ],
     goals: [
-      'training plan', 'workout', 'next run', 'should i run',
-      'rest day', 'schedule', 'what should i run', 'next workout', 'goals'
+      'my training plan', 'training plan', 'my workout', 'my next run', 'should i run today',
+      'what should i run today', 'my rest day', 'next rest day', 'my schedule', 
+      'what should i run next', 'my next workout', 'next workout', 'my goals'
     ],
     weather: [
-      'weather', 'temperature', 'rain', 'hot', 'cold', 'windy', 'humidity',
-      'forecast', 'conditions', 'outside', 'climate', 'sunny', 'cloudy',
-      'storm', 'snow', 'ice', 'should i run today', 'good day to run',
-      'running conditions', 'weather today', 'weather forecast', 'weather impact'
+      'weather today', 'temperature today', 'rain today', 'is it hot', 'is it cold', 'windy today', 'humidity today',
+      'forecast', 'weather conditions', 'outside conditions', 'sunny today', 'cloudy today',
+      'storm today', 'snow today', 'icy today', 'good day to run',
+      'running conditions', 'weather forecast', 'weather impact on running'
     ]
   };
 

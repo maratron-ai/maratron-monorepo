@@ -13,7 +13,7 @@ export interface AuthResult {
  * Authentication middleware for API routes
  * Validates user session and returns user information
  */
-export async function requireAuth(request?: NextRequest): Promise<AuthResult> {
+export async function requireAuth(): Promise<AuthResult> {
   try {
     const session = await getServerSession(authOptions);
     
@@ -67,7 +67,7 @@ export function forbiddenResponse(message: string = "Forbidden"): NextResponse {
 /**
  * Wrapper for protected API routes
  */
-export function withAuth<T extends any[]>(
+export function withAuth<T extends unknown[]>(
   handler: (request: NextRequest, auth: AuthResult, ...args: T) => Promise<NextResponse>
 ) {
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
