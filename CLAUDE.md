@@ -24,23 +24,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚡ Quick Reference
 
-### Essential Commands (Priority Order)
+### Essential Commands
 ```bash
-# Primary development workflow
-npm run dev                    # Start Docker Compose stack (primary)
-npm run clean                  # Clean Docker environment (essential)
-npm run db:seed               # Load comprehensive test data
+# Primary workflow
+npm run dev                    # Start Docker Compose stack
+npm test                       # Run test suite
+npm run db:seed                # Load test data
 
-# Testing & validation
-npm test                      # Web app tests (all current tests)
-npm run test:ai               # AI server tests with pytest
-npm run lint                  # Code quality validation
-
-# Database operations
-npm run db:studio             # Prisma Studio GUI
-npx prisma db push            # Push schema changes
-npx prisma generate           # Regenerate Prisma client
+# Quick reference
+npm run clean                  # Clean Docker environment
+npm run db:studio              # Database GUI
 ```
+
+📖 **[Complete Commands →](../docs/development.md)**
 
 ### Critical File Locations
 ```
@@ -162,64 +158,13 @@ async with get_db_connection() as conn:
 
 ## 🧪 Testing Patterns
 
-### Web Application Testing
-```bash
-# Run all tests
-npm test
+📖 **[Testing Commands →](../docs/development.md#testing)**
 
-# Run specific test files
-npm test -- src/lib/utils/__tests__/chat-query-routing.test.ts
-
-# Run with coverage
-npm test -- --coverage
-
-# Watch mode for development
-npm test -- --watch
-```
-
-### AI Server Testing
-```bash
-# Unit tests (mocked database)
-uv run pytest tests/unit/ -m unit
-
-# Integration tests (real database)
-uv run pytest tests/integration/ -m integration
-
-# Coverage report
-uv run pytest --cov=src --cov-report=html
-
-# Specific test markers
-uv run pytest -m slow  # Long-running tests
-```
-
-### Test Data & Seeding
-```bash
-# Load comprehensive test data (run from apps/web)
-npm run db:seed
-
-# Includes:
-# - 10 diverse users (beginner to Olympic Trials level)
-# - 27 shoes across various brands
-# - 26 recent runs with comprehensive metrics
-# - Complete social graph (posts, comments, likes, follows)
-# - Training plans and group memberships
-```
+📖 **[Test Data & Seeding →](../docs/development.md#test-data)**
 
 ## 🚨 Common Issues & Solutions
 
-### Docker Environment Issues
-```bash
-# Container conflicts
-npm run clean && npm run dev
-
-# Database connection issues
-docker-compose logs postgres
-docker-compose restart postgres
-
-# Volume permissions
-docker-compose down -v
-docker system prune -f
-```
+📖 **[Docker Troubleshooting →](../docs/development.md#docker-troubleshooting)**
 
 ### MCP Integration Failures
 ```typescript
@@ -242,13 +187,7 @@ import { needsUserData } from '@lib/utils/chat-query-routing';
 // Instead of: '../../../lib/utils/chat-query-routing'
 ```
 
-### Database Schema Changes
-```bash
-# After editing schema.prisma
-npx prisma db push      # Push changes to database
-npx prisma generate     # Regenerate client types
-npm run test           # Verify tests still pass
-```
+📖 **[Database Workflow →](../docs/development.md#database-operations)**
 
 ## 🏗️ Architecture Deep Dive
 
