@@ -43,8 +43,8 @@ npm run db:studio              # Database GUI
 🔧 Core Architecture
 ├── docker-compose.yml              # Primary development orchestration
 ├── apps/web/src/lib/mcp/client.ts  # MCP client integration
-├── apps/web/src/lib/database/direct-access.ts  # Docker bypass logic
-└── apps/web/prisma/schema.prisma   # Database schema (278 lines)
+├── apps/web/src/lib/database/direct-access.ts  # Database access utilities
+└── apps/web/prisma/schema.prisma   # Database schema (297 lines)
 
 🧠 AI Intelligence
 ├── apps/web/src/lib/utils/chat-query-routing.ts  # Query intelligence
@@ -60,6 +60,13 @@ npm run db:studio              # Database GUI
 ├── apps/web/src/**/__tests__/                    # Jest tests (expanding)
 ├── apps/ai/tests/unit/                          # Python unit tests
 └── apps/ai/tests/integration/                   # Python integration tests
+
+🛡️ Security & Quality (Recent Enhancements)
+├── apps/web/src/lib/utils/validation/apiValidator.ts    # Input validation & sanitization
+├── apps/web/src/lib/utils/errorHandling.ts             # Centralized error management
+├── apps/web/src/lib/middleware/requestLogger.ts        # Request/response logging
+├── apps/web/src/lib/middleware/security.ts             # Security headers & CORS
+└── apps/web/src/lib/cache/cache-manager.ts             # Redis connection management
 ```
 
 ### Path Aliases & Import Patterns
@@ -221,6 +228,13 @@ User Chat Query →
 
 ## 🎯 Code Quality Standards
 
+### Recent Architectural Improvements (Industry Best Practices)
+- **Input Validation**: Yup schema validation with XSS protection (`apiValidator.ts`)
+- **Error Handling**: Centralized AppError class with operational error marking (`errorHandling.ts`)
+- **Request Logging**: Structured logging with performance monitoring (`requestLogger.ts`)
+- **Security Middleware**: CORS, security headers, input sanitization (`security.ts`)
+- **Cache Management**: Redis connection pooling with graceful fallbacks (`cache-manager.ts`)
+
 ### TypeScript Patterns
 - **Strict Mode**: No `any` types in production code
 - **Type Safety**: Comprehensive interfaces in `maratypes/`
@@ -304,3 +318,25 @@ User Chat Query →
 - Verify Docker container health
 - Test with clean environment (`npm run clean`)
 - Use comprehensive logging for troubleshooting
+
+### Error Handling Best Practices (Following Node.js Standards)
+```typescript
+// Always use centralized AppError class
+throw new AppError('VALIDATION_ERROR', 'Invalid user input', 400, true);
+
+// Mark operational errors as trusted
+if (error instanceof AppError && error.isOperational) {
+  // Handle gracefully, don't crash
+}
+
+// Test error scenarios comprehensively
+expect(() => functionThatShouldThrow()).to.throw(AppError);
+```
+
+### Production Quality Checklist
+- ✅ All API routes use input validation middleware
+- ✅ Errors marked with `isOperational` flag for proper handling
+- ✅ Request logging enabled for monitoring
+- ✅ Redis connection pooling configured
+- ✅ Security headers applied to all responses
+- ✅ Rate limiting implemented on sensitive endpoints
