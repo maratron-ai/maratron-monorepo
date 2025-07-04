@@ -33,12 +33,11 @@ jest.mock('../compression', () => ({
 }));
 
 describe('CacheManager', () => {
-  let mockRedis: ReturnType<typeof jest.requireActual>;
+  let mockRedis: any;
   
   beforeEach(() => {
     // Get the mocked Redis instance
-    // const Redis = jest.requireActual('ioredis').Redis;
-    mockRedis = jest.requireActual('ioredis').__mockRedis;
+    mockRedis = require('ioredis').__mockRedis;
     
     // Reset all mocks
     jest.clearAllMocks();

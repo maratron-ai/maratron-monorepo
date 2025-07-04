@@ -8,7 +8,7 @@ import { withRateLimit, RATE_LIMITS } from "@lib/middleware/rateLimit";
 export const POST = withRateLimit(RATE_LIMITS.UPLOAD, "file-upload")(
   async (request: NextRequest) => {
     // Require authentication
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);
     }

@@ -23,7 +23,7 @@ export const GET = withRateLimit(RATE_LIMITS.SOCIAL, "posts-get")(
 export const POST = withRateLimit(RATE_LIMITS.SOCIAL, "posts-create")(
   async (request: NextRequest) => {
     // Require authentication
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);
     }

@@ -25,7 +25,7 @@ const VALID_TYPES: LeaderboardType[] = ["group"];
 export const GET = withRateLimit(RATE_LIMITS.API, "leaderboards-get")(
   async (req: NextRequest): Promise<NextResponse<LeaderboardResponse>> => {
     // Require authentication for leaderboard access
-    const authResult = await requireAuth(req);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error) as NextResponse<LeaderboardResponse>;
     }
@@ -126,7 +126,7 @@ export const GET = withRateLimit(RATE_LIMITS.API, "leaderboards-get")(
               name: true,
               avatarUrl: true,
               defaultDistanceUnit: true,
-              socialProfile: {
+              profile: {
                 select: {
                   username: true,
                   profilePhoto: true,

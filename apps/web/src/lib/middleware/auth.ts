@@ -71,7 +71,7 @@ export function withAuth<T extends unknown[]>(
   handler: (request: NextRequest, auth: AuthResult, ...args: T) => Promise<NextResponse>
 ) {
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);

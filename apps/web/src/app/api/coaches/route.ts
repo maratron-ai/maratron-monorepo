@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma';
 import { requireAuth, unauthorizedResponse } from '@lib/middleware/auth';
 import { withRateLimit, RATE_LIMITS } from '@lib/middleware/rateLimit';
 
 export const GET = withRateLimit(RATE_LIMITS.API, "coaches-get")(
-  async (request: NextRequest) => {
+  async () => {
     // Require authentication for coach data access
     const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {

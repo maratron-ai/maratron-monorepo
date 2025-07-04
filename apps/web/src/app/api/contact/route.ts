@@ -5,7 +5,7 @@ import { withRateLimit, RATE_LIMITS } from "@lib/middleware/rateLimit";
 export const POST = withRateLimit(RATE_LIMITS.API, "contact-post")(
   async (request: NextRequest) => {
     // Require authentication for contact form submissions
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);
     }

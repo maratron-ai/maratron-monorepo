@@ -11,7 +11,7 @@ export const GET = withRateLimit(RATE_LIMITS.API, "user-get")(
     const { id } = params;
     
     // Require authentication
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);
     }
@@ -72,7 +72,7 @@ export const PUT = withRateLimit(RATE_LIMITS.API, "user-put")(
     const { id } = params;
     
     // Require authentication
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);
     }
@@ -151,7 +151,7 @@ export const DELETE = withRateLimit(RATE_LIMITS.API, "user-delete")(
     const { id } = params;
     
     // Require authentication
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);
     }

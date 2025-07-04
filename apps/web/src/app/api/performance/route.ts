@@ -8,7 +8,7 @@ import { cacheManager } from "@lib/cache/cache-manager";
 export const GET = withRateLimit(RATE_LIMITS.API, "performance-stats")(
   async (request: NextRequest) => {
     // Require authentication for performance data access
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);
     }
