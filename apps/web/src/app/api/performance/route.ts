@@ -51,6 +51,39 @@ export const GET = withRateLimit(RATE_LIMITS.API, "performance-stats")(
         });
       }
       
+      if (action === 'database') {
+        // Get database performance metrics
+        const startTime = Date.now();
+        
+        try {
+          // Simple query to test database responsiveness
+          await prisma.$queryRaw`SELECT 1`;
+          const queryTime = Date.now() - startTime;
+          
+          // Get connection pool info (if available)
+          const metrics = await prisma.$metrics.json();
+          
+          return NextResponse.json({
+            database: {
+              healthy: true,
+              queryTime,
+              connectionPool: metrics.counters.find(c => c.key === 'prisma_client_queries_total'),
+              timestamp: new Date().toISOString()
+            }
+          });
+        } catch (error) {
+          const queryTime = Date.now() - startTime;
+          return NextResponse.json({
+            database: {
+              healthy: false,
+              queryTime,
+              error: error instanceof Error ? error.message : 'Unknown error',
+              timestamp: new Date().toISOString()
+            }
+          }, { status: 500 });
+        }
+      }
+      
       // Return performance statistics
       const stats = performanceMonitor.getStats();
       
@@ -61,7 +94,8 @@ export const GET = withRateLimit(RATE_LIMITS.API, "performance-stats")(
         actions: {
           report: "/api/performance?action=report",
           clear: "/api/performance?action=clear",
-          cache: "/api/performance?action=cache"
+          cache: "/api/performance?action=cache",
+          database: "/api/performance?action=database"
         }
       });
       
