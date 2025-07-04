@@ -10,6 +10,7 @@ import { MCPToolCall } from '@lib/mcp/types';
 import { prisma } from '@lib/prisma';
 import { buildChatSystemPrompt, hasSelectedCoach, getCoachDisplayName } from '@lib/coaches/prompt-builder';
 import type { UserWithCoach } from '@lib/coaches/prompt-builder';
+import { validateChatMessage } from '@lib/utils/validation/apiValidator';
 
 export interface AuthResult {
   isAuthenticated: boolean;
@@ -979,7 +980,7 @@ export async function authenticateUser(session: unknown): Promise<AuthResult> {
 }
 
 /**
- * Validate chat request format
+ * Validate chat request format with enhanced security
  */
 export function validateChatRequest(request: unknown): ValidationResult {
   const typedRequest = request as { messages?: unknown[]; timezone?: string } | null;
@@ -998,23 +999,20 @@ export function validateChatRequest(request: unknown): ValidationResult {
     };
   }
 
-  // Validate message structure
+  // Validate each message with enhanced validation
+  const validatedMessages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
+  
   for (const message of typedRequest.messages) {
-    const typedMessage = message as { role?: string; content?: string };
+    const validation = validateChatMessage(message);
     
-    if (!typedMessage.role || !typedMessage.content) {
+    if (!validation.isValid) {
       return {
         isValid: false,
-        error: 'Each message must have role and content'
+        error: validation.error
       };
     }
-
-    if (!['user', 'assistant', 'system'].includes(typedMessage.role)) {
-      return {
-        isValid: false,
-        error: 'Invalid message role'
-      };
-    }
+    
+    validatedMessages.push(validation.sanitizedMessage!);
   }
 
   // Extract timezone if provided
@@ -1022,7 +1020,7 @@ export function validateChatRequest(request: unknown): ValidationResult {
 
   return {
     isValid: true,
-    messages: typedRequest.messages as Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+    messages: validatedMessages,
     timezone
   };
 }

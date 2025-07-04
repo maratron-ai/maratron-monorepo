@@ -32,12 +32,26 @@ jest.mock('../compression', () => ({
   decompress: jest.fn((data: string) => Promise.resolve(Buffer.from(data, 'base64').toString())),
 }));
 
+interface MockRedis {
+  get: jest.Mock;
+  set: jest.Mock;
+  del: jest.Mock;
+  flushall: jest.Mock;
+  scan: jest.Mock;
+  keys: jest.Mock;
+  mget: jest.Mock;
+  mset: jest.Mock;
+  expire: jest.Mock;
+  ttl: jest.Mock;
+}
+
 describe('CacheManager', () => {
-  let mockRedis: any;
+  let mockRedis: MockRedis;
   
   beforeEach(() => {
     // Get the mocked Redis instance
-    mockRedis = require('ioredis').__mockRedis;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mockRedis = require('ioredis').__mockRedis as MockRedis;
     
     // Reset all mocks
     jest.clearAllMocks();
@@ -101,6 +115,20 @@ describe('CacheManager', () => {
       // Reset environment
       delete process.env.REDIS_ENABLED;
     });
+
+    it('should handle Redis connection errors gracefully', async () => {
+      const testData = { id: 1, name: 'Test User' };
+      const connectionError = new Error('Stream isn\'t writeable and enableOfflineQueue options is false');
+      mockRedis.get.mockRejectedValue(connectionError);
+      
+      const fallback = jest.fn().mockResolvedValue(testData);
+      const result = await cacheManager.get('test:key', fallback);
+      
+      expect(result.hit).toBe(false);
+      expect(result.data).toEqual(testData);
+      expect(result.source).toBe('database');
+      expect(fallback).toHaveBeenCalled();
+    });
   });
 
   describe('set method', () => {
@@ -132,6 +160,17 @@ describe('CacheManager', () => {
       
       // Reset environment
       delete process.env.REDIS_ENABLED;
+    });
+
+    it('should handle Redis connection errors gracefully', async () => {
+      const connectionError = new Error('Stream isn\'t writeable and enableOfflineQueue options is false');
+      mockRedis.setex.mockRejectedValue(connectionError);
+      
+      const result = await cacheManager.set('test:key', 'test data', {
+        ttl: 300,
+      });
+      
+      expect(result).toBe(false);
     });
   });
 

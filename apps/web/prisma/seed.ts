@@ -4,8 +4,16 @@ import { COACH_PERSONAS } from '../src/lib/data/coach-personas';
 
 const prisma = new PrismaClient();
 
+// Logging control - respects SEED_QUIET environment variable
+const isQuiet = process.env.SEED_QUIET === 'true';
+const log = (message: string) => {
+  if (!isQuiet) {
+    console.log(message);
+  }
+};
+
 async function main() {
-  console.log('🌱 Starting database seeding...');
+  log('🌱 Starting database seeding...');
 
   // Clean existing data (be careful in production!)
   await prisma.runGroupMember.deleteMany();
@@ -22,11 +30,11 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.coachPersona.deleteMany();
 
-  console.log('🧹 Cleaned existing data');
+  log('🧹 Cleaned existing data');
 
   // Hash the default password for all development users
   const defaultPasswordHash = await hashPassword('password');
-  console.log('🔒 Generated password hash for development users');
+  log('🔒 Generated password hash for development users');
 
   // Create Coach Personas
   const coaches = await Promise.all(
@@ -36,7 +44,7 @@ async function main() {
       })
     )
   );
-  console.log('🧠 Created coach personas');
+  log('🧠 Created coach personas');
 
   // Create Users
   const users = await Promise.all([
@@ -599,7 +607,7 @@ async function main() {
     }),
   ]);
 
-  console.log('👥 Created users');
+  log('👥 Created users');
 
   // Create Shoes for users
   const shoes = await Promise.all([
@@ -1259,7 +1267,7 @@ async function main() {
     }),
   ]);
 
-  console.log('👟 Created shoes');
+  log('👟 Created shoes');
 
   // Set default shoes for all users
   const defaultShoeUpdates = [
@@ -2530,7 +2538,7 @@ async function main() {
     }),
   ]);
 
-  console.log('🏃 Created runs');
+  log('🏃 Created runs');
 
   // Create Social Profiles for all users
   const socialProfiles = await Promise.all([
@@ -2753,7 +2761,7 @@ async function main() {
     }),
   ]);
 
-  console.log('📱 Created social profiles');
+  log('📱 Created social profiles');
 
   // Create extensive follow relationships for vibrant community
   const followRelationships = [
@@ -2863,7 +2871,7 @@ async function main() {
     )
   );
 
-  console.log('👥 Created follow relationships');
+  log('👥 Created follow relationships');
 
   // Create extensive run posts from all users
   const runPosts = await Promise.all([
@@ -3322,7 +3330,7 @@ async function main() {
     }),
   ]);
 
-  console.log('📝 Created run posts');
+  log('📝 Created run posts');
 
   // Create extensive comments from all users
   await Promise.all([
@@ -3745,7 +3753,7 @@ async function main() {
     }),
   ]);
 
-  console.log('💬 Created comments');
+  log('💬 Created comments');
 
   // Create extensive likes across all posts
   const likeData = [];
@@ -3781,7 +3789,7 @@ async function main() {
     )
   );
 
-  console.log('❤️ Created likes');
+  log('❤️ Created likes');
 
   // Create multiple run groups for different training focuses
   const runGroups = await Promise.all([
@@ -4144,7 +4152,7 @@ async function main() {
     }),
   ]);
 
-  console.log('🏃‍♂️ Created run group and members');
+  log('🏃‍♂️ Created run group and members');
 
   // Create diverse training plans for different users and goals
   await Promise.all([
@@ -4406,10 +4414,10 @@ async function main() {
     }),
   ]);
 
-  console.log('📅 Created training plan');
+  log('📅 Created training plan');
 
-  console.log('✅ Database seeding completed successfully!');
-  console.log(`
+  log('✅ Database seeding completed successfully!');
+  log(`
 🎉 EXTENSIVE SEED DATA SUMMARY:
 - 🧠 ${coaches.length} coach personas created
 - 👥 ${users.length} users created (diverse fitness levels & goals)

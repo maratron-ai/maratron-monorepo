@@ -3,9 +3,7 @@
  * Bypasses MCP when running in same container
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../prisma';
 
 export interface UserDataResult {
   profile?: {

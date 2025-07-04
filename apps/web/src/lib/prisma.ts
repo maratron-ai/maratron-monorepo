@@ -1,5 +1,6 @@
 // src/lib/prisma.ts
 import { PrismaClient } from "@prisma/client";
+import { logger } from "./logger";
 
 // Performance monitoring and logging
 const isProduction = process.env.NODE_ENV === "production";
@@ -70,41 +71,47 @@ if (!isTest) {
     const slowQueryThreshold = isProduction ? 1000 : 500;
     
     if (duration > slowQueryThreshold) {
-      console.warn(`🐌 Slow query detected (${duration}ms):`, {
+      logger.warn('Slow database query detected', {
         query: query.substring(0, 100) + (query.length > 100 ? '...' : ''),
-        duration: `${duration}ms`,
+        duration,
         params: e.params?.substring(0, 100),
-        timestamp: new Date().toISOString(),
+        slowQueryThreshold
       });
     }
     
     // In development, log all queries for debugging
     if (isDevelopment && process.env.LOG_ALL_QUERIES === 'true') {
-      console.log(`🔍 Query (${duration}ms):`, {
+      logger.debug('Database query executed', {
         query: query.substring(0, 150) + (query.length > 150 ? '...' : ''),
-        duration: `${duration}ms`,
+        duration
       });
     }
   });
 
   // Error monitoring
   prisma.$on('error', (e) => {
-    console.error('🚨 Prisma Error:', {
+    logger.error('Prisma database error', {
       message: e.message,
-      timestamp: new Date().toISOString(),
+      target: e.target
     });
   });
 
   // Info logging (connection events, etc.)
   prisma.$on('info', (e) => {
     if (isDevelopment) {
-      console.info('ℹ️ Prisma Info:', e.message);
+      logger.info('Prisma info', {
+        message: e.message,
+        target: e.target
+      });
     }
   });
 
   // Warning monitoring
   prisma.$on('warn', (e) => {
-    console.warn('⚠️ Prisma Warning:', e.message);
+    logger.warn('Prisma warning', {
+      message: e.message,
+      target: e.target
+    });
   });
 }
 
@@ -117,9 +124,12 @@ if (!isProduction) {
 export const checkDatabaseConnection = async (): Promise<boolean> => {
   try {
     await prisma.$queryRaw`SELECT 1`;
+    logger.debug('Database connection check successful');
     return true;
   } catch (error) {
-    console.error('Database connection check failed:', error);
+    logger.error('Database connection check failed', {
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
     return false;
   }
 };
@@ -135,27 +145,49 @@ export const queryWithMetrics = async <T>(
     const duration = Date.now() - start;
     
     if (duration > 100) { // Log queries taking >100ms
-      console.log(`📊 ${queryName} completed in ${duration}ms`);
+      logger.info('Database query completed', {
+        queryName,
+        duration,
+        slow: duration > 500
+      });
     }
     
     return result;
   } catch (error) {
     const duration = Date.now() - start;
-    console.error(`❌ ${queryName} failed after ${duration}ms:`, error);
+    logger.error('Database query failed', {
+      queryName,
+      duration,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
     throw error;
   }
 };
 
 // Graceful shutdown handling
+let isShuttingDown = false;
+
 const gracefulShutdown = async () => {
-  console.log('🔄 Shutting down Prisma connection...');
-  await prisma.$disconnect();
-  console.log('✅ Prisma connection closed');
+  if (isShuttingDown) {
+    return; // Prevent multiple shutdown attempts
+  }
+  
+  isShuttingDown = true;
+  logger.info('Shutting down Prisma connection');
+  
+  try {
+    await prisma.$disconnect();
+    logger.info('Prisma connection closed successfully');
+  } catch (error) {
+    logger.error('Error closing Prisma connection', {
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 };
 
-// Handle shutdown signals
-if (typeof process !== 'undefined') {
+// Handle shutdown signals (only in production or when explicitly needed)
+if (typeof process !== 'undefined' && (isProduction || process.env.ENABLE_PRISMA_SHUTDOWN_HANDLERS === 'true')) {
   process.on('SIGINT', gracefulShutdown);
   process.on('SIGTERM', gracefulShutdown);
-  process.on('beforeExit', gracefulShutdown);
+  // Remove beforeExit as it's triggered too frequently in development
 }

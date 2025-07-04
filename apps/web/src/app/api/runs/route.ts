@@ -4,149 +4,141 @@ import { prisma } from "@lib/prisma";
 import { calculateVDOTJackDaniels } from "@utils/running/jackDaniels";
 import { parseDuration } from "@utils/time";
 import { cache, cacheManager } from "@lib/cache/cache-manager";
+import { validateQuery, validateRequest } from "@lib/utils/validation/apiValidator";
+import { withRequestLogging } from "@lib/middleware/requestLogger";
+import { withErrorHandler, ErrorUtils, handlePrismaError } from "@lib/utils/errorHandling";
+import { logger } from "@lib/logger";
+import runSchema from "@lib/schemas/runSchema";
+import * as Yup from "yup";
 
-export async function GET(request: NextRequest) {
-  try {
-    // Extract parameters from query string
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const page = parseInt(searchParams.get('page') || '0');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100); // Max 100 items
-    const includeShoe = searchParams.get('includeShoe') === 'true';
+// Query validation schema for GET endpoint
+const runsQuerySchema = Yup.object().shape({
+  userId: Yup.string().required("User ID is required"),
+  page: Yup.number().integer().min(0, "Page must be 0 or greater").default(0),
+  limit: Yup.number().integer().min(1, "Limit must be at least 1").max(100, "Limit cannot exceed 100").default(50),
+  includeShoe: Yup.boolean().default(false)
+});
+
+export const GET = withRequestLogging()(
+  withErrorHandler(async (request: NextRequest) => {
+    const requestId = request.headers.get('x-request-id');
     
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
+    // Validate query parameters
+    const queryValidation = await validateQuery(request, runsQuerySchema);
+    if (!queryValidation.success) {
+      throw ErrorUtils.validationError(queryValidation.errors || [], requestId);
     }
 
-    // Validate pagination parameters
-    if (page < 0 || limit < 1) {
-      return NextResponse.json(
-        { error: "Invalid pagination parameters" },
-        { status: 400 }
-      );
-    }
+    const { userId, page, limit, includeShoe } = queryValidation.data;
     
-    // OPTIMIZED: Cache runs data with pagination
-    const runsData = await cache.user.runs(userId, page, limit, async () => {
-      const [runs, totalCount] = await Promise.all([
-        prisma.run.findMany({
-          where: { userId },
-          orderBy: { date: 'desc' },
-          take: limit,
-          skip: page * limit,
-          select: {
-            id: true,
-            date: true,
-            duration: true,
-            distance: true,
-            distanceUnit: true,
-            pace: true,
-            paceUnit: true,
-            elevationGain: true,
-            elevationGainUnit: true,
-            trainingEnvironment: true,
-            name: true,
-            notes: true,
-            createdAt: true,
-            updatedAt: true,
-            // Conditionally include shoe data
-            ...(includeShoe && {
-              shoe: {
-                select: {
-                  id: true,
-                  name: true,
-                  currentDistance: true,
-                  maxDistance: true,
-                  distanceUnit: true,
+    try {
+      // OPTIMIZED: Cache runs data with pagination
+      const runsData = await cache.user.runs(userId, page, limit, async () => {
+        const [runs, totalCount] = await Promise.all([
+          prisma.run.findMany({
+            where: { userId },
+            orderBy: { date: 'desc' },
+            take: limit,
+            skip: page * limit,
+            select: {
+              id: true,
+              date: true,
+              duration: true,
+              distance: true,
+              distanceUnit: true,
+              pace: true,
+              paceUnit: true,
+              elevationGain: true,
+              elevationGainUnit: true,
+              trainingEnvironment: true,
+              name: true,
+              notes: true,
+              createdAt: true,
+              updatedAt: true,
+              // Conditionally include shoe data
+              ...(includeShoe && {
+                shoe: {
+                  select: {
+                    id: true,
+                    name: true,
+                    currentDistance: true,
+                    maxDistance: true,
+                    distanceUnit: true,
+                  }
                 }
-              }
-            })
-          }
-        }),
-        // Get total count for pagination metadata
-        prisma.run.count({
-          where: { userId }
-        })
-      ]);
+              })
+            }
+          }),
+          // Get total count for pagination metadata
+          prisma.run.count({
+            where: { userId }
+          })
+        ]);
+        
+        return { runs, totalCount };
+      });
       
-      return { runs, totalCount };
-    });
-    
-    const { runs, totalCount } = runsData;
+      const { runs, totalCount } = runsData;
 
-    // Calculate pagination metadata
-    const totalPages = Math.ceil(totalCount / limit);
-    const hasNextPage = page < totalPages - 1;
-    const hasPreviousPage = page > 0;
-    
-    return NextResponse.json({
-      runs,
-      pagination: {
+      // Calculate pagination metadata
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasNextPage = page < totalPages - 1;
+      const hasPreviousPage = page > 0;
+      
+      logger.info('Runs retrieved successfully', {
+        userId,
         page,
         limit,
         totalCount,
-        totalPages,
-        hasNextPage,
-        hasPreviousPage,
-      }
-    }, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching runs:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Error fetching runs" },
-      { status: 500 }
-    );
-  }
-}
+        requestId
+      });
+      
+      return NextResponse.json({
+        runs,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages,
+          hasNextPage,
+          hasPreviousPage,
+        }
+      }, { status: 200 });
+    } catch (error) {
+      const dbError = handlePrismaError(error, 'fetch', 'runs', requestId);
+      throw dbError;
+    }
+  })
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
+export const POST = withRequestLogging()(
+  withErrorHandler(async (request: NextRequest) => {
+    const requestId = request.headers.get('x-request-id');
     
-    // Validate required fields
+    // Validate request body using the existing run schema
+    const validation = await validateRequest(request, runSchema);
+    if (!validation.success) {
+      throw ErrorUtils.validationError(validation.errors || [], requestId);
+    }
+
     const {
       date,
       duration,
       distance,
       distanceUnit,
       trainingEnvironment,
-      pace, // expected format: { pace: string, unit: "miles" | "kilometers" } or null
+      pace,
       elevationGain,
       elevationGainUnit,
       notes,
       userId,
       shoeId,
       name,
-    } = body;
-    
-    // Validate required fields
-    if (!date || !duration || !distance || !distanceUnit || !userId) {
-      return NextResponse.json(
-        { error: "Missing required fields: date, duration, distance, distanceUnit, userId" },
-        { status: 400 }
-      );
-    }
-    
-    // Validate data types and ranges
-    if (typeof distance !== 'number' || distance <= 0) {
-      return NextResponse.json(
-        { error: "Distance must be a positive number" },
-        { status: 400 }
-      );
-    }
-    
-    if (!['miles', 'kilometers'].includes(distanceUnit)) {
-      return NextResponse.json(
-        { error: "Distance unit must be 'miles' or 'kilometers'" },
-        { status: 400 }
-      );
-    }
+    } = validation.data;
 
-    // OPTIMIZED: Use transaction to eliminate N+1 queries
-    const newRun = await prisma.$transaction(async (tx) => {
+    try {
+      // OPTIMIZED: Use transaction to eliminate N+1 queries
+      const newRun = await prisma.$transaction(async (tx) => {
       // Single query to get user data (defaultShoeId and current VDOT)
       const userData = await tx.user.findUnique({
         where: { id: userId },
@@ -262,21 +254,25 @@ export async function POST(request: NextRequest) {
       // Execute all operations in parallel
       const results = await Promise.all(operations);
       
-      // Return the created run (first operation result)
-      return results[0];
-    });
+        // Return the created run (first operation result)
+        return results[0];
+      });
 
-    // Invalidate runs cache after creating a new run
-    await cacheManager.invalidateByTags(['runs', 'user']);
+      // Invalidate runs cache after creating a new run
+      await cacheManager.invalidateByTags(['runs', 'user']);
 
-    return NextResponse.json(newRun, { status: 201 });
-  } catch (error) {
-    console.error("Error creating run:", error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Error creating run",
-      },
-      { status: 500 }
-    );
-  }
-}
+      logger.info('Run created successfully', {
+        userId,
+        runId: newRun.id,
+        distance,
+        duration,
+        requestId
+      });
+
+      return NextResponse.json(newRun, { status: 201 });
+    } catch (error) {
+      const dbError = handlePrismaError(error, 'create', 'run', requestId);
+      throw dbError;
+    }
+  })
+);

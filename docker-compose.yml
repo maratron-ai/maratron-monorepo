@@ -75,6 +75,8 @@ services:
       - WEATHER__API_KEY=${WEATHER__API_KEY}
       # AI API configuration
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # Seed configuration - suppress verbose output
+      - "SEED_QUIET=true"
     depends_on:
       postgres:
         condition: service_healthy

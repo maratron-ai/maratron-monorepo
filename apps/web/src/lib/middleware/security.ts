@@ -2,6 +2,39 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
+ * Recursively sanitize input data to prevent XSS and injection attacks
+ */
+function sanitizeInputRecursively(data: unknown): unknown {
+  if (typeof data === 'string') {
+    return data
+      .replace(/[<>]/g, '') // Remove potential HTML tags
+      .replace(/javascript:/gi, '') // Remove javascript: URLs
+      .replace(/on\w+\s*=/gi, '') // Remove event handlers
+      .replace(/data:text\/html/gi, '') // Remove data URLs with HTML
+      .replace(/vbscript:/gi, '') // Remove VBScript
+      .replace(/expression\s*\(/gi, '') // Remove CSS expressions
+      .trim();
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeInputRecursively(item));
+  }
+
+  if (data && typeof data === 'object') {
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      // Sanitize key as well
+      const sanitizedKey = key.replace(/[<>]/g, '').trim();
+      sanitized[sanitizedKey] = sanitizeInputRecursively(value);
+    }
+    return sanitized;
+  }
+
+  return data;
+}
+
+
+/**
  * Security headers middleware to enhance application security
  */
 export function withSecurityHeaders() {
@@ -172,11 +205,20 @@ export function withInputSanitization() {
                 );
               }
               
-              // TODO: Add more sophisticated input sanitization here
-              // For now, we rely on validation in individual handlers
+              // Enhanced input sanitization
+              const sanitizedBody = sanitizeInputRecursively(body);
+              
+              // Recreate request with sanitized body
+              const sanitizedRequest = new NextRequest(request.url, {
+                method: request.method,
+                headers: request.headers,
+                body: JSON.stringify(sanitizedBody)
+              });
+              
+              return await handler(sanitizedRequest, ...args);
             }
             
-            // Recreate request with sanitized body
+            // For non-object bodies, just pass through
             const sanitizedRequest = new NextRequest(request.url, {
               method: request.method,
               headers: request.headers,

@@ -41,6 +41,22 @@ export class CacheManager {
   }
 
   /**
+   * Check if error is a Redis connection error
+   */
+  private isRedisConnectionError(error: unknown): boolean {
+    return error instanceof Error && (
+      error.message.includes('enableOfflineQueue options is false') ||
+      error.message.includes('Connection is closed') ||
+      error.message.includes('Stream isn\'t writeable') ||
+      error.message.includes('Redis connection') ||
+      error.message.includes('ECONNREFUSED') ||
+      error.message.includes('ENOTFOUND') ||
+      error.message.includes('ETIMEDOUT') ||
+      error.message.includes('ECONNRESET')
+    );
+  }
+
+  /**
    * Get data from cache with fallback to database
    */
   async get<T>(
@@ -104,7 +120,12 @@ export class CacheManager {
       return { data: null, hit: false, source: 'cache' };
       
     } catch (error) {
-      console.error(`Cache get error for key ${key}:`, error);
+      if (this.isRedisConnectionError(error)) {
+        console.warn(`Redis connection issue for key ${key}, falling back to database:`, error instanceof Error ? error.message : 'Unknown error');
+      } else {
+        console.error(`Cache get error for key ${key}:`, error);
+      }
+      
       this.stats.errors++;
       
       // If cache fails, try fallback
@@ -162,7 +183,12 @@ export class CacheManager {
       return true;
       
     } catch (error) {
-      console.error(`Cache set error for key ${key}:`, error);
+      if (this.isRedisConnectionError(error)) {
+        console.warn(`Redis connection issue for key ${key}, cache set skipped:`, error instanceof Error ? error.message : 'Unknown error');
+      } else {
+        console.error(`Cache set error for key ${key}:`, error);
+      }
+      
       this.stats.errors++;
       return false;
     }
@@ -184,7 +210,12 @@ export class CacheManager {
       }
       return false;
     } catch (error) {
-      console.error(`Cache delete error for key ${key}:`, error);
+      if (this.isRedisConnectionError(error)) {
+        console.warn(`Redis connection issue for key ${key}, cache delete skipped:`, error instanceof Error ? error.message : 'Unknown error');
+      } else {
+        console.error(`Cache delete error for key ${key}:`, error);
+      }
+      
       this.stats.errors++;
       return false;
     }
@@ -261,7 +292,11 @@ export class CacheManager {
         await this.redis.expire(tagKey, 3600); // 1 hour
       }
     } catch (error) {
-      console.error(`Error adding tags for key ${key}:`, error);
+      if (this.isRedisConnectionError(error)) {
+        console.warn(`Redis connection issue adding tags for key ${key}, tags skipped:`, error instanceof Error ? error.message : 'Unknown error');
+      } else {
+        console.error(`Error adding tags for key ${key}:`, error);
+      }
     }
   }
 

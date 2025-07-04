@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:verbose": "SEED_QUIET=false tsx prisma/seed.ts",
     "db:reset": "npx prisma migrate reset --force && npm run db:seed"
   },
   "dependencies": {
