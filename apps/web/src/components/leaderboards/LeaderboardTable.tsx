@@ -8,7 +8,6 @@ import {
   ChevronUp, 
   ChevronDown, 
   Minus,
-  Flame,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -61,8 +60,11 @@ const getRankChangeIcon = (change: number | undefined, userId: string) => {
 };
 
 const getUserInitials = (name: string): string => {
+  if (!name || typeof name !== 'string') return '';
+  
   return name
     .split(' ')
+    .filter(n => n.length > 0) // Filter out empty strings
     .map(n => n[0])
     .join('')
     .toUpperCase()
@@ -142,7 +144,7 @@ export function LeaderboardTable({
           <tbody>
             {entries.map((entry) => {
               const isCurrentUser = currentUserId === entry.userId;
-              const rankChangeKey = `rank-change-${entry.userId}`;
+              // const rankChangeKey = `rank-change-${entry.userId}`;
               
               return (
                 <tr

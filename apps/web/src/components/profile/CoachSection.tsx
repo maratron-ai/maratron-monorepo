@@ -87,7 +87,9 @@ export default function CoachSection({ formData, isEditing, onChange }: CoachSec
   const selectedCoach = formData.selectedCoach || coaches.find(coach => coach.id === formData.selectedCoachId);
 
   // Get personality-based styling that matches the brand theme with transparent backgrounds
-  const getPersonalityStyle = (personality: string) => {
+  const getPersonalityStyle = (personality: string | undefined | null) => {
+    if (!personality) return 'bg-slate-500/10';
+    
     switch (personality.toLowerCase()) {
       case 'motivational':
         return 'bg-purple-500/10';
@@ -106,7 +108,9 @@ export default function CoachSection({ formData, isEditing, onChange }: CoachSec
     }
   };
 
-  const getPersonalityBadgeStyle = (personality: string) => {
+  const getPersonalityBadgeStyle = (personality: string | undefined | null) => {
+    if (!personality) return 'bg-slate-500/20 text-slate-300';
+    
     switch (personality.toLowerCase()) {
       case 'motivational':
         return 'bg-purple-500/20 text-purple-300';

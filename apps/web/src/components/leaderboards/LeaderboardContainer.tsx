@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
@@ -39,10 +39,10 @@ export function LeaderboardContainer({ className }: LeaderboardContainerProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<LeaderboardPeriod>('weekly');
   const [selectedMetric, setSelectedMetric] = useState<LeaderboardMetric>('totalDistance');
   const [selectedType, setSelectedType] = useState<LeaderboardType>('global');
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedGroupId] = useState<string | null>(null);
 
   // Fetch leaderboard data
-  const fetchLeaderboardData = async () => {
+  const fetchLeaderboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -75,12 +75,12 @@ export function LeaderboardContainer({ className }: LeaderboardContainerProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPeriod, selectedMetric, selectedType, selectedGroupId]);
 
   // Fetch data when filters change
   useEffect(() => {
     fetchLeaderboardData();
-  }, [selectedPeriod, selectedMetric, selectedType, selectedGroupId]);
+  }, [fetchLeaderboardData]);
 
   // Get podium entries (top 3)
   const getPodiumEntries = (): PodiumEntry[] => {
@@ -94,10 +94,10 @@ export function LeaderboardContainer({ className }: LeaderboardContainerProps) {
   };
 
   // Get table entries (rank 4-10)
-  const getTableEntries = () => {
-    if (!leaderboardData?.entries) return [];
-    return leaderboardData.entries.slice(3);
-  };
+  // const getTableEntries = () => {
+  //   if (!leaderboardData?.entries) return [];
+  //   return leaderboardData.entries.slice(3);
+  // };
 
   const handleUserClick = (userId: string) => {
     // Navigate to user profile
@@ -257,7 +257,7 @@ export function LeaderboardContainer({ className }: LeaderboardContainerProps) {
                 </Badge>
                 {leaderboardData.userEntry && !leaderboardData.entries.find(e => e.userId === leaderboardData.userEntry!.userId) && (
                   <Badge variant="secondary">
-                    You're rank #{leaderboardData.userEntry.rank}
+                    You&apos;re rank #{leaderboardData.userEntry.rank}
                   </Badge>
                 )}
               </div>

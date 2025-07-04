@@ -6,7 +6,7 @@ import { withRateLimit, RATE_LIMITS } from '@lib/middleware/rateLimit';
 export const GET = withRateLimit(RATE_LIMITS.API, "coaches-get")(
   async (request: NextRequest) => {
     // Require authentication for coach data access
-    const authResult = await requireAuth(request);
+    const authResult = await requireAuth();
     if (!authResult.isAuthenticated) {
       return unauthorizedResponse(authResult.error);
     }

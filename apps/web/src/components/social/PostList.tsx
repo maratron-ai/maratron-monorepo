@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import type { RunPost } from "@maratypes/social";
 import LikeButton from "@components/social/LikeButton";
 import CommentSection from "@components/social/CommentSection";
-import { Card, Dialog, DialogContent, DialogTrigger, Spinner } from "@components/ui";
+import { Card, Dialog, DialogContent, DialogTrigger, Spinner, DateDisplay } from "@components/ui";
 
 interface Props {
   posts: RunPost[];
@@ -40,15 +40,11 @@ export default function PostList({ posts }: Props) {
           <p className="text-base font-semibold">
             {post.distance} mi in {post.time}
           </p>
-          <div className="text-sm text-foreground opacity-60">
-            {new Date(post.createdAt).toLocaleString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </div>
+          <DateDisplay 
+            date={post.createdAt}
+            format="full"
+            className="text-sm text-foreground opacity-60"
+          />
           {post.caption && <p className="mt-2">{post.caption}</p>}
           {post.photoUrl && (
             <Dialog>

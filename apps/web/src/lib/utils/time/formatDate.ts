@@ -33,11 +33,22 @@ export function formatDateSafe(date: string | Date, isServer = typeof window ===
 
 /**
  * Format relative time (e.g., "2 hours ago")
- * Safe for SSR as it doesn't depend on timezone
+ * Returns static format for server-side rendering to prevent hydration issues
  */
-export function formatRelativeTime(date: string | Date): string {
-  const now = new Date();
+export function formatRelativeTime(date: string | Date, isServer = typeof window === 'undefined'): string {
   const then = new Date(date);
+  
+  // For server-side rendering, always show static date format to prevent hydration mismatch
+  if (isServer) {
+    return then.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+  }
+  
+  // Client-side relative time calculation
+  const now = new Date();
   const diffMs = now.getTime() - then.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMins / 60);

@@ -39,30 +39,36 @@ describe('formatDate utilities', () => {
       jest.useRealTimers();
     });
 
-    it('should return "Just now" for very recent dates', () => {
+    it('should return "Just now" for very recent dates (client-side)', () => {
       const recent = new Date('2025-01-15T11:59:30Z');
-      expect(formatRelativeTime(recent)).toBe('Just now');
+      expect(formatRelativeTime(recent, false)).toBe('Just now');
     });
 
-    it('should return minutes for recent dates', () => {
+    it('should return minutes for recent dates (client-side)', () => {
       const fiveMinutesAgo = new Date('2025-01-15T11:55:00Z');
-      expect(formatRelativeTime(fiveMinutesAgo)).toBe('5m ago');
+      expect(formatRelativeTime(fiveMinutesAgo, false)).toBe('5m ago');
     });
 
-    it('should return hours for same day', () => {
+    it('should return hours for same day (client-side)', () => {
       const twoHoursAgo = new Date('2025-01-15T10:00:00Z');
-      expect(formatRelativeTime(twoHoursAgo)).toBe('2h ago');
+      expect(formatRelativeTime(twoHoursAgo, false)).toBe('2h ago');
     });
 
-    it('should return days for recent days', () => {
+    it('should return days for recent days (client-side)', () => {
       const threeDaysAgo = new Date('2025-01-12T12:00:00Z');
-      expect(formatRelativeTime(threeDaysAgo)).toBe('3d ago');
+      expect(formatRelativeTime(threeDaysAgo, false)).toBe('3d ago');
     });
 
-    it('should return formatted date for old dates', () => {
+    it('should return formatted date for old dates (client-side)', () => {
       const oldDate = new Date('2024-01-15T12:00:00Z');
-      const result = formatRelativeTime(oldDate);
+      const result = formatRelativeTime(oldDate, false);
       expect(result).toMatch(/Jan 15, 2024/);
+    });
+
+    it('should return static date format for server-side', () => {
+      const date = new Date('2025-01-15T12:00:00Z');
+      const result = formatRelativeTime(date, true);
+      expect(result).toMatch(/Jan 15, 2025/);
     });
   });
 });
