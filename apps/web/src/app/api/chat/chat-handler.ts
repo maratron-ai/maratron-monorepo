@@ -1044,7 +1044,8 @@ The user's context is automatically set - you can immediately use any tool to ac
           });
           
           if (!userData) {
-            throw new Error(`User ${userId} not found`);
+            console.warn(`User ${userId} not found in database`);
+            return null; // Return null instead of throwing
           }
           
           // Get recent run count for context
@@ -1064,11 +1065,17 @@ The user's context is automatically set - you can immediately use any tool to ac
           };
         });
         
-        console.log(`✅ User context data loaded (${userContextData?.cachedAt ? 'from cache' : 'fresh fetch'})`);
-        
-        // Set user context in MCP server (will skip if already set)
-        await mcpClient.setUserContext(userId, timezone);
-        console.log(`User context set for: ${userId}${timezone ? ` with timezone: ${timezone}` : ''}`);
+        if (userContextData) {
+          console.log(`✅ User context data loaded (${userContextData?.cachedAt ? 'from cache' : 'fresh fetch'})`);
+          
+          // Set user context in MCP server (will skip if already set)
+          await mcpClient.setUserContext(userId, timezone);
+          console.log(`User context set for: ${userId}${timezone ? ` with timezone: ${timezone}` : ''}`);
+        } else {
+          console.warn(`⚠️ User ${userId} not found - continuing with limited context`);
+          // Still set basic user context for MCP even if user data is missing
+          await mcpClient.setUserContext(userId, timezone);
+        }
       } else {
         console.log(`⚡ User context already established for: ${userId} - skipping cache/MCP setup`);
       }
