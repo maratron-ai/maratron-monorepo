@@ -77,10 +77,10 @@ export default function NotFound() {
                     seconds
                   </p>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={handleStopCountdown}
-                    className="text-xs text-muted-foreground hover:text-foreground"
+                    className="text-xs bg-background border-foreground/40 text-foreground hover:bg-foreground hover:text-white font-medium"
                   >
                     Cancel redirect
                   </Button>
@@ -92,13 +92,13 @@ export default function NotFound() {
                 <Button
                   onClick={handleGoBack}
                   variant="outline"
-                  className="w-full border-muted-foreground/20 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full border-foreground/30 bg-background hover:bg-foreground hover:text-background text-foreground font-medium transition-colors"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Go Back
                 </Button>
 
-                <Button asChild className="w-full bg-brand-from hover:bg-brand-from/90 text-white">
+                <Button asChild className="w-full bg-brand-from hover:bg-brand-from/90 text-white font-medium shadow-sm">
                   <Link href="/">
                     <Home className="h-4 w-4 mr-2" />
                     Home Page
@@ -112,23 +112,23 @@ export default function NotFound() {
                   Or try one of these pages:
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/runs" className="text-xs">
+                  <Button variant="outline" size="sm" asChild className="bg-background border-foreground/30 hover:bg-foreground hover:text-white">
+                    <Link href="/runs" className="text-xs text-foreground font-medium hover:text-white">
                       My Runs
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/analytics" className="text-xs">
+                  <Button variant="outline" size="sm" asChild className="bg-background border-foreground/30 hover:bg-foreground hover:text-white">
+                    <Link href="/analytics" className="text-xs text-foreground font-medium hover:text-white">
                       Analytics
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/social" className="text-xs">
+                  <Button variant="outline" size="sm" asChild className="bg-background border-foreground/30 hover:bg-foreground hover:text-white">
+                    <Link href="/social" className="text-xs text-foreground font-medium hover:text-white">
                       Social
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/plan-generator" className="text-xs">
+                  <Button variant="outline" size="sm" asChild className="bg-background border-foreground/30 hover:bg-foreground hover:text-white">
+                    <Link href="/plan-generator" className="text-xs text-foreground font-medium hover:text-white">
                       <Search className="h-3 w-3 mr-1" />
                       Plans
                     </Link>
