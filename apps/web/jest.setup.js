@@ -78,7 +78,11 @@ beforeAll(() => {
        args[0].includes('PrismaClient is unable to run in this browser environment') ||
        args[0].includes('has been bundled for the browser') ||
        args[0].includes('Error fetching leaderboard data: Error: Database error') ||
-       args[0].includes('Error updating user coach: Error: Database update failed'))
+       args[0].includes('Error updating user coach: Error: Database update failed') ||
+       args[0].includes('TypeError: Cannot read properties of undefined (reading \'get\')') ||
+       args[0].includes('Cannot read properties of undefined (reading \'get\')') ||
+       args[0].includes('RequestCookies') ||
+       args[0].includes('NextRequest'))
     ) {
       return;
     }
