@@ -17,10 +17,30 @@ import {
   validateChatRequest 
 } from '../chat-handler';
 import { generateText } from 'ai';
+import { cache } from '@lib/cache/cache-manager';
+import { prisma } from '@lib/prisma';
+import type { User } from '@maratypes/user';
 
 // Mock dependencies
 jest.mock('@lib/mcp/client');
 jest.mock('@ai-sdk/anthropic');
+jest.mock('@lib/prisma', () => ({
+  prisma: {
+    user: {
+      findUnique: jest.fn()
+    },
+    run: {
+      count: jest.fn()
+    }
+  }
+}));
+jest.mock('@lib/cache/cache-manager', () => ({
+  cache: {
+    user: {
+      context: jest.fn()
+    }
+  }
+}));
 jest.mock('ai', () => ({
   generateText: jest.fn(),
   tool: jest.fn((config) => ({
@@ -30,18 +50,47 @@ jest.mock('ai', () => ({
 }));
 
 const mockGenerateText = generateText as jest.MockedFunction<typeof generateText>;
+const mockCache = cache as jest.Mocked<typeof cache>;
+const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 describe('Chat API MCP Integration', () => {
   const mockMCPClient = {
     connect: jest.fn(),
     setUserContext: jest.fn(),
+    isUserContextSet: jest.fn().mockReturnValue(false), // Default: context not set
+    clearUserContext: jest.fn(),
     callTool: jest.fn(),
     getUserContext: jest.fn(),
+    getUserRuns: jest.fn(),
+    getDatabaseSummary: jest.fn(),
+    listTools: jest.fn(),
     disconnect: jest.fn(),
   } as jest.Mocked<typeof mockMCPClient>; // Type assertion for test mock
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Set up default Prisma mocks for all tests
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'test-user-123',
+      name: 'Test User',
+      email: 'test@example.com',
+      defaultDistanceUnit: 'miles',
+      defaultElevationUnit: 'feet',
+      trainingLevel: 'beginner',
+      goals: [],
+      createdAt: new Date()
+    } as Partial<User>);
+    
+    mockPrisma.run.count.mockResolvedValue(5);
+    
+    // Set up default cache mock - always call fallback for tests
+    mockCache.user.context.mockImplementation(async (userId, fallback) => {
+      if (fallback) {
+        return await fallback();
+      }
+      return null;
+    });
     
     // Default mock for generateText
     mockGenerateText.mockResolvedValue({
@@ -141,6 +190,8 @@ describe('Chat API MCP Integration', () => {
         content: [{ type: 'text', text: '{}' }],
         isError: false
       });
+
+      // Mocks are set up globally in beforeEach
 
       await handleMCPEnhancedChat(validMessages, userId, mockMCPClient);
 
@@ -276,8 +327,8 @@ describe('Chat API MCP Integration', () => {
       const result = await handleMCPEnhancedChat(dataQuery, userId, mockMCPClient);
 
       // With three-phase execution, system prompt is consistent across all requests
-      expect(result.systemPrompt).toContain('Maratron AI');
-      expect(result.systemPrompt).toContain('running and fitness coach');
+      expect(result.systemPrompt).toContain('running coach');
+      expect(result.systemPrompt).toContain('User Information');
       expect(result.mcpStatus).toBe('enhanced');
     });
 
@@ -324,6 +375,8 @@ describe('Chat API MCP Integration', () => {
         content: [{ type: 'text', text: 'Mock shoe data' }],
         isError: false
       });
+
+      // Mocks are set up globally in beforeEach
 
       // Mock planning and synthesis phases
       const planningResponse = {

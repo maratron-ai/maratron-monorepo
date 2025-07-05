@@ -39,6 +39,8 @@ describe('Advanced MCP Integration Tests', () => {
     // Setup MCP client mock
     mockMCPClient = {
       setUserContext: jest.fn(),
+      isUserContextSet: jest.fn().mockReturnValue(false), // Default: context not set
+      clearUserContext: jest.fn(),
       getUserContext: jest.fn(),
       callTool: jest.fn(),
       getUserRuns: jest.fn(),
