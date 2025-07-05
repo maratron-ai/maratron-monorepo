@@ -72,6 +72,12 @@ const config = {
     '<rootDir>/src/lib/middleware/__tests__/security.test.ts'
   ],
   
+  // Suppress watchman warnings
+  watchman: false,
+  
+  // Reduce verbose output
+  verbose: false,
+  
   // Resolve modules
   moduleDirectories: ['node_modules', '<rootDir>/src'],
 };

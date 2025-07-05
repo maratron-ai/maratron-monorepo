@@ -82,7 +82,14 @@ beforeAll(() => {
        args[0].includes('TypeError: Cannot read properties of undefined (reading \'get\')') ||
        args[0].includes('Cannot read properties of undefined (reading \'get\')') ||
        args[0].includes('RequestCookies') ||
-       args[0].includes('NextRequest'))
+       args[0].includes('NextRequest') ||
+       args[0].includes('Fallback also failed:') ||
+       args[0].includes('Cache get error for key') ||
+       // Test-specific error patterns that are expected
+       args[0].includes('Enhanced chat generation failed:') ||
+       args[0].includes('Fallback generation also failed:') ||
+       args[0].includes('Cache health check failed:') ||
+       args[0].includes('❌ Redis client error:'))
     ) {
       return;
     }
@@ -99,7 +106,10 @@ beforeAll(() => {
        args[0].includes('MCP client unavailable') ||
        args[0].includes('Unable to initialize MCP client') ||
        args[0].includes('Failed to fetch user coach information') ||
-       args[0].includes('PrismaClient is unable to run in this browser environment'))
+       args[0].includes('PrismaClient is unable to run in this browser environment') ||
+       args[0].includes('Redis connection issue for key') ||
+       args[0].includes('falling back to database') ||
+       args[0].includes('Stream isn\'t writeable and enableOfflineQueue options is false'))
     ) {
       return;
     }
@@ -126,7 +136,37 @@ beforeAll(() => {
        args[0].includes('📝 No tools needed, returning direct response') ||
        args[0].includes('🔍 Executing') ||
        args[0].includes('tool with') ||
-       args[0].includes('📊 Tool data preview:'))
+       args[0].includes('📊 Tool data preview:') ||
+       // New patterns from chat-handler.ts
+       args[0].includes('🔧 Setting user context with caching for:') ||
+       args[0].includes('📊 Fetching fresh user context data for:') ||
+       args[0].includes('✅ User context data loaded') ||
+       args[0].includes('✅ User context already set, proceeding with tool execution') ||
+       args[0].includes('🔗 Redis client connected') ||
+       args[0].includes('✅ Redis client ready') ||
+       args[0].includes('🔌 Redis client connection closed') ||
+       args[0].includes('🔄 Redis client reconnecting...') ||
+       args[0].includes('🔚 Redis client connection ended') ||
+       args[0].includes('🛠️ Executing') ||
+       args[0].includes('tools in parallel') ||
+       args[0].includes('🛠️ Starting tool:') ||
+       args[0].includes('✅ All') ||
+       args[0].includes('tools completed in parallel') ||
+       // Performance test patterns
+       args[0].includes('concurrent requests completed in') ||
+       args[0].includes('Average duration per request:') ||
+       args[0].includes('completed in') ||
+       args[0].includes('Performance variance across coaches:') ||
+       args[0].includes('Memory usage before:') ||
+       args[0].includes('Memory usage after:') ||
+       args[0].includes('Heap increase:') ||
+       args[0].includes('Error handling completed in') ||
+       args[0].includes('⚡ User context already established for:') ||
+       // Redis connection patterns
+       args[0].includes('🔗 Redis client connected') ||
+       args[0].includes('✅ Redis client ready') ||
+       args[0].includes('🔌 Redis client connection closed') ||
+       args[0].includes('🔄 Redis client reconnecting...'))
     ) {
       return;
     }
