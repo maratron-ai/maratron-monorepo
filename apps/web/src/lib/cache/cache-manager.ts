@@ -429,6 +429,9 @@ export const cache = {
     
     shoes: (userId: string, fallback: () => Promise<unknown>) =>
       withCache(`user:shoes:${userId}`, fallback, CACHE_STRATEGIES.USER_SHOES),
+    
+    context: (userId: string, fallback: () => Promise<unknown>) =>
+      withCache(`user:context:${userId}`, fallback, CACHE_STRATEGIES.USER_CONTEXT),
   },
   
   social: {

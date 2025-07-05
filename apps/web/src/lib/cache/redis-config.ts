@@ -45,6 +45,9 @@ export const CACHE_STRATEGIES = {
   // Session data - short-lived
   USER_SESSION: { ttl: 30 * 60, tags: ['session'], serialize: true } as CacheStrategy, // 30 minutes
   
+  // User context data - frequently accessed
+  USER_CONTEXT: { ttl: 5 * 60, tags: ['user', 'context'], serialize: true } as CacheStrategy, // 5 minutes
+  
   // Performance data
   PERFORMANCE_STATS: { ttl: 5 * 60, tags: ['performance'], serialize: true } as CacheStrategy, // 5 minutes
 } as const;
@@ -162,6 +165,8 @@ export const CACHE_KEYS = {
   COACHES: () => 'coaches:list',
   
   USER_SESSION: (userId: string) => `session:${userId}`,
+  
+  USER_CONTEXT: (userId: string) => `user:context:${userId}`,
   
   PERFORMANCE_STATS: () => 'performance:stats',
 } as const;
