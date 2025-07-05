@@ -11,6 +11,7 @@ import { prisma } from '@lib/prisma';
 import { buildChatSystemPrompt, hasSelectedCoach, getCoachDisplayName } from '@lib/coaches/prompt-builder';
 import type { UserWithCoach } from '@lib/coaches/prompt-builder';
 import { validateChatMessage } from '@lib/utils/validation/apiValidator';
+import { cache } from '@lib/cache/cache-manager';
 
 export interface AuthResult {
   isAuthenticated: boolean;
@@ -39,7 +40,7 @@ export interface ChatResponse {
  * Create MCP tool definitions for Claude function calling
  * Note: User context is automatically set by the system
  */
-function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
+function createMCPTools(mcpClient: MaratronMCPClient) {
   return {
 
     getSmartUserContext: tool({
@@ -47,12 +48,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       parameters: z.object({}),
       execute: async () => {
         try {
-          // First set user context
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_smart_user_context',
             arguments: {}
@@ -71,13 +67,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ limit = 5 }) => {
         try {
-          // First set user context
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
-          // Call the correct MCP tool for user runs data
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_user_runs',
             arguments: { limit }
@@ -211,13 +201,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
         try {
           console.log(`🔍 Executing listUserShoes tool with limit: ${limit}`);
           
-          // First set user context
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
-          // Call the correct MCP tool for user shoes data
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_user_shoes',
             arguments: { limit }
@@ -248,11 +232,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ goalType, targetDistance, targetTime, weeks = 12, distanceUnit = 'miles' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'generate_training_plan',
             arguments: { goal_type: goalType, target_distance: targetDistance, target_time: targetTime, weeks, distance_unit: distanceUnit }
@@ -269,11 +249,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       parameters: z.object({}),
       execute: async () => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_active_training_plan',
             arguments: {}
@@ -295,11 +271,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ goalType, targetValue, targetDate, description }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'set_running_goal',
             arguments: { goal_type: goalType, target_value: targetValue, target_date: targetDate, description }
@@ -316,11 +288,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       parameters: z.object({}),
       execute: async () => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_goal_progress',
             arguments: {}
@@ -339,11 +307,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ period = '3months' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_performance_trends',
             arguments: { period }
@@ -364,11 +328,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ distance, goalDate, distanceUnit = 'miles' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'predict_race_time',
             arguments: { distance, goal_date: goalDate, distance_unit: distanceUnit }
@@ -387,11 +347,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ limit = 10 }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_social_feed',
             arguments: { limit }
@@ -412,11 +368,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ runId, caption, shareToGroups = 'false' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'create_run_post',
             arguments: { run_id: runId, caption, share_to_groups: shareToGroups }
@@ -439,11 +391,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ timePeriod = '4weeks' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'analyze_injury_risk',
             arguments: { time_period: timePeriod }
@@ -462,11 +410,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ focusArea = 'general' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_recovery_recommendations',
             arguments: { focus_area: focusArea }
@@ -485,11 +429,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ period = '4weeks' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'analyze_training_load',
             arguments: { period }
@@ -506,11 +446,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       parameters: z.object({}),
       execute: async () => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_health_insights',
             arguments: {}
@@ -533,11 +469,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ timePeriod = '4weeks' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'analyze_environment_impact',
             arguments: { time_period: timePeriod }
@@ -558,11 +490,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ goalType = 'general', distance = 5.0, conditions = 'any' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_route_recommendations',
             arguments: { goal_type: goalType, distance, conditions }
@@ -579,11 +507,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       parameters: z.object({}),
       execute: async () => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'analyze_elevation_impact',
             arguments: {}
@@ -602,11 +526,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ season = 'current' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_seasonal_training_advice',
             arguments: { season }
@@ -623,11 +543,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       parameters: z.object({}),
       execute: async () => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'optimize_training_environment',
             arguments: {}
@@ -648,11 +564,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       parameters: z.object({}),
       execute: async () => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'analyze_shoe_rotation',
             arguments: {}
@@ -672,11 +584,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ scenario = 'general', season = 'current' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'get_gear_recommendations',
             arguments: { scenario, season }
@@ -695,11 +603,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ equipmentType = 'shoes' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'track_equipment_maintenance',
             arguments: { equipment_type: equipmentType }
@@ -719,11 +623,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ runType = 'easy', distance = 5.0 }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'optimize_gear_selection',
             arguments: { run_type: runType, distance }
@@ -740,11 +640,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       parameters: z.object({}),
       execute: async () => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'plan_equipment_lifecycle',
             arguments: {}
@@ -770,11 +666,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ raceDistance, goalTime, raceDate, courseType = 'road' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'create_race_strategy',
             arguments: { race_distance: raceDistance, goal_time: goalTime, race_date: raceDate, course_type: courseType }
@@ -794,11 +686,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ raceDistance, raceDate }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'analyze_race_readiness',
             arguments: { race_distance: raceDistance, race_date: raceDate }
@@ -817,11 +705,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ timePeriod = '1year' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'benchmark_performance',
             arguments: { time_period: timePeriod }
@@ -841,11 +725,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ season = 'current', focus = 'general' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'plan_race_calendar',
             arguments: { season, focus }
@@ -867,11 +747,7 @@ function createMCPTools(mcpClient: MaratronMCPClient, userId: string) {
       }),
       execute: async ({ raceDistance, raceTime, raceDate, effortLevel = 'maximum' }) => {
         try {
-          await mcpClient.callTool({
-            name: 'set_current_user_tool',
-            arguments: { user_id: userId }
-          });
-          
+          // User context already set by session handler
           const result = await mcpClient.callTool({
             name: 'analyze_post_race_performance',
             arguments: { race_distance: raceDistance, race_time: raceTime, race_date: raceDate, effort_level: effortLevel }
@@ -1143,17 +1019,66 @@ The user's context is automatically set - you can immediately use any tool to ac
       };
     }
 
-    // Automatically set user context for this session
+    // Set user context for this session (only if not already set)
     try {
-      await mcpClient.setUserContext(userId, timezone);
-      console.log(`User context set for: ${userId}${timezone ? ` with timezone: ${timezone}` : ''}`);
+      if (!mcpClient.isUserContextSet(userId, timezone)) {
+        console.log(`🔧 Setting user context with caching for: ${userId}`);
+        
+        // Use cached user context or fetch fresh data
+        const userContextData = await cache.user.context(userId, async () => {
+          console.log(`📊 Fetching fresh user context data for: ${userId}`);
+          
+          // Fetch basic user data that MCP will need
+          const userData = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              defaultDistanceUnit: true,
+              defaultElevationUnit: true,
+              trainingLevel: true,
+              goals: true,
+              createdAt: true
+            }
+          });
+          
+          if (!userData) {
+            throw new Error(`User ${userId} not found`);
+          }
+          
+          // Get recent run count for context
+          const recentRunCount = await prisma.run.count({
+            where: {
+              userId: userId,
+              date: {
+                gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 days ago
+              }
+            }
+          });
+          
+          return {
+            ...userData,
+            recentRunCount,
+            cachedAt: new Date().toISOString()
+          };
+        });
+        
+        console.log(`✅ User context data loaded (${userContextData?.cachedAt ? 'from cache' : 'fresh fetch'})`);
+        
+        // Set user context in MCP server (will skip if already set)
+        await mcpClient.setUserContext(userId, timezone);
+        console.log(`User context set for: ${userId}${timezone ? ` with timezone: ${timezone}` : ''}`);
+      } else {
+        console.log(`⚡ User context already established for: ${userId} - skipping cache/MCP setup`);
+      }
     } catch (error) {
       console.warn(`Failed to set user context for ${userId}:`, error);
       // Continue anyway - some tools might still work
     }
 
     // Create MCP tools for function calling
-    const tools = createMCPTools(mcpClient, userId);
+    const tools = createMCPTools(mcpClient);
     mcpStatus = 'enhanced';
 
     // Two-phase approach: Tool planning + execution + final response
@@ -1178,35 +1103,40 @@ The user's context is automatically set - you can immediately use any tool to ac
     if (planningResult.toolCalls && planningResult.toolCalls.length > 0) {
       console.log('🔄 Phase 2: Executing tools...');
       
-      // Ensure user context is set before executing any tools
-      try {
-        console.log(`🔧 Setting user context for tool execution: ${userId}`);
-        await mcpClient.setUserContext(userId);
-        console.log(`✅ User context confirmed for tool execution`);
-      } catch (error) {
-        console.error(`❌ Failed to set user context for tools:`, error);
-        // Still continue, but note the issue
-      }
+      // Ensure user context is set before executing any tools (skip redundant context setting)
+      console.log(`✅ User context already set, proceeding with tool execution`);
+      // Note: User context was already set above with caching, no need to set again
       
+      // Build toolCalls array for tracking
       for (const toolCall of planningResult.toolCalls) {
         toolCalls.push({
           name: toolCall.toolName,
           arguments: toolCall.args as Record<string, unknown>
         });
+      }
 
+      // Execute all tools in parallel
+      console.log(`🛠️ Executing ${planningResult.toolCalls.length} tools in parallel...`);
+      const toolPromises = planningResult.toolCalls.map(async (toolCall) => {
         try {
-          console.log(`🛠️ Executing tool: ${toolCall.toolName}`);
+          console.log(`🛠️ Starting tool: ${toolCall.toolName}`);
           const toolFunction = tools[toolCall.toolName as keyof typeof tools];
           if (toolFunction && 'execute' in toolFunction) {
             const result = await (toolFunction.execute as (args: Record<string, unknown>) => Promise<string>)(toolCall.args as Record<string, unknown>);
-            toolResults.push(String(result));
             console.log(`✅ Tool ${toolCall.toolName} returned ${String(result).length} characters`);
+            return String(result);
           }
+          return `Tool ${toolCall.toolName} not found`;
         } catch (error) {
           console.error(`❌ Tool ${toolCall.toolName} failed:`, error);
-          toolResults.push(`Error executing ${toolCall.toolName}: ${String(error)}`);
+          return `Error executing ${toolCall.toolName}: ${String(error)}`;
         }
-      }
+      });
+
+      // Wait for all tools to complete
+      const parallelResults = await Promise.all(toolPromises);
+      toolResults.push(...parallelResults);
+      console.log(`✅ All ${planningResult.toolCalls.length} tools completed in parallel`);
 
       // Phase 3: Generate final response with tool results
       console.log('🔄 Phase 3: Generating final response with tool data...');
