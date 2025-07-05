@@ -9,7 +9,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: maratron
-      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: maratrondb
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
@@ -60,7 +60,7 @@ services:
     user: "1000:1000"  # Match the appuser created in Dockerfile
     environment:
       # Connect to containerized PostgreSQL database
-      - DATABASE_URL=postgresql://maratron:yourpassword@postgres:5432/maratrondb
+      - DATABASE_URL=postgresql://maratron:${POSTGRES_PASSWORD}@postgres:5432/maratrondb
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NODE_ENV=${NODE_ENV:-development}

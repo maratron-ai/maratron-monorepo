@@ -38,7 +38,7 @@ const MCP_CONFIGS: MCPEnvironmentConfig = {
     env: {
       ENVIRONMENT: 'development',
       LOG_LEVEL: 'DEBUG',
-      DATABASE_URL: 'postgresql://maratron:yourpassword@host.docker.internal:5432/maratrondb'
+      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://maratron:${POSTGRES_PASSWORD}@host.docker.internal:5432/maratrondb'
     }
   },
   

@@ -1,18 +1,25 @@
 // app/api/runs/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 import { prisma } from "@lib/prisma";
 import { calculateVDOTJackDaniels } from "@utils/running/jackDaniels";
 import { parseDuration } from "@utils/time";
+import { authOptions } from "@lib/auth";
 
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const params = await context.params
     const { id } = params
-    const run = await prisma.run.findUnique({
-      where: { id },
+    const run = await prisma.run.findFirst({
+      where: { id, userId: session.user.id },
     });
     if (!run) {
       return NextResponse.json({ error: "Run not found" }, { status: 404 });
@@ -32,9 +39,23 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const params = await context.params
     const { id } = params
+    
+    // Verify the run belongs to the authenticated user
+    const existingRun = await prisma.run.findFirst({
+      where: { id, userId: session.user.id },
+    });
+    if (!existingRun) {
+      return NextResponse.json({ error: "Run not found" }, { status: 404 });
+    }
+
     const updatedRun = await prisma.run.update({
       where: { id },
       data: body,
@@ -73,8 +94,22 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const params = await context.params
     const { id } = params
+    
+    // Verify the run belongs to the authenticated user
+    const existingRun = await prisma.run.findFirst({
+      where: { id, userId: session.user.id },
+    });
+    if (!existingRun) {
+      return NextResponse.json({ error: "Run not found" }, { status: 404 });
+    }
+
     await prisma.run.delete({
       where: { id },
     });

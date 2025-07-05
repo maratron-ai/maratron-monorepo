@@ -1,7 +1,9 @@
 // app/api/shoes/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 import { prisma } from "@lib/prisma";
 import { shoeSchema } from "@lib/schemas/shoeSchema";
+import { authOptions } from "@lib/auth";
 
 // GET /api/shoes/[id] — Get a specific shoe
 export async function GET(
@@ -9,10 +11,15 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const params = await context.params
     const { id } = params
-    const shoe = await prisma.shoe.findUnique({
-      where: { id },
+    const shoe = await prisma.shoe.findFirst({
+      where: { id, userId: session.user.id },
     });
     if (!shoe) {
       return NextResponse.json({ error: "Shoe not found" }, { status: 404 });
@@ -33,11 +40,25 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     await shoeSchema.validate(body, { abortEarly: false, stripUnknown: true });
 
     const params = await context.params
     const { id } = params
+    
+    // Verify the shoe belongs to the authenticated user
+    const existingShoe = await prisma.shoe.findFirst({
+      where: { id, userId: session.user.id },
+    });
+    if (!existingShoe) {
+      return NextResponse.json({ error: "Shoe not found" }, { status: 404 });
+    }
+
     const updatedShoe = await prisma.shoe.update({
       where: { id },
       data: body,
@@ -58,8 +79,22 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const params = await context.params
     const { id } = params
+    
+    // Verify the shoe belongs to the authenticated user
+    const existingShoe = await prisma.shoe.findFirst({
+      where: { id, userId: session.user.id },
+    });
+    if (!existingShoe) {
+      return NextResponse.json({ error: "Shoe not found" }, { status: 404 });
+    }
+
     await prisma.shoe.delete({
       where: { id },
     });
