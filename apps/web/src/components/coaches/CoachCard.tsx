@@ -66,20 +66,20 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           </div>
 
           {/* Coach Name */}
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-lg font-semibold text-foreground">
             {coach.name}
           </h3>
 
           {/* Personality Badge */}
           <div className={cn(
             'px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide',
-            'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+            'bg-muted text-muted-foreground'
           )}>
             {coach.personality}
           </div>
 
           {/* Coach Description */}
-          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             {coach.description}
           </p>
         </div>

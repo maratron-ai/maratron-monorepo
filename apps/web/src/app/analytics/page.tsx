@@ -218,6 +218,7 @@ export default function AnalyticsPage() {
                   label={({ range, percentage }) => `${range}: ${percentage}%`}
                   labelLine={false}
                   fontSize={11}
+                  fill="var(--foreground)"
                 >
                   {analytics.distanceDistribution.filter(d => d.count > 0).map((entry, index) => (
                     <Cell 
@@ -231,7 +232,9 @@ export default function AnalyticsPage() {
                     backgroundColor: "var(--background)",
                     border: "1px solid var(--accent)",
                     borderRadius: "8px",
+                    color: "var(--foreground)",
                   }}
+                  labelStyle={{ color: "var(--foreground)" }}
                 />
               </PieChart>
             </ResponsiveContainer>
