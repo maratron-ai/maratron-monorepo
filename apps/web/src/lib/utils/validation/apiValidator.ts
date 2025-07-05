@@ -262,17 +262,19 @@ export function containsSuspiciousPatterns(content: string): boolean {
 /**
  * Enhanced chat message validation with content sanitization
  */
-export function validateChatMessage(message: unknown): { isValid: boolean; error?: string; sanitizedMessage?: { role: string; content: string } } {
+export function validateChatMessage(message: unknown): { isValid: boolean; error?: string; sanitizedMessage?: { role: 'user' | 'assistant' | 'system'; content: string } } {
   if (!message || typeof message !== 'object') {
     return { isValid: false, error: 'Message must be an object' };
   }
 
-  const { role, content } = message;
+  const { role, content } = message as { role: unknown; content: unknown };
 
   // Validate role
-  if (!role || !['user', 'assistant', 'system'].includes(role)) {
+  if (!role || !['user', 'assistant', 'system'].includes(role as string)) {
     return { isValid: false, error: 'Invalid message role' };
   }
+
+  const validRole = role as 'user' | 'assistant' | 'system';
 
   // Validate content
   if (typeof content !== 'string') {
@@ -299,7 +301,7 @@ export function validateChatMessage(message: unknown): { isValid: boolean; error
   return {
     isValid: true,
     sanitizedMessage: {
-      role,
+      role: validRole,
       content: sanitizedContent
     }
   };

@@ -173,17 +173,18 @@ export const GET = withRateLimit(RATE_LIMITS.API, "leaderboards-get")(
     });
     
     // Apply limit and add user entry
-    const limitedRankings = leaderboardData.entries.slice(0, limit);
+    const limitedRankings = (leaderboardData as LeaderboardData).entries.slice(0, limit);
     
     // Find current user's entry if they are a group member
     let userEntry;
     const session = await getServerSession(authOptions);
     if (session?.user?.id && userIds.includes(session.user.id)) {
-      userEntry = leaderboardData.entries.find(entry => entry.userId === session.user.id);
+      const userId = session.user.id;
+      userEntry = (leaderboardData as LeaderboardData).entries.find(entry => entry.userId === userId);
     }
 
     const finalLeaderboardData: LeaderboardData = {
-      ...leaderboardData,
+      ...(leaderboardData as LeaderboardData),
       entries: limitedRankings,
       userEntry,
     };

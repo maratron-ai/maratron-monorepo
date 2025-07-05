@@ -9,6 +9,7 @@ import { Spinner } from "@components/ui";
 import { Input } from "@components/ui/input";
 import { SelectField } from "@components/ui/FormField";
 import { Button } from "@components/ui/button";
+import InfoTooltip from "@components/ui/info-tooltip";
 import RunningPlanDisplay from "./RunningPlanDisplay";
 import {
   generate5kPlan,
@@ -316,16 +317,32 @@ const [targetDistance, setTargetDistance] = useState<number>(
                 className="mt-1"
               />
               {/* VDOT */}
-              <Input
-                label="VDOT"
-                name="vdot"
-                type="number"
-                min={20}
-                max={60}
-                value={String(vdot)}
-                onChange={(_n, v) => setVdot(Number(v))}
-                className="mt-1"
-              />
+              <div className="space-y-1">
+                <label className="flex items-center text-sm font-medium text-foreground">
+                  VDOT
+                  <InfoTooltip 
+                    content={
+                      <div className="max-w-sm">
+                        <p className="font-semibold mb-1">VDOT (V-dot O2 max)</p>
+                        <p className="text-sm">
+                          Jack Daniels&apos; training intensity measure based on your race performance. 
+                          Higher values indicate better aerobic fitness. Used to calculate your 
+                          training paces for easy runs, tempo runs, and intervals.
+                        </p>
+                      </div>
+                    }
+                  />
+                </label>
+                <Input
+                  name="vdot"
+                  type="number"
+                  min={20}
+                  max={60}
+                  value={String(vdot)}
+                  onChange={(_n, v) => setVdot(Number(v))}
+                  className="mt-1"
+                />
+              </div>
               {/* Run Type Days
               <div className="grid grid-cols-2 gap-4">
                 {runTypes.map((type) => (

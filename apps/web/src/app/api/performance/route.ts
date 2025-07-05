@@ -4,6 +4,7 @@ import { performanceMonitor } from "@lib/performance/monitoring";
 import { requireAuth, unauthorizedResponse } from "@lib/middleware/auth";
 import { withRateLimit, RATE_LIMITS } from "@lib/middleware/rateLimit";
 import { cacheManager } from "@lib/cache/cache-manager";
+import { prisma } from "@lib/prisma";
 
 export const GET = withRateLimit(RATE_LIMITS.API, "performance-stats")(
   async (request: NextRequest) => {
@@ -61,13 +62,14 @@ export const GET = withRateLimit(RATE_LIMITS.API, "performance-stats")(
           const queryTime = Date.now() - startTime;
           
           // Get connection pool info (if available)
-          const metrics = await prisma.$metrics.json();
+          // Note: $metrics is not available in all Prisma versions
+          // const metrics = null; // await prisma.$metrics?.json() || null;
           
           return NextResponse.json({
             database: {
               healthy: true,
               queryTime,
-              connectionPool: metrics.counters.find(c => c.key === 'prisma_client_queries_total'),
+              connectionPool: null, // metrics?.counters?.find(c => c.key === 'prisma_client_queries_total') || null,
               timestamp: new Date().toISOString()
             }
           });
