@@ -1114,6 +1114,8 @@ docker-compose logs ai
 ## 📚 Additional Resources
 
 ### Documentation Links
+- **[Performance Monitoring Guide](./performance-monitoring.md)** - Enterprise-grade monitoring and optimization
+- **[Production Deployment Guide](./production-deployment.md)** - Complete production deployment guide
 - **[API Reference](./api-reference.md)** - Complete endpoint documentation
 - **[Architecture Overview](./architecture.md)** - System design and patterns
 - **[Redis Caching Guide](./redis-caching.md)** - Caching implementation details

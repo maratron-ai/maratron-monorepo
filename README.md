@@ -189,7 +189,11 @@ npm run clean            # Clean Docker environment
 
 Comprehensive documentation is available in the `docs/` directory:
 
-- **[MCP-LLM Integration](docs/mcp-llm-integration.md)** - 🔥 **NEW**: Technical deep-dive into the function calling architecture
+- **[Performance Monitoring Guide](docs/performance-monitoring.md)** - 🔥 **NEW**: Enterprise-grade monitoring, alerting, and optimization
+- **[Production Deployment Guide](docs/production-deployment.md)** - 🔥 **NEW**: Complete production deployment with security hardening
+- **[Error Handling & Validation](docs/error-handling-validation.md)** - 🔥 **NEW**: AppError patterns, Yup validation, and security best practices
+- **[Advanced Redis Caching Guide](docs/redis-caching.md)** - 🔥 **NEW**: Tag-based invalidation, warming strategies, and production scaling
+- **[MCP-LLM Integration](docs/mcp-llm-integration.md)** - Technical deep-dive into the function calling architecture
 - **[Architecture Overview](docs/architecture.md)** - System design and component relationships
 - **[Web Application](docs/web-app.md)** - Next.js frontend with social features and run tracking  
 - **[AI MCP Server](docs/ai-server.md)** - Python MCP server with database tools and context management
