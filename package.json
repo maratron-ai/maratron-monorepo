@@ -39,6 +39,8 @@
   "author": "Maratron Team",
   "license": "MIT",
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@types/node": "^20",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2"
