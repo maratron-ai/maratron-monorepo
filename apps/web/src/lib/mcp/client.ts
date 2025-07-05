@@ -12,6 +12,8 @@ export class MaratronMCPClient {
   private transport: StdioClientTransport | null = null;
   private isConnected = false;
   private connectionPromise: Promise<void> | null = null;
+  private currentUserId: string | null = null;
+  private currentTimezone: string | null = null;
 
   private config: MCPServerConfig;
 
@@ -75,9 +77,21 @@ export class MaratronMCPClient {
   }
 
   /**
-   * Set user context in the MCP server
+   * Check if user context is already set for this user/timezone combination
+   */
+  isUserContextSet(userId: string, timezone?: string): boolean {
+    return this.currentUserId === userId && this.currentTimezone === (timezone || null);
+  }
+
+  /**
+   * Set user context in the MCP server (only if not already set)
    */
   async setUserContext(userId: string, timezone?: string): Promise<void> {
+    // Skip if already set for this user/timezone
+    if (this.isUserContextSet(userId, timezone)) {
+      return;
+    }
+
     await this.connect();
     
     if (!this.client) {
@@ -94,6 +108,10 @@ export class MaratronMCPClient {
         name: 'set_current_user_tool',
         arguments: toolArgs
       });
+
+      // Track current context
+      this.currentUserId = userId;
+      this.currentTimezone = timezone || null;
     } catch (error) {
       console.error('Failed to set user context:', error);
       throw new Error(`Failed to set user context: ${error}`);
@@ -183,6 +201,14 @@ export class MaratronMCPClient {
       console.error('Failed to list tools:', error);
       return [];
     }
+  }
+
+  /**
+   * Clear user context (for session reset or user change)
+   */
+  clearUserContext(): void {
+    this.currentUserId = null;
+    this.currentTimezone = null;
   }
 
   /**
