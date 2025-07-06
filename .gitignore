@@ -244,3 +244,6 @@ clear-auth.sh
 # Generated coverage reports
 htmlcov/
 coverage/
+
+# Playwright authentication files
+apps/web/playwright/.auth/
