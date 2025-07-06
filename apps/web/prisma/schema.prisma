@@ -295,3 +295,14 @@ model CoachPersona {
 
   @@map("CoachPersonas")
 }
+
+model NewsletterSubscription {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  subscribed   Boolean  @default(true)
+  preferences  Json?    // JSON object with frequency and topics preferences
+  subscribedAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("NewsletterSubscriptions")
+}

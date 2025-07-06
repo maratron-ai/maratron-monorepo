@@ -3,6 +3,8 @@ import { prisma } from "@lib/prisma";
 import { PROFILE_POST_LIMIT } from "@lib/socialLimits";
 import { requireAuth, unauthorizedResponse } from "@lib/middleware/auth";
 import { withRateLimit, RATE_LIMITS } from "@lib/middleware/rateLimit";
+import { validateRequest } from "@lib/utils/validation/apiValidator";
+import { socialPostSchema, validatePostContent } from "@lib/utils/validation/socialSchemas";
 
 export const GET = withRateLimit(RATE_LIMITS.SOCIAL, "posts-get")(
   async () => {
@@ -29,26 +31,53 @@ export const POST = withRateLimit(RATE_LIMITS.SOCIAL, "posts-create")(
     }
     
     try {
-      const data = await request.json();
+      // Validate request body
+      const validation = await validateRequest(request, socialPostSchema);
       
-      // Validate that the socialProfileId belongs to the authenticated user
-      if (data.socialProfileId) {
-        const socialProfile = await prisma.socialProfile.findFirst({
-          where: {
-            id: data.socialProfileId,
-            userId: authResult.userId
-          }
-        });
-        
-        if (!socialProfile) {
-          return NextResponse.json({ error: "Invalid social profile" }, { status: 403 });
-        }
-      } else {
-        return NextResponse.json({ error: "socialProfileId is required" }, { status: 400 });
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: "Invalid post data", details: validation.errors },
+          { status: 400 }
+        );
       }
       
+      const data = validation.data!;
+      
+      // Additional content validation and sanitization
+      if (data.content) {
+        const contentValidation = validatePostContent(data.content);
+        if (!contentValidation.isValid) {
+          return NextResponse.json(
+            { error: contentValidation.error },
+            { status: 400 }
+          );
+        }
+        data.content = contentValidation.sanitized!;
+      }
+      
+      // Validate that the socialProfileId belongs to the authenticated user
+      const socialProfile = await prisma.socialProfile.findFirst({
+        where: {
+          id: data.socialProfileId,
+          userId: authResult.userId
+        }
+      });
+      
+      if (!socialProfile) {
+        return NextResponse.json({ error: "Invalid social profile" }, { status: 403 });
+      }
+      
+      // Create post with validated and sanitized data
       const post = await prisma.runPost.create({ 
-        data: data,
+        data: {
+          socialProfileId: data.socialProfileId,
+          content: data.content,
+          title: data.title,
+          runId: data.runId,
+          photos: data.photos,
+          visibility: data.visibility || 'PUBLIC',
+          tags: data.tags
+        },
         include: {
           socialProfile: true
         }

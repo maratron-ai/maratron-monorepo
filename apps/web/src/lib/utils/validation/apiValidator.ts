@@ -212,15 +212,25 @@ export async function validateQuery<T = unknown>(
  * Sanitize input data to prevent XSS and injection attacks
  */
 export function sanitizeInputData(data: unknown): unknown {
+  if (data === null || data === undefined) {
+    return data;
+  }
+
   if (typeof data === 'string') {
     return data
       .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove script tags and content
       .replace(/<[^>]*>/g, '') // Remove all HTML tags
-      .replace(/javascript:/gi, '') // Remove javascript: URLs
-      .replace(/on\w+\s*=/gi, '') // Remove event handlers
+      .replace(/javascript:[^\s]*/gi, '') // Remove javascript: URLs and following content
+      .replace(/vbscript:/gi, '') // Remove VBScript URLs
+      .replace(/on\w+\s*=[^\s]*/gi, '') // Remove event handlers and their content
       .replace(/data:text\/html/gi, '') // Remove data URLs with HTML
-      .replace(/vbscript:/gi, '') // Remove VBScript
       .replace(/expression\s*\(/gi, '') // Remove CSS expressions
+      .replace(/[@]import/gi, '') // Remove CSS imports
+      .replace(/url\s*\(/gi, '') // Remove CSS urls
+      .replace(/[{}]/g, '') // Remove curly braces (NoSQL injection)
+      .replace(/['"];.*?(?:drop|delete|insert|update|select|union)/gi, '') // Remove SQL injection patterns
+      .replace(/--.*$/gm, '') // Remove SQL comments
+      .replace(/\/\*.*?\*\//g, '') // Remove block comments
       .trim();
   }
 
@@ -229,11 +239,18 @@ export function sanitizeInputData(data: unknown): unknown {
   }
 
   if (data && typeof data === 'object') {
+    // Handle non-plain objects (Date, etc.) safely
+    if (data instanceof Date || data instanceof RegExp || data instanceof Error) {
+      return data;
+    }
+
     const sanitized: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(data)) {
       // Sanitize key as well
-      const sanitizedKey = key.replace(/[<>]/g, '').trim();
-      sanitized[sanitizedKey] = sanitizeInputData(value);
+      const sanitizedKey = key.replace(/[<>{}'"]/g, '').trim();
+      if (sanitizedKey) { // Only add if key is not empty after sanitization
+        sanitized[sanitizedKey] = sanitizeInputData(value);
+      }
     }
     return sanitized;
   }

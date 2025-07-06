@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@lib/prisma";
+import { validateQuery } from "@lib/utils/validation/apiValidator";
+import { socialSearchSchema, sanitizeSearchTokens } from "@lib/utils/validation/socialSchemas";
+import { withRateLimit, RATE_LIMITS } from "@lib/middleware/rateLimit";
 
-export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get("q") || "";
-  const profileId = req.nextUrl.searchParams.get("profileId");
+export const GET = withRateLimit(RATE_LIMITS.SOCIAL, "search")(async (req: NextRequest) => {
+  // Validate query parameters
+  const validation = await validateQuery(req, socialSearchSchema);
+  
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: "Invalid search parameters", details: validation.errors },
+      { status: 400 }
+    );
+  }
+  
+  const { q, profileId } = validation.data!;
   if (!q) return NextResponse.json([]);
-  const tokens = q.split(/\s+/).filter(Boolean);
+  
+  // Sanitize and limit search tokens
+  const tokens = sanitizeSearchTokens(q);
+  
+  if (tokens.length === 0) {
+    return NextResponse.json([]);
+  }
   try {
     const profiles = await prisma.socialProfile.findMany({
       where: {
@@ -66,6 +84,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(results);
   } catch (err) {
     console.error("Error searching profiles", err);
-    return NextResponse.json({ error: "Failed" }, { status: 500 });
+    return NextResponse.json({ error: "Search failed" }, { status: 500 });
   }
-}
+});
