@@ -247,3 +247,5 @@ coverage/
 
 # Playwright authentication files
 apps/web/playwright/.auth/
+# Playwright test artifacts
+test-results/
