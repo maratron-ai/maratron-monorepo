@@ -459,7 +459,47 @@ class UserContextManager:
         except Exception as e:
             print(f"Failed to cache user data: {e}")
     
-    async def _set_preferences_from_optimized_query(self, session: UserSession, user_data):\n        \"\"\"Set user preferences from optimized query result.\"\"\"\n        try:\n            distance_unit = user_data.get('defaultDistanceUnit', 'miles')\n            session.preferences = UserPreferences(distance_unit=distance_unit)\n        except Exception as e:\n            # Default preferences if setting fails\n            session.preferences = UserPreferences()\n            print(f\"Failed to set preferences from optimized query: {e}\")\n    \n    async def _set_cached_data_from_optimized_query(self, session: UserSession, user_data):\n        \"\"\"Set cached user data from optimized query result.\"\"\"\n        try:\n            session.cached_user_data = {\n                'name': user_data.get('name'),\n                'email': user_data.get('email'),\n                'training_level': user_data.get('trainingLevel'),\n                'goals': user_data.get('goals', []),\n                'recent_runs_count': user_data.get('recent_runs_count', 0),\n                'recent_runs': user_data.get('recent_runs', []),\n                'shoes': user_data.get('shoes', [])\n            }\n        except Exception as e:\n            print(f\"Failed to set cached data from optimized query: {e}\")\n    \n    async def _update_cached_data_from_optimized_query(self, session: UserSession, user_data):\n        \"\"\"Update existing cached user data with optimized query result.\"\"\"\n        try:\n            session.cached_user_data.update({\n                'name': user_data.get('name'),\n                'email': user_data.get('email'),\n                'training_level': user_data.get('trainingLevel'),\n                'goals': user_data.get('goals', []),\n                'recent_runs_count': user_data.get('recent_runs_count', 0),\n                'recent_runs': user_data.get('recent_runs', []),\n                'shoes': user_data.get('shoes', [])\n            })\n        except Exception as e:\n            print(f\"Failed to update cached data from optimized query: {e}\")\n    \n    async def _save_session_to_db(self, session: UserSession, active: bool = True):
+    async def _set_preferences_from_optimized_query(self, session: UserSession, user_data):
+        """Set user preferences from optimized query result."""
+        try:
+            distance_unit = user_data.get('defaultDistanceUnit', 'miles')
+            session.preferences = UserPreferences(distance_unit=distance_unit)
+        except Exception as e:
+            # Default preferences if setting fails
+            session.preferences = UserPreferences()
+            print(f"Failed to set preferences from optimized query: {e}")
+    
+    async def _set_cached_data_from_optimized_query(self, session: UserSession, user_data):
+        """Set cached user data from optimized query result."""
+        try:
+            session.cached_user_data = {
+                'name': user_data.get('name'),
+                'email': user_data.get('email'),
+                'training_level': user_data.get('trainingLevel'),
+                'goals': user_data.get('goals', []),
+                'recent_runs_count': user_data.get('recent_runs_count', 0),
+                'recent_runs': user_data.get('recent_runs', []),
+                'shoes': user_data.get('shoes', [])
+            }
+        except Exception as e:
+            print(f"Failed to set cached data from optimized query: {e}")
+    
+    async def _update_cached_data_from_optimized_query(self, session: UserSession, user_data):
+        """Update existing cached user data with optimized query result."""
+        try:
+            session.cached_user_data.update({
+                'name': user_data.get('name'),
+                'email': user_data.get('email'),
+                'training_level': user_data.get('trainingLevel'),
+                'goals': user_data.get('goals', []),
+                'recent_runs_count': user_data.get('recent_runs_count', 0),
+                'recent_runs': user_data.get('recent_runs', []),
+                'shoes': user_data.get('shoes', [])
+            })
+        except Exception as e:
+            print(f"Failed to update cached data from optimized query: {e}")
+    
+    async def _save_session_to_db(self, session: UserSession, active: bool = True):
         """Save session to database."""
         try:
             from ..server import get_pool
@@ -487,11 +527,10 @@ class UserContextManager:
                 await execute_with_timeout(
                     pool,
                     '''INSERT INTO "UserSessions" 
-                       (id, "userId", "sessionId", "sessionData", "createdAt", "lastActivity", "expiresAt", active)
-                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)''',
+                       (id, "userId", "sessionData", "createdAt", "lastActivity", "expiresAt", active)
+                       VALUES ($1, $2, $3, $4, $5, $6, $7)''',
                     session.db_id,
                     session.user_id,
-                    session.session_id,
                     json.dumps(session_data),
                     session.created_at,
                     session.last_activity,

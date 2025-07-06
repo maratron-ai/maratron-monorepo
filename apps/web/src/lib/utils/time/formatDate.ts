@@ -10,25 +10,31 @@ export function formatDateSafe(date: string | Date, isServer = typeof window ===
   const d = new Date(date);
   
   if (isServer) {
-    // Use UTC formatting for server-side rendering to ensure consistency
-    return d.toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric", 
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "UTC"
-    }) + " UTC";
+    // Use manual formatting for server-side rendering to ensure consistency
+    const utcDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
+    const month = utcDate.toLocaleString("en-US", { month: "short" });
+    const day = utcDate.getDate();
+    const year = utcDate.getFullYear();
+    const hours = utcDate.getHours();
+    const minutes = utcDate.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    
+    return `${month} ${day}, ${year}, ${displayHours}:${displayMinutes} ${ampm} UTC`;
   }
   
-  // Use local timezone for client-side
-  return d.toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit", 
-    minute: "2-digit",
-  });
+  // Use local timezone for client-side with consistent format
+  const month = d.toLocaleString("en-US", { month: "short" });
+  const day = d.getDate();
+  const year = d.getFullYear();
+  const hours = d.getHours();
+  const minutes = d.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
+  const displayMinutes = minutes.toString().padStart(2, '0');
+  
+  return `${month} ${day}, ${year}, ${displayHours}:${displayMinutes} ${ampm}`;
 }
 
 /**

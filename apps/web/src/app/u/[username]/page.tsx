@@ -8,7 +8,7 @@ import PostList from "@components/social/PostList";
 import { prisma } from "@lib/prisma";
 import { PROFILE_POST_LIMIT } from "@lib/socialLimits";
 
-async function getProfileData(username: string) {
+async function getProfileData(username: string, viewerUserId?: string) {
   const profile = await prisma.socialProfile.findUnique({
     where: { username },
     select: {
@@ -40,7 +40,13 @@ async function getProfileData(username: string) {
   });
   const posts = await prisma.runPost.findMany({
     where: { socialProfileId: profile.id },
-    include: { _count: { select: { likes: true, comments: true } } },
+    include: { 
+      _count: { select: { likes: true, comments: true } },
+      likes: viewerUserId ? {
+        where: { socialProfile: { userId: viewerUserId } },
+        select: { id: true },
+      } : false,
+    },
     orderBy: { createdAt: "desc" },
     take: PROFILE_POST_LIMIT,
   });
@@ -67,6 +73,21 @@ async function getProfileData(username: string) {
     shoeId: r.shoeId ?? undefined,
   }));
 
+  // Map posts to include liked status
+  const mappedPosts = posts.map((p) => ({
+    id: p.id,
+    socialProfileId: p.socialProfileId,
+    distance: p.distance,
+    time: p.time,
+    caption: p.caption,
+    photoUrl: p.photoUrl,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+    likeCount: p._count.likes,
+    commentCount: p._count.comments,
+    liked: viewerUserId ? p.likes.length > 0 : false,
+  }));
+
   return {
     id: profile.id,
     userId: profile.userId,
@@ -82,7 +103,7 @@ async function getProfileData(username: string) {
     totalDistance: total._sum.distance ?? 0,
     followerCount: profile._count.followers,
     followingCount: profile._count.following,
-    posts,
+    posts: mappedPosts,
     runs,
     followers: profile.followers.map((f) => f.follower),
     following: profile.following.map((f) => f.following),
@@ -97,10 +118,10 @@ interface Props {
 
 export default async function UserProfilePage({ params }: Props) {
   const { username } = await params;
-  const data = await getProfileData(username);
+  const session = await getServerSession(authOptions);
+  const data = await getProfileData(username, session?.user?.id);
   if (!data) return notFound();
 
-  const session = await getServerSession(authOptions);
   const isSelf = session?.user?.id === data.userId;
 
   const profile: SocialProfile = {
