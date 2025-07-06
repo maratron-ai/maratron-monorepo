@@ -9,6 +9,7 @@ export default withAuth({
 export const config = {
   matcher: [
     '/home',
+    '/profile',
     '/profile/:path*',
     '/plan-generator',
     '/plans/:path*',
