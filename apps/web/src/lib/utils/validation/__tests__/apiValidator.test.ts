@@ -125,7 +125,7 @@ describe('apiValidator', () => {
 
       expect(result.success).toBe(true);
       expect(result.sanitizedData?.name).toBe('John');
-      expect(result.sanitizedData?.description).toBe('void(0)');
+      expect(result.sanitizedData?.description).toBe(''); // Enhanced sanitization removes javascript: patterns completely
     });
   });
 
@@ -201,7 +201,7 @@ describe('apiValidator', () => {
       };
       const result = sanitizeInputData(input) as { name: string; details: { bio: string; age: number } };
       expect(result.name).toBe('John');
-      expect(result.details.bio).toBe('void(0)');
+      expect(result.details.bio).toBe(''); // Enhanced sanitization removes javascript: patterns completely
       expect(result.details.age).toBe(25);
     });
 
@@ -211,7 +211,7 @@ describe('apiValidator', () => {
       expect(result[0]).toBe('');
       expect(result[1]).toBe('normal text');
       // The onclick= pattern should be removed, leaving just the quotes
-      expect((result[2] as { name: string }).name).toBe('"hack()"');
+      expect((result[2] as { name: string }).name).toBe(''); // Enhanced sanitization removes event handlers and content
     });
 
     it('should handle non-string values', () => {

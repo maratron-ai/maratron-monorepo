@@ -69,7 +69,7 @@ const config = {
   testPathIgnorePatterns: [
     '<rootDir>/.next/', 
     '<rootDir>/node_modules/',
-    '<rootDir>/src/lib/middleware/__tests__/security.test.ts'
+    '<rootDir>/e2e/'
   ],
   
   // Suppress watchman warnings

@@ -87,7 +87,7 @@ export default function Landing() {
               intelligent coaching that evolves with every step.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link href="/signup">
+              <Link href="/signup" data-testid="hero-start-now">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-[var(--brand-from)] to-[var(--brand-to)] hover:from-[var(--brand-from)] hover:to-[var(--brand-to)] text-white border-0 text-lg px-8 py-6 transition-all duration-200"
@@ -101,6 +101,7 @@ export default function Landing() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Watch Maratron demo video on YouTube"
+                data-testid="hero-watch-demo"
               >
                 <Button
                   variant="outline"
@@ -241,7 +242,7 @@ export default function Landing() {
               waiting.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/signup">
+              <Link href="/signup" data-testid="footer-start-now">
                 <Button
                   size="lg"
                   className="bg-[var(--brand-from)] text-white hover:bg-[var(--brand-to)] text-lg px-8 py-6 transition-all duration-200"
@@ -255,6 +256,7 @@ export default function Landing() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="See how Maratron works - demo video"
+                data-testid="footer-watch-demo"
               >
                 <Button
                   variant="outline"
