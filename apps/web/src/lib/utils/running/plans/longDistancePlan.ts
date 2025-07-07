@@ -3,6 +3,7 @@ import { WeekPlan, RunningPlanData, PlannedRun } from "@maratypes/runningPlan";
 import { DayOfWeek } from "@maratypes/basics";
 import { formatPace } from "@utils/running/paces";
 import { parseDuration } from "@utils/time";
+import { validatePaceZones } from "../validation";
 
 // const formatPace = (sec: number): string => {
 //   const m = Math.floor(sec / 60);
@@ -179,22 +180,11 @@ export function generateLongDistancePlan(
   };
   if (goalPaceSec !== undefined) zones.marathon = formatPace(goalPaceSec);
 
-  // -- edge-case validation for tempo pace
-  const easySec = parseDuration(zones.easy);
-  let tempoSecNum = parseDuration(zones.tempo);
-  const marathonSec = parseDuration(zones.marathon);
-  if (tempoSecNum >= easySec) {
-    tempoSecNum = easySec * 0.95; // Adjust tempo pace to be generically faster than easy pace
-    // throw new Error(
-    //   `Tempo pace (${zones.tempo}) should be faster than easy pace (${zones.easy}).`
-    // );
-  }
-  if (tempoSecNum >= marathonSec) {
-    tempoSecNum = marathonSec * 0.95;
-    // throw new Error(
-    //   `Tempo pace (${zones.tempo}) should be faster than marathon pace (${zones.marathon}).`
-    // );
-  }
+  // -- validate pace zone relationships
+  validatePaceZones(zones, vdot);
+  
+  // Get tempo pace in seconds for calculations (after validation passes)
+  const tempoSecNum = parseDuration(zones.tempo);
 
   // -- weekly mileage bounds
   const isHalfMarathon =
