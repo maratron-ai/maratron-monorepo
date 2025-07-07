@@ -1,10 +1,37 @@
 import { formatPace } from "@utils/running/paces";
 
-export const calculateVDOTJackDaniels = (
+// Caching for performance optimization
+const CACHE_SIZE_LIMIT = 1000;
+
+// Simple memoization utility
+function memoize<T extends (...args: unknown[]) => unknown>(fn: T): T {
+  const cache = new Map<string, ReturnType<T>>();
+  
+  return ((...args: Parameters<T>): ReturnType<T> => {
+    const key = JSON.stringify(args);
+    
+    if (cache.has(key)) {
+      return cache.get(key)!;
+    }
+    
+    const result = fn(...args);
+    
+    // LRU eviction: if cache is full, remove oldest entry
+    if (cache.size >= CACHE_SIZE_LIMIT) {
+      const firstKey = cache.keys().next().value;
+      cache.delete(firstKey);
+    }
+    
+    cache.set(key, result);
+    return result;
+  }) as T;
+}
+
+// Core VDOT calculation function (not memoized directly to allow for testing)
+const calculateVDOTJackDanielsCore = (
   distanceMeters: number,
   timeSeconds: number
 ): number => {
-
   if (distanceMeters <= 0 || timeSeconds <= 0) {
     throw new Error("distance and time must be positive");
   }
@@ -23,10 +50,13 @@ export const calculateVDOTJackDaniels = (
   let vdot = vo2 / vo2MaxPercentage;
 
   if (vdot > 100) vdot = 100; // cap VDOT at 100 for practical purposes
-  if (vdot < 20) vdot = 20; // minimum VDOT is 1
+  if (vdot < 20) vdot = 20; // minimum VDOT is 20
 
   return vdot;
 };
+
+// Memoized version for performance
+export const calculateVDOTJackDaniels = memoize(calculateVDOTJackDanielsCore);
 
 type PaceZone = "E" | "M" | "T" | "I" | "R";
 
@@ -47,11 +77,12 @@ const ZONE_FACTORS: Record<PaceZone, number> = {
  * @param zone            One of "E","M","T","I","R"
  * @returns               Pace string "mm:ss" per mile
  */
-export function calculatePaceForVDOT(
+// Core pace calculation function
+const calculatePaceForVDOTCore = (
   distanceMeters: number,
   targetVDOT: number,
   zone: PaceZone
-): string {
+): string => {
   // adjust VO₂ for zone intensity
   const zonalVO2 = targetVDOT * ZONE_FACTORS[zone];
 
@@ -77,17 +108,21 @@ export function calculatePaceForVDOT(
   const metersPerMile = 1609.34;
   const paceSec = mid / (distanceMeters / metersPerMile);
   return formatPace(paceSec);
-}
+};
+
+// Memoized version for performance
+export const calculatePaceForVDOT = memoize(calculatePaceForVDOTCore);
 
 /**
  * Predicts race-pace from a VDOT value for the given distance.
  * This is identical to `calculatePaceForVDOT` but without any
  * zone adjustment so the result represents goal pace.
  */
-export function calculateGoalPaceForVDOT(
+// Core goal pace calculation function
+const calculateGoalPaceForVDOTCore = (
   distanceMeters: number,
   targetVDOT: number
-): string {
+): string => {
   let low = distanceMeters / 10;
   let high = distanceMeters;
   let mid = 0;
@@ -106,4 +141,7 @@ export function calculateGoalPaceForVDOT(
   const metersPerMile = 1609.34;
   const paceSec = mid / (distanceMeters / metersPerMile);
   return formatPace(paceSec);
-}
+};
+
+// Memoized version for performance
+export const calculateGoalPaceForVDOT = memoize(calculateGoalPaceForVDOTCore);
