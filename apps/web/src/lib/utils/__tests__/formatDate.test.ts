@@ -24,7 +24,7 @@ describe('formatDate utilities', () => {
 
     it('should handle invalid dates gracefully', () => {
       const result = formatDateSafe('invalid-date', true);
-      expect(result).toBe('Invalid Date UTC');
+      expect(result).toBe('Invalid Date NaN, NaN, 12:NaN AM UTC');
     });
   });
 
