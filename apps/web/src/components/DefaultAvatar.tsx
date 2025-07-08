@@ -11,13 +11,13 @@ export interface DefaultAvatarProps {
 export default function DefaultAvatar({ size = 32, className = "" }: DefaultAvatarProps) {
   return (
     <Image
-      src="/default_profile.png"
-      alt="Default avatar"
+      src='/default_profile.png'
+      alt='Default avatar'
       width={size}
       height={size}
       className={cn(
-        "rounded-full object-cover border border-brand-to bg-brand-from",
-        className,
+        'rounded-full border-2 border-brand-purple bg-brand-purple border-2 object-cover',
+        className
       )}
     />
   );
