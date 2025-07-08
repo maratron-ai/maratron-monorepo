@@ -1,10 +1,12 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 // import { usePathname } from "next/navigation";
 import type { SocialProfile } from "@maratypes/social";
 import type { User } from "@maratypes/user";
 import type { Run } from "@maratypes/run";
+import DefaultAvatar from "@components/DefaultAvatar";
 import { Card, Button } from "@components/ui";
 import UserStatsDialog from "@components/social/UserStatsDialog";
 import FollowUserButton from "@components/social/FollowUserButton";
@@ -29,7 +31,9 @@ export default function ProfileInfoCard({
   following,
   runs,
 }: Props) {
-  const avatar = user?.avatarUrl || profile.profilePhoto || "/default_profile.png";
+  const [imageError, setImageError] = useState(false);
+  const avatar = user?.avatarUrl || profile.profilePhoto;
+  const isDefaultAvatar = !avatar || avatar === "/default_profile.png" || avatar === "" || avatar?.includes("default_profile") || imageError;
   const joined = user?.createdAt ?? profile.createdAt;
   const joinedText = new Date(joined).toLocaleDateString(undefined, {
     month: "short",
@@ -46,13 +50,18 @@ export default function ProfileInfoCard({
   return (
     <>
     <Card className="relative p-4 flex flex-wrap flex-col sm:flex-row gap-4 items-start overflow-hidden">
-      <Image
-        src={avatar}
-        alt={profile.username}
-        width={64}
-        height={64}
-        className="w-16 h-16 rounded-full object-cover border border-brand-to bg-brand-from"
-      />
+      {isDefaultAvatar ? (
+        <DefaultAvatar size={64} />
+      ) : (
+        <Image
+          src={avatar}
+          alt={profile.username}
+          width={64}
+          height={64}
+          className="w-16 h-16 rounded-full object-cover"
+          onError={() => setImageError(true)}
+        />
+      )}
       <div className="flex-1 min-w-0 break-words">
         <h2 className="text-xl font-bold truncate">
           <a href={`/u/${profile.username}`} className="font-semibold">
