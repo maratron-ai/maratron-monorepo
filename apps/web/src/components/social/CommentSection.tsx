@@ -7,6 +7,7 @@ import { Button, Input, Spinner } from "@components/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
+import DefaultAvatar from "@components/DefaultAvatar";
 
 interface Props {
   postId: string;
@@ -84,15 +85,23 @@ export default function CommentSection({
               <Spinner className="h-3 w-3" />
             </div>
           ) : (
-            comments.map((c) => (
-              <div key={c.id} className="flex items-start gap-2 text-sm">
-                <Image
-                  src={c.socialProfile?.user?.avatarUrl || c.socialProfile?.profilePhoto || "/default_profile.png"}
-                  alt={c.socialProfile?.username || "avatar"}
-                  width={24}
-                  height={24}
-                  className="w-6 h-6 rounded-full object-cover border border-brand-to bg-brand-from"
-                />
+            comments.map((c) => {
+              const avatarUrl = c.socialProfile?.user?.avatarUrl || c.socialProfile?.profilePhoto;
+              const isDefaultAvatar = !avatarUrl || avatarUrl === "/default_profile.png" || avatarUrl === "" || avatarUrl?.includes("default_profile");
+              
+              return (
+                <div key={c.id} className="flex items-start gap-2 text-sm">
+                  {isDefaultAvatar ? (
+                    <DefaultAvatar size={24} />
+                  ) : (
+                    <Image
+                      src={avatarUrl}
+                      alt={c.socialProfile?.username || "avatar"}
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  )}
                 <p>
                   {c.socialProfile?.username ? (
                     <Link
@@ -105,9 +114,10 @@ export default function CommentSection({
                     <span className="font-semibold">{c.socialProfile?.username}</span>
                   )}{" "}
                   {c.text}
-                </p>
-              </div>
-            ))
+                  </p>
+                </div>
+              );
+            })
           )}
           {profile && (
             <form onSubmit={onSubmit} className="flex gap-2 mt-2">

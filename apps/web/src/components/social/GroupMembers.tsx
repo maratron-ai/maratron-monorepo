@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { SocialProfile } from "@maratypes/social";
+import DefaultAvatar from "@components/DefaultAvatar";
 import {
   Card,
   TooltipProvider,
@@ -23,23 +24,24 @@ export default function GroupMembers({ members }: Props) {
       <TooltipProvider>
         <div className="flex items-center gap-2">
           {visible.map((m) => {
-            const avatar =
-              m.user?.avatarUrl || m.profilePhoto || m.avatarUrl || "/default_profile.png";
-            const isDefault = avatar === "/default_profile.png";
+            const avatar = m.user?.avatarUrl || m.profilePhoto || m.avatarUrl;
+            const isDefault = !avatar || avatar === "/default_profile.png" || avatar === "" || avatar?.includes("default_profile");
             return (
               <TooltipRoot key={m.id}>
                 <TooltipTrigger asChild>
                   <Link href={`/u/${m.username}`} className="block">
                     <Card className="p-1 rounded-full">
-                      <Image
-                        src={avatar}
-                        alt={m.username}
-                        width={32}
-                        height={32}
-                        className={`w-8 h-8 rounded-full object-cover${
-                          isDefault ? " border border-brand-to bg-brand-from" : ""
-                        }`}
-                      />
+                      {isDefault ? (
+                        <DefaultAvatar size={32} />
+                      ) : (
+                        <Image
+                          src={avatar}
+                          alt={m.username}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      )}
                     </Card>
                   </Link>
                 </TooltipTrigger>

@@ -10,6 +10,8 @@ import CommentSection from "@components/social/CommentSection";
 import { Button, Dialog, DialogContent, DialogTrigger, Spinner } from "@components/ui";
 import Link from "next/link";
 import Image from "next/image";
+import DefaultAvatar from "@components/DefaultAvatar";
+import SocialAvatar from "@components/social/SocialAvatar";
 
 interface Props {
   groupId?: string;
@@ -87,18 +89,31 @@ export default function SocialFeed({ groupId }: Props) {
     <div className="space-y-6">
       <CreateSocialPost onCreated={fetchFeed} groupId={groupId} />
       {posts.length === 0 && <p>No posts yet.</p>}
-      {posts.slice(0, visibleCount).map((post) => (
-        <div key={post.id} className="border rounded-md p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Image
-              src={
-                post.socialProfile?.user?.avatarUrl || post.socialProfile?.profilePhoto || "/default_profile.png"
-              }
-              alt={post.socialProfile?.username || "avatar"}
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-full object-cover border border-brand-to bg-brand-from"
-            />
+      {posts.slice(0, visibleCount).map((post) => {
+        const avatarUrl = post.socialProfile?.user?.avatarUrl || post.socialProfile?.profilePhoto;
+        const isDefaultAvatar = !avatarUrl || avatarUrl === "/default_profile.png" || avatarUrl === "" || avatarUrl?.includes("default_profile");
+        
+        // Debug logging to understand the avatar issue
+        if (process.env.NODE_ENV === 'development') {
+          console.log('SocialFeed Avatar Debug:', {
+            postId: post.id,
+            username: post.socialProfile?.username,
+            userAvatarUrl: post.socialProfile?.user?.avatarUrl,
+            profilePhoto: post.socialProfile?.profilePhoto,
+            finalAvatarUrl: avatarUrl,
+            isDefaultAvatar: isDefaultAvatar
+          });
+        }
+        
+        return (
+          <div key={post.id} className="border rounded-md p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <SocialAvatar
+                avatarUrl={avatarUrl}
+                username={post.socialProfile?.username || "avatar"}
+                size={32}
+                className="w-8 h-8"
+              />
             {post.socialProfile?.username && (
               <Link
                 href={`/u/${post.socialProfile.username}`}
@@ -153,7 +168,8 @@ export default function SocialFeed({ groupId }: Props) {
             />
           </div>
         </div>
-      ))}
+        );
+      })}
       <div ref={bottomRef} className="h-1" />
       {loadingMore && (
         <div className="flex justify-center py-2">

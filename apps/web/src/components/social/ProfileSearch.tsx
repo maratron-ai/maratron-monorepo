@@ -8,6 +8,7 @@ import FollowUserButton from "@components/social/FollowUserButton";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import DefaultAvatar from "@components/DefaultAvatar";
 
 
 interface Props {
@@ -119,16 +120,24 @@ export default function ProfileSearch({ limit = 5 }: Props) {
         </Button>
       </form>
       <div className="space-y-4">
-        {results.slice(0, visibleCount).map((p) => (
-          <Card key={p.id} className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Image
-                src={p.user?.avatarUrl || p.profilePhoto || "/default_profile.png"}
-                alt={p.username}
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full object-cover border border-brand-to bg-brand-from"
-              />
+        {results.slice(0, visibleCount).map((p) => {
+          const avatarUrl = p.user?.avatarUrl || p.profilePhoto;
+          const isDefaultAvatar = !avatarUrl || avatarUrl === "/default_profile.png" || avatarUrl === "" || avatarUrl?.includes("default_profile");
+          
+          return (
+            <Card key={p.id} className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {isDefaultAvatar ? (
+                  <DefaultAvatar size={40} />
+                ) : (
+                  <Image
+                    src={avatarUrl}
+                    alt={p.username}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                )}
               <div>
                 <a href={`/u/${p.username}`} className="font-semibold">
                   {p.name ?? p.username}
@@ -144,7 +153,8 @@ export default function ProfileSearch({ limit = 5 }: Props) {
               <FollowUserButton profileId={p.id} />
             )}
           </Card>
-        ))}
+          );
+        })}
         {results.length > visibleCount && pathname != "/social/search" && (
           <div className="flex justify-center mt-4">
             <Link
