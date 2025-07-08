@@ -212,7 +212,7 @@ export function ChatInterface({
         <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground py-8">
-              <div className="w-16 h-16 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg border-2 border-white/50">
+              <div className="w-16 h-16 rounded-full bg-brand-purple/20 border-2 border-brand-purple/30 flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg">
                 {selectedCoach?.icon || '🤖'}
               </div>
               <p className="text-base font-medium mb-2">
@@ -225,7 +225,7 @@ export function ChatInterface({
                 }
               </p>
               {selectedCoach && (
-                <span className="inline-block mt-3 px-3 py-1 text-xs bg-primary/10 text-primary rounded-full">
+                <span className="inline-block mt-3 px-3 py-1 text-xs bg-brand-purple/20 text-brand-purple rounded-full">
                   {selectedCoach.personality} coach
                 </span>
               )}
@@ -241,7 +241,7 @@ export function ChatInterface({
               )}
             >
               {message.role === 'assistant' && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-lg shadow-sm border border-white/50">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-purple/20 border-2 border-brand-purple/30 flex items-center justify-center text-lg shadow-sm">
                   {message.coachIcon || selectedCoach?.icon || '🤖'}
                 </div>
               )}
@@ -250,8 +250,8 @@ export function ChatInterface({
                 className={cn(
                   'rounded-lg px-4 py-2 max-w-[80%] break-words',
                   message.role === 'user'
-                    ? 'bg-primary text-primary-foreground ml-auto'
-                    : 'bg-muted'
+                    ? 'bg-brand-purple text-white ml-auto'
+                    : 'bg-brand-purple/10 border border-brand-purple/20'
                 )}
               >
                 <div className="whitespace-pre-wrap text-sm">{message.content}</div>
@@ -270,8 +270,8 @@ export function ChatInterface({
               </div>
               
               {message.role === 'user' && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-purple/20 border-2 border-brand-purple/30 flex items-center justify-center">
+                  <User className="w-4 h-4 text-brand-purple" />
                 </div>
               )}
             </div>
@@ -279,12 +279,12 @@ export function ChatInterface({
           
           {isLoading && (
             <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-lg shadow-sm border border-white/50">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-purple/20 border-2 border-brand-purple/30 flex items-center justify-center text-lg shadow-sm">
                 {selectedCoach?.icon || '🤖'}
               </div>
-              <div className="bg-muted rounded-lg px-4 py-2 flex items-center gap-2">
-                <Spinner className="w-4 h-4" />
-                <span className="text-sm text-muted-foreground">
+              <div className="bg-brand-purple/10 border border-brand-purple/20 rounded-lg px-4 py-2 flex items-center gap-2">
+                <Spinner className="w-4 h-4 text-brand-purple" />
+                <span className="text-sm text-brand-purple">
                   {selectedCoach?.name || 'AI'} is thinking...
                 </span>
               </div>
@@ -318,7 +318,7 @@ export function ChatInterface({
             type="submit"
             disabled={!inputValue.trim() || isLoading}
             size="icon"
-            className="h-11 w-11 flex-shrink-0"
+            className="h-11 w-11 flex-shrink-0 bg-brand-purple hover:bg-brand-purple/90 text-white"
           >
             <Send className="w-4 h-4" />
           </Button>

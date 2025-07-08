@@ -143,7 +143,7 @@ export function ChatModal({
                   variant="ghost"
                   size="sm"
                   onClick={onClearMessages}
-                  className="h-8 w-8 p-0 hover:bg-white/20"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:bg-brand-purple/20 hover:text-brand-purple"
                   title="Start New Chat"
                 >
                   <MessageSquarePlus className="h-4 w-4" />
@@ -153,7 +153,7 @@ export function ChatModal({
                 variant="ghost"
                 size="sm"
                 onClick={() => onOpenChange(false)}
-                className="h-8 w-8 p-0 hover:bg-white/20"
+                className="h-8 w-8 p-0 text-muted-foreground hover:bg-red-500/20 hover:text-red-500"
               >
                 <X className="h-4 w-4" />
               </Button>

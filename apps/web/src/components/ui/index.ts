@@ -20,6 +20,7 @@ export * from './toast';
 export * from './progress';
 export * from './skeleton';
 export * from './switch';
+export * from './alert';
 export { default as LockToggle } from './lock-toggle';
 export * from './checkbox';
 export * from './radio-group';

@@ -53,7 +53,7 @@ export default function UserProfileForm({
             onClick={toggleEditing}
             className={`px-4 py-2 rounded font-medium ${
               editing
-                ? "bg-accent text-foreground hover:bg-accent hover:opacity-80"
+                ? "bg-accent text-accent-foreground hover:bg-accent hover:opacity-80"
                 : "bg-gradient-to-r from-[var(--brand-from)] to-[var(--brand-to)] text-white border-0 hover:from-[var(--brand-from)] hover:opacity-90 hover:to-[var(--brand-to)] hover:opacity-90"
             }`}
           >

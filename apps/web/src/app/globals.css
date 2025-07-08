@@ -61,13 +61,12 @@ p {
     @apply border
            text-muted-foreground
            rounded-md
-          bg-accent-2
-          opacity-10
+           bg-muted
            px-3 py-2
            text-foreground
-           placeholder:text-gray-500    /* ← use a default gray */
+           placeholder:text-muted-foreground
            focus:outline-none
-           focus:ring-2 focus:ring-accent-2
+           focus:ring-2 focus:ring-ring
            disabled:cursor-not-allowed
            disabled:opacity-50;
   }
@@ -77,8 +76,8 @@ p {
 }
 
 button {
-  @apply bg-primary text-foreground px-4 py-2 rounded hover:bg-primary hover:opacity-80
-         transition-colors focus:outline-none focus:ring-2 focus:ring-secondary;
+  @apply bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary hover:opacity-80
+         transition-colors focus:outline-none focus:ring-2 focus:ring-ring;
 }
 button.avatar-btn {
   @apply bg-transparent hover:bg-transparent p-0 text-transparent rounded-none focus:outline-none focus:ring-0;

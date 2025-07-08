@@ -10,10 +10,14 @@ import DefaultAvatar from "@components/DefaultAvatar";
 import { Sheet, SheetTrigger } from "@components/ui";
 import { Button } from "@components/ui/button";
 import { useSocialProfile } from "@hooks/useSocialProfile";
-// import ModeToggle from "@components/ModeToggle";
+import ModeToggle from "@components/ModeToggle";
+import { isDemoMode } from "@lib/utils/demo-mode";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
+  
+  // Demo mode for testing/screenshots
+  const demoMode = isDemoMode();
   const { profile } = useSocialProfile();
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,6 +26,7 @@ export default function Navbar() {
 
   // Consistent avatar logic
   const getAvatarUrl = () => {
+    if (demoMode) return "/default_profile.png";
     return session?.user?.avatarUrl || profile?.profilePhoto || "/default_profile.png";
   };
 
@@ -79,7 +84,7 @@ export default function Navbar() {
             </div>
           </Link>
           <div className="hidden md:flex space-x-4">
-            {status !== "loading" && session?.user ? (
+            {status !== "loading" && (session?.user || demoMode) ? (
               navLinks.map((link) => (
                 <Button
                   key={link.href}
@@ -110,7 +115,7 @@ export default function Navbar() {
 
         {/* Right: utilities and session (desktop) */}
         <div className="hidden md:flex items-center space-x-4 ml-auto">
-          {status === "loading" ? null : session?.user ? (
+          {status === "loading" ? null : (session?.user || demoMode) ? (
             <>
               {/* User Avatar + Dropdown */}
               <div className="relative">
@@ -126,13 +131,12 @@ export default function Navbar() {
                       alt={session.user?.name || "User Avatar"}
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full object-cover border border-brand-to bg-brand-from"
+                      className="w-8 h-8 rounded-full object-cover border-2 border-background bg-foreground"
                       priority
                     />
                   ) : (
                     <DefaultAvatar
                       size={32}
-                      className="border border-brand-to bg-brand-from "
                     />
                   )}
                 </Button>
@@ -140,19 +144,19 @@ export default function Navbar() {
                   <div className="absolute right-0 mt-2 w-40 bg-background border border-accent rounded shadow-md z-50 flex flex-col items-center">
                     <Button
                       asChild
-                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from rounded-none focus:ring-0 text-base"
+                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple rounded-none focus:ring-0 text-base"
                     >
                       <Link href="/profile">Profile</Link>
                     </Button>
                     <Button
                       asChild
-                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from rounded-none focus:ring-0 text-base"
+                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple rounded-none focus:ring-0 text-base"
                     >
                       <Link href="/settings">Settings</Link>
                     </Button>
                     <Button
                       onClick={() => signOut()}
-                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from rounded-none focus:ring-0 text-base"
+                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple rounded-none focus:ring-0 text-base"
                     >
                       Logout
                     </Button>
@@ -163,17 +167,17 @@ export default function Navbar() {
           ) : (
             <Button
               onClick={() => signIn()}
-              className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+              className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple focus:ring-0"
             >
               Sign In
             </Button>
           )}
-          {/* <ModeToggle /> */}
+          <ModeToggle />
         </div>
 
         {/* Mobile Avatar Menu */}
         <div className="md:hidden flex items-center justify-end absolute right-4">
-          {status !== "loading" && session?.user ? (
+          {status !== "loading" && (session?.user || demoMode) ? (
             <Sheet>
               <SheetTrigger asChild>
                 <Button
@@ -186,13 +190,12 @@ export default function Navbar() {
                       alt={session.user?.name || "User Avatar"}
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full object-cover border border-brand-to bg-brand-from"
+                      className="w-8 h-8 rounded-full object-cover border-2 border-background bg-foreground"
                       priority
                     />
                   ) : (
                     <DefaultAvatar
                       size={32}
-                      className="border border-brand-to bg-brand-from"
                     />
                   )}
                 </Button>
@@ -202,7 +205,7 @@ export default function Navbar() {
                   <Button
                     asChild
                     key={link.href}
-                    className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+                    className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple focus:ring-0"
                   >
                     <Link href={link.href}>{link.label}</Link>
                   </Button>
@@ -210,23 +213,23 @@ export default function Navbar() {
                 <hr />
                 <Button
                   asChild
-                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple focus:ring-0"
                 >
                   <Link href="/profile">Profile</Link>
                 </Button>
                 <Button
                   asChild
-                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple focus:ring-0"
                 >
                   <Link href="/settings">Settings</Link>
                 </Button>
                 <Button
                   onClick={() => signOut()}
-                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple focus:ring-0"
                 >
                   Logout
                 </Button>
-                {/* <ModeToggle /> */}
+                <ModeToggle />
               </div>{/* End SheetContent replacement */}
             </Sheet>
           ) : (
@@ -235,7 +238,7 @@ export default function Navbar() {
               <SheetTrigger asChild>
                 <Button
                   aria-label="Toggle mobile menu"
-                  className="p-2 focus:outline-none bg-transparent hover:bg-transparent focus:ring-0 hover:text-primary transition-colors block w-auto text-foreground bg-transparent no-underline hover:text-background hover:no-underline hover:bg-brand-from"
+                  className="p-2 focus:outline-none bg-transparent hover:bg-transparent focus:ring-0 hover:text-primary transition-colors block w-auto text-foreground bg-transparent no-underline hover:text-background hover:no-underline hover:bg-brand-purple"
                 >
                   <Menu className="w-6 h-6" />
                 </Button>
@@ -243,18 +246,18 @@ export default function Navbar() {
               <div className="fixed inset-y-0 left-0 z-50 w-1/2 bg-background p-6 space-y-4 shadow-lg border-r border-border">{/* SheetContent replacement */}
                 <Button
                   asChild
-                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple focus:ring-0"
                 >
                   <Link href="/about">About</Link>
                 </Button>
                 <hr />
                 <Button
                   onClick={() => signIn()}
-                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple focus:ring-0"
                 >
                   Sign In
                 </Button>
-                {/* <ModeToggle /> */}
+                <ModeToggle />
               </div>{/* End SheetContent replacement */}
             </Sheet>
           )}

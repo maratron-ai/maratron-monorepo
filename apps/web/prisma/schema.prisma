@@ -80,6 +80,15 @@ model User {
   device                       Device?
   defaultDistanceUnit          DistanceUnit?        @default(miles)
   defaultElevationUnit         elevationGainUnit?   @default(feet)
+  
+  // Location data for weather and recommendations
+  latitude                     Float?
+  longitude                    Float?
+  city                         String?
+  state                        String?
+  country                      String?
+  locationUpdatedAt            DateTime?
+  
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
 

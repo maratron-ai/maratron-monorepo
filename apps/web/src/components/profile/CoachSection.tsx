@@ -139,7 +139,7 @@ export default function CoachSection({ formData, isEditing, onChange }: CoachSec
               <div className={`relative overflow-hidden rounded-lg p-4 ${getPersonalityStyle(selectedCoach.personality)}`}>
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-2xl shadow-sm border border-white/50">
+                    <div className="w-12 h-12 rounded-full bg-foreground border-2 border-background flex items-center justify-center text-2xl shadow-sm">
                       {selectedCoach.icon}
                     </div>
                   </div>
@@ -184,7 +184,7 @@ export default function CoachSection({ formData, isEditing, onChange }: CoachSec
               <div className="space-y-3">
                 <div className={`relative overflow-hidden rounded-lg p-3 ${getPersonalityStyle(selectedCoach.personality)}`}>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-xl shadow-sm border border-white/50">
+                    <div className="w-12 h-12 rounded-full bg-foreground border-2 border-background flex items-center justify-center text-xl shadow-sm">
                       {selectedCoach.icon}
                     </div>
                     <div className="flex-1">
@@ -204,7 +204,7 @@ export default function CoachSection({ formData, isEditing, onChange }: CoachSec
                     variant="outline"
                     size="sm"
                     onClick={() => setShowSelector(true)}
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
+                    className="bg-brand-purple/20 border-brand-purple text-brand-purple hover:bg-brand-purple hover:text-white"
                   >
                     Change Coach
                   </Button>
@@ -213,7 +213,7 @@ export default function CoachSection({ formData, isEditing, onChange }: CoachSec
                     variant="outline"
                     size="sm"
                     onClick={() => handleCoachSelect(null)}
-                    className="bg-red-600/30 border-red-500/40 text-red-200 hover:bg-red-600/50 hover:border-red-400/60 hover:text-red-100"
+                    className="bg-red-500/20 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                   >
                     Remove Coach
                   </Button>

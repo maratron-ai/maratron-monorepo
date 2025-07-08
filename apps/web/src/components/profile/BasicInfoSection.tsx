@@ -113,12 +113,11 @@ export default function BasicInfoSection({
                 alt="Avatar"
                 width={80}
                 height={80}
-                className="w-20 h-20 rounded-full object-cover"
+                className="w-20 h-20 rounded-full object-cover border-2 border-background bg-foreground"
               />
             ) : (
               <DefaultAvatar
                 size={80}
-                className="border border-brand-to bg-brand-from"
               />
             )}
           </div>

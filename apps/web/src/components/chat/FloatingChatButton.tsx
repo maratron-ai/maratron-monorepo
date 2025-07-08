@@ -18,7 +18,7 @@ export function FloatingChatButton({ isOpen, onClick, className }: FloatingChatB
       size="icon"
       className={cn(
         'fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out',
-        'bg-primary hover:bg-primary/90 text-primary-foreground',
+        'bg-brand-purple hover:bg-brand-purple/90 text-white',
         'border-2 border-background',
         isOpen && 'rotate-180',
         className

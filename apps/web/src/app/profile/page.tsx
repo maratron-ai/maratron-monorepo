@@ -7,6 +7,7 @@ import { Spinner } from "@components/ui";
 import UserForm from "@components/profile/UserProfileForm";
 import { User } from "@maratypes/user";
 import { getUser } from "@lib/api/user/user";
+import { isDemoMode, getDemoUserData } from "@lib/utils/demo-mode";
 
 export default function UserPage() {
   const { data: session, status, update } = useSession();
@@ -14,10 +15,20 @@ export default function UserPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  
+  // Demo mode for testing/screenshots
+  const demoMode = isDemoMode();
 
   // Fetch full profile after session loads
   useEffect(() => {
     const fetchProfile = async () => {
+      // In demo mode, use sample data
+      if (demoMode) {
+        setProfile(getDemoUserData() as User);
+        setLoading(false);
+        return;
+      }
+      
       if (session?.user?.id) {
         try {
           setLoading(true);
@@ -34,7 +45,7 @@ export default function UserPage() {
       }
     };
     fetchProfile();
-  }, [session, status]);
+  }, [session, status, demoMode]);
 
   // Handle save success (user already updated by useUserForm)
   const handleSave = async (updated: User) => {
@@ -70,8 +81,8 @@ export default function UserPage() {
     );
   }
   
-  // Unauthenticated - redirect to login immediately
-  if (status === "unauthenticated") {
+  // Unauthenticated - redirect to login immediately (unless demo mode)
+  if (status === "unauthenticated" && !demoMode) {
     if (typeof window !== "undefined") {
       window.location.href = "/login";
     }

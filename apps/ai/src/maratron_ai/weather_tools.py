@@ -51,6 +51,80 @@ async def _cache_weather_data(cache_key: str, data: Dict[str, Any]) -> None:
     _cache_timestamps[cache_key] = datetime.now()
 
 
+async def _get_mock_weather_data(location: Optional[str] = None) -> str:
+    """Generate realistic mock weather data for development."""
+    import random
+    
+    # Parse location to determine city
+    city_name = "Your Location"
+    temp_base = 75  # Default temperature base
+    
+    if location:
+        # Try to parse coordinates or city name
+        if "," in location and all(c.replace(".", "").replace("-", "").isdigit() or c == "," for c in location.replace(" ", "")):
+            # Coordinates format: lat,lon
+            lat, lon = map(float, location.split(","))
+            
+            # Estimate city and temperature based on coordinates
+            if 25 <= lat <= 35 and -100 <= lon <= -90:  # Texas/Gulf region
+                city_name = "Houston, Texas"
+                temp_base = 88  # Hot summer weather
+            elif 40 <= lat <= 45 and -125 <= lon <= -115:  # Pacific Northwest
+                city_name = "Seattle, WA"
+                temp_base = 65  # Mild weather
+            elif 35 <= lat <= 45 and -85 <= lon <= -75:  # East Coast
+                city_name = "New York, NY"
+                temp_base = 72  # Moderate weather
+            else:
+                city_name = f"Location ({lat:.1f}, {lon:.1f})"
+                # Temperature based on latitude
+                temp_base = max(50, 90 - abs(lat) * 1.5)
+        else:
+            # City name provided
+            city_name = location
+            # Random temperature for unknown cities
+            temp_base = random.randint(60, 85)
+    
+    # Generate realistic weather data with smaller variations
+    temp = int(temp_base + random.randint(-3, 3))  # Smaller temperature variation
+    feels_like = int(temp + random.randint(0, 8))  # Feels-like is typically warmer in hot weather
+    humidity = random.randint(40, 80)  # Houston tends to be humid
+    wind_speed = random.randint(5, 12)
+    
+    conditions = ["Clear", "Partly Cloudy", "Cloudy", "Light Rain", "Sunny"]
+    condition = random.choice(conditions)
+    
+    # Generate running advice based on conditions
+    advice = []
+    if temp >= 85:
+        advice.append("🌡️ Hot weather - hydrate well and consider early morning runs")
+    elif temp >= 75:
+        advice.append("☀️ Warm weather - great for running, stay hydrated")
+    elif temp >= 60:
+        advice.append("🌤️ Perfect running weather!")
+    else:
+        advice.append("🧥 Cool weather - dress in layers")
+    
+    if humidity > 70:
+        advice.append("💧 High humidity - expect to feel warmer")
+    
+    if wind_speed > 10:
+        advice.append("💨 Windy conditions - adjust pace accordingly")
+    
+    # Format as JSON for easy parsing
+    weather_data = {
+        "temperature": temp,
+        "feels_like": feels_like,
+        "condition": condition,
+        "humidity": humidity,
+        "windSpeed": wind_speed,
+        "location": city_name,
+        "advice": advice
+    }
+    
+    return json.dumps(weather_data)
+
+
 async def _get_user_location() -> Optional[str]:
     """Get user's location from their profile or preferences."""
     try:
@@ -224,6 +298,10 @@ async def get_current_weather_tool(location: str = None) -> str:
         api_key = await _get_weather_api_key()
         if not api_key:
             return "❌ Weather service not configured. Please set WEATHER__API_KEY environment variable."
+        
+        # Check for placeholder API key
+        if api_key in ["YOUR_OPENWEATHERMAP_API_KEY_HERE", "your-openweathermap-api-key-here"]:
+            return "🔑 Please get a free API key from https://openweathermap.org/api and set WEATHER__API_KEY in your .env file to get real weather data for your location."
         
         # Determine location
         if not location:

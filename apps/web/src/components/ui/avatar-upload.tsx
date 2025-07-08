@@ -29,7 +29,6 @@ export default function AvatarUpload({ value, onChange, disabled }: AvatarUpload
         <AvatarFallback>
           <DefaultAvatar
             size={80}
-            className="border border-brand-to bg-brand-from"
           />
         </AvatarFallback>
       </Avatar>

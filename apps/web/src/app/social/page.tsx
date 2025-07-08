@@ -10,6 +10,7 @@ import SocialFeed from "@components/social/SocialFeed";
 import { Button, Spinner } from "@components/ui";
 import { listGroups } from "@lib/api/social";
 import type { RunGroup } from "@maratypes/social";
+import { isDemoMode, getDemoSocialProfile, getDemoRunGroups, getDemoUserData } from "@lib/utils/demo-mode";
 
 export default function SocialHomePage() {
   const { data: session } = useSession();
@@ -17,9 +18,24 @@ export default function SocialHomePage() {
   const { profile: user } = useUser();
   const [groups, setGroups] = useState<RunGroup[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(true);
+  
+  // Demo mode for testing/screenshots
+  const demoMode = isDemoMode();
+  
+  // Override data in demo mode
+  const effectiveProfile = demoMode ? getDemoSocialProfile() : profile;
+  const effectiveUser = demoMode ? getDemoUserData() : user;
+  const effectiveLoading = demoMode ? false : loading;
 
   useEffect(() => {
     const loadGroups = async () => {
+      // In demo mode, use sample data
+      if (demoMode) {
+        setGroups(getDemoRunGroups());
+        setGroupsLoading(false);
+        return;
+      }
+      
       if (!profile?.id) {
         setGroups([]);
         setGroupsLoading(false);
@@ -32,10 +48,10 @@ export default function SocialHomePage() {
         setGroupsLoading(false);
       }
     };
-    if (!loading) loadGroups();
-  }, [profile?.id, loading]);
+    if (!loading || demoMode) loadGroups();
+  }, [profile?.id, loading, demoMode]);
 
-  if (!session?.user) {
+  if (!session?.user && !demoMode) {
     return (
       <main className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <p>Please log in to access social features.</p>
@@ -43,7 +59,7 @@ export default function SocialHomePage() {
     );
   }
 
-  if (loading) {
+  if (effectiveLoading) {
     return (
       <main className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex justify-center py-4">
@@ -53,7 +69,7 @@ export default function SocialHomePage() {
     );
   }
 
-  if (!profile) {
+  if (!effectiveProfile) {
     return (
       <main className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-2">
         <div className="flex flex-col items-center text-center pt-8 space-y-4">
@@ -78,8 +94,8 @@ export default function SocialHomePage() {
         </section>
         <aside className="lg:w-1/3 order-1 lg:order-2 space-y-6">
           <ProfileInfoCard
-            profile={profile}
-            user={user ?? undefined}
+            profile={effectiveProfile}
+            user={effectiveUser ?? undefined}
             isSelf
             disableSelfStats
           />

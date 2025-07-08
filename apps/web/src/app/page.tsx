@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@components/ui/button";
@@ -14,48 +16,10 @@ import {
   Clock,
   Brain,
 } from "lucide-react";
-import type { Metadata } from 'next';
+import { useTheme } from "@components/ThemeProvider";
 
-export const metadata: Metadata = {
-  title: 'Maratron - AI-Powered Marathon Training Coach',
-  description: 'Break through plateaus and achieve your marathon dreams with AI-powered training that adapts to you. Personalized coaching based on Jack Daniels VDOT science.',
-  keywords: ['marathon training', 'running coach', 'AI fitness', 'VDOT calculator', 'personalized training plan', 'running analytics'],
-  authors: [{ name: 'Maratron Team' }],
-  openGraph: {
-    title: 'Maratron - Your Personal Marathon Coach, Reimagined',
-    description: 'AI-powered training that adapts to you. Break through plateaus with intelligent coaching based on proven science.',
-    url: 'https://maratron.com',
-    siteName: 'Maratron',
-    type: 'website',
-    images: [
-      {
-        url: '/maratron-name-gradient-purple.svg',
-        width: 1200,
-        height: 630,
-        alt: 'Maratron - AI Marathon Training',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Maratron - AI-Powered Marathon Training',
-    description: 'Intelligent coaching that evolves with every step. Join thousands breaking their personal bests.',
-    images: ['/maratron-name-gradient-purple.svg'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-};
-
-export default function Landing() {
+function Landing() {
+  const { theme } = useTheme();
   return (
     <main className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -64,7 +28,7 @@ export default function Landing() {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-20 relative">
           <div className="w-full text-center">
             <Image
-              src="/maratron-name-gradient-purple.svg"
+              src={theme === "dark" ? "/maratron-name-light.svg" : "/maratron-name-dark.svg"}
               alt="Maratron - AI-Powered Marathon Training Coach"
               width={1200}
               height={300}
@@ -77,7 +41,7 @@ export default function Landing() {
             </Badge>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 text-foreground leading-tight drop-shadow-sm pt-20">
               Your Personal Marathon Coach,{" "}
-              <span className="text-gradient bg-gradient-to-r from-[var(--brand-from)] to-[var(--brand-to)] bg-clip-text text-transparent">
+              <span className="text-brand-purple">
                 Reimagined
               </span>
             </h1>
@@ -90,7 +54,11 @@ export default function Landing() {
               <Link href="/signup" data-testid="hero-start-now">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-[var(--brand-from)] to-[var(--brand-to)] hover:from-[var(--brand-from)] hover:to-[var(--brand-to)] text-white border-0 text-lg px-8 py-6 transition-all duration-200"
+                  className={`${
+                    theme === "dark" 
+                      ? "bg-white text-black hover:bg-gray-200" 
+                      : "bg-black text-white hover:bg-gray-800"
+                  } border-0 text-lg px-8 py-6 transition-all duration-200`}
                 >
                   Start Now
                   <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
@@ -106,7 +74,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="text-lg px-8 py-6 transition-all duration-200"
+                  className="text-lg px-8 py-6 transition-all duration-200 border-foreground text-foreground hover:bg-foreground hover:text-background"
                 >
                   <PlayCircle className="mr-2 h-5 w-5" aria-hidden="true" />
                   Watch Demo
@@ -137,7 +105,7 @@ export default function Landing() {
           <div className="text-center mb-16">
             <h2 id="features-heading" className="text-4xl md:text-5xl font-bold mb-6">
               Training That Actually{" "}
-              <span className="text-gradient bg-gradient-to-r from-[var(--brand-from)] to-[var(--brand-to)] bg-clip-text text-transparent">
+              <span className="text-brand-purple">
                 Gets You There
               </span>
             </h2>
@@ -149,7 +117,7 @@ export default function Landing() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" role="region" aria-label="Feature cards">
-            <Card className="p-8 border border-muted bg-background dark:bg-background shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105">
+            <Card className="p-8 border border-brand-purple/20 bg-card/50 backdrop-blur-sm shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:border-brand-purple/40">
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--brand-purple)] to-[var(--brand-blue)] rounded-lg flex items-center justify-center mb-6 ring-2 ring-white dark:ring-white">
                 <Brain className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
@@ -163,7 +131,7 @@ export default function Landing() {
               </p>
             </Card>
 
-            <Card className="p-8 border border-muted bg-background dark:bg-background shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105">
+            <Card className="p-8 border border-brand-purple/20 bg-card/50 backdrop-blur-sm shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:border-brand-purple/40">
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--brand-purple)] to-[var(--brand-blue)] rounded-lg flex items-center justify-center mb-6 ring-2 ring-white dark:ring-white">
                 <Target className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
@@ -177,7 +145,7 @@ export default function Landing() {
               </p>
             </Card>
 
-            <Card className="p-8 border border-muted bg-background dark:bg-background shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105">
+            <Card className="p-8 border border-brand-purple/20 bg-card/50 backdrop-blur-sm shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:border-brand-purple/40">
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--brand-purple)] to-[var(--brand-blue)] rounded-lg flex items-center justify-center mb-6 ring-2 ring-white dark:ring-white">
                 <Watch className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
@@ -190,7 +158,7 @@ export default function Landing() {
               </p>
             </Card>
 
-            <Card className="p-8 border border-muted bg-background dark:bg-background shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105">
+            <Card className="p-8 border border-brand-purple/20 bg-card/50 backdrop-blur-sm shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:border-brand-purple/40">
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--brand-purple)] to-[var(--brand-blue)] rounded-lg flex items-center justify-center mb-6 ring-2 ring-white dark:ring-white">
                 <TrendingUp className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
@@ -204,7 +172,7 @@ export default function Landing() {
               </p>
             </Card>
 
-            <Card className="p-8 border border-muted bg-background dark:bg-background shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105">
+            <Card className="p-8 border border-brand-purple/20 bg-card/50 backdrop-blur-sm shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:border-brand-purple/40">
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--brand-purple)] to-[var(--brand-blue)] rounded-lg flex items-center justify-center mb-6 ring-2 ring-white dark:ring-white">
                 <Clock className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
@@ -215,7 +183,7 @@ export default function Landing() {
               </p>
             </Card>
 
-            <Card className="p-8 border border-muted bg-background dark:bg-background shadow-xl transition-all duration-300 hover:shadow-2xl">
+            <Card className="p-8 border border-brand-purple/20 bg-card/50 backdrop-blur-sm shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:border-brand-purple/40">
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--brand-purple)] to-[var(--brand-blue)] rounded-lg flex items-center justify-center mb-6 ring-2 ring-white dark:ring-white">
                 <Award className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
@@ -245,7 +213,11 @@ export default function Landing() {
               <Link href="/signup" data-testid="footer-start-now">
                 <Button
                   size="lg"
-                  className="bg-[var(--brand-from)] text-white hover:bg-[var(--brand-to)] text-lg px-8 py-6 transition-all duration-200"
+                  className={`${
+                    theme === "dark" 
+                      ? "bg-white text-black hover:bg-gray-200" 
+                      : "bg-black text-white hover:bg-gray-800"
+                  } text-lg px-8 py-6 transition-all duration-200`}
                 >
                   Start Now
                   <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
@@ -261,7 +233,7 @@ export default function Landing() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="text-lg px-8 py-6 transition-all duration-200"
+                  className="text-lg px-8 py-6 transition-all duration-200 border-foreground text-foreground hover:bg-foreground hover:text-background"
                 >
                   <PlayCircle className="mr-2 h-5 w-5" aria-hidden="true" />
                   See How It Works
@@ -277,3 +249,5 @@ export default function Landing() {
     </main>
   );
 }
+
+export default Landing;

@@ -2,7 +2,7 @@ import { HelpCircle } from "lucide-react";
 import { cn } from "@lib/utils/cn";
 import {
   TooltipProvider,
-  TooltipRoot,
+  Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@components/ui";
@@ -21,14 +21,14 @@ export default function InfoTooltip({
 }: InfoTooltipProps) {
   return (
     <TooltipProvider delayDuration={200}>
-      <TooltipRoot>
+      <Tooltip>
         <TooltipTrigger asChild>
           <HelpCircle
             className={cn("ml-1 h-4 w-4 text-muted-foreground", iconClassName)}
           />
         </TooltipTrigger>
         <TooltipContent className={cn(className)}>{content}</TooltipContent>
-      </TooltipRoot>
+      </Tooltip>
     </TooltipProvider>
   );
 }

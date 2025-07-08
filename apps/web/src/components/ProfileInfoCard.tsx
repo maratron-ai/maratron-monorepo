@@ -19,7 +19,7 @@ export default function ProfileInfoCard({ profile }: Props) {
           className="w-24 h-24 rounded-full object-cover"
         />
       ) : (
-        <DefaultAvatar size={96} className="w-24 h-24" />
+        <DefaultAvatar size={96} />
       )}
       <h2 className="text-2xl font-bold">{profile.name}</h2>
       {profile.trainingLevel && (

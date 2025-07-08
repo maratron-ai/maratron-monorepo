@@ -6,6 +6,7 @@ import { listRuns } from "@lib/api/run";
 import { Card, Spinner } from "@components/ui";
 import type { Run } from "@maratypes/run";
 import { calculateAnalytics } from "@lib/utils/running/analytics";
+import { isDemoMode, getDemoAnalyticsData } from "@lib/utils/demo-mode";
 import {
   LineChart,
   Line,
@@ -40,9 +41,19 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
+  
+  // Demo mode for testing/screenshots
+  const demoMode = isDemoMode();
 
   useEffect(() => {
     const fetchAnalytics = async () => {
+      // In demo mode, use sample data
+      if (demoMode) {
+        setAnalytics(getDemoAnalyticsData());
+        setLoading(false);
+        return;
+      }
+      
       const userId = session?.user?.id;
       if (!userId) {
         setLoading(false);
@@ -63,9 +74,9 @@ export default function AnalyticsPage() {
     };
 
     fetchAnalytics();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, demoMode]);
 
-  if (!session?.user) {
+  if (!session?.user && !demoMode) {
     return (
       <div className="container mx-auto px-4 max-w-screen-lg py-8">
         <p className="text-center text-muted-foreground">Please log in to view your analytics.</p>
@@ -104,26 +115,26 @@ export default function AnalyticsPage() {
       {/* Key Metrics Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-brand-from">{analytics.totalRuns}</div>
+          <div className="text-2xl font-bold text-brand-purple">{analytics.totalRuns}</div>
           <div className="text-sm text-muted-foreground">Total Runs</div>
         </Card>
         
         <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-brand-from">
+          <div className="text-2xl font-bold text-brand-purple">
             {analytics.totalDistance.toFixed(1)}
           </div>
           <div className="text-sm text-muted-foreground">Total Miles</div>
         </Card>
         
         <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-brand-from">
+          <div className="text-2xl font-bold text-brand-purple">
             {Math.floor(analytics.totalTime / 60)}h {Math.floor(analytics.totalTime % 60)}m
           </div>
           <div className="text-sm text-muted-foreground">Total Time</div>
         </Card>
         
         <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-brand-from">{analytics.averagePace}</div>
+          <div className="text-2xl font-bold text-brand-purple">{analytics.averagePace}</div>
           <div className="text-sm text-muted-foreground">Avg Pace</div>
         </Card>
       </div>
@@ -188,8 +199,8 @@ export default function AnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="distance"
-                stroke="var(--brand-from)"
-                fill="var(--brand-from)"
+                stroke="var(--brand-purple)"
+                fill="var(--brand-purple)"
                 fillOpacity={0.3}
                 strokeWidth={2}
               />
@@ -220,12 +231,23 @@ export default function AnalyticsPage() {
                   fontSize={11}
                   fill="var(--foreground)"
                 >
-                  {analytics.distanceDistribution.filter(d => d.count > 0).map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={index % 2 === 0 ? "var(--brand-from)" : "var(--brand-to)"}
-                    />
-                  ))}
+                  {analytics.distanceDistribution.filter(d => d.count > 0).map((entry, index) => {
+                    // Create more differentiable colors using different hues
+                    const colors = [
+                      'rgba(139, 92, 246, 1.0)',    // brand-purple (primary)
+                      'rgba(59, 130, 246, 0.85)',   // brand-blue
+                      'rgba(168, 85, 247, 0.7)',    // violet
+                      'rgba(45, 212, 191, 0.6)',    // teal
+                      'rgba(251, 146, 60, 0.5)',    // orange
+                      'rgba(239, 68, 68, 0.4)',     // red
+                    ];
+                    return (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={colors[index % colors.length]}
+                      />
+                    );
+                  })}
                 </Pie>
                 <Tooltip 
                   contentStyle={{
@@ -281,8 +303,8 @@ export default function AnalyticsPage() {
                 <Area
                   type="monotone"
                   dataKey="total"
-                  stroke="var(--brand-to)"
-                  fill="var(--brand-to)"
+                  stroke="var(--brand-purple)"
+                  fill="var(--brand-purple)"
                   fillOpacity={0.4}
                   strokeWidth={2}
                 />

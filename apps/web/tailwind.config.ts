@@ -14,20 +14,47 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        muted: "var(--muted)",
-        "muted-foreground": "var(--muted-foreground)",
-        primary: "var(--primary)",
-        secondary: "var(--secondary)",
-        accent: "var(--accent)",
-        "accent-2": "var(--accent-2)",
-        "accent-3": "var(--accent-3)",
-        "accent-foreground": "var(--accent-foreground)",
-        "brand-from": "var(--brand-from)",
-        "brand-to": "var(--brand-to)",
-        "brand-orange": "var(--brand-orange)",
-        "brand-blue": "var(--brand-blue)",
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        success: {
+          DEFAULT: "var(--success)",
+          foreground: "var(--success-foreground)",
+        },
+        warning: {
+          DEFAULT: "var(--warning)",
+          foreground: "var(--warning-foreground)",
+        },
         "brand-purple": "var(--brand-purple)",
-        "brand-orange-dark": "var(--brand-orange-dark)",
+        "brand-blue": "var(--brand-blue)",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "sans-serif"],

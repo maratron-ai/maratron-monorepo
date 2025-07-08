@@ -15,8 +15,8 @@ interface MCPEnvironmentConfig {
 // Default configurations for different environments
 const MCP_CONFIGS: MCPEnvironmentConfig = {
   development: {
-    command: 'python',
-    args: ['./apps/ai/run_server.py'],
+    command: 'bash',
+    args: ['-c', 'cd ../../apps/ai && uv run python run_server.py'],
     env: {
       ENVIRONMENT: 'development',
       LOG_LEVEL: 'DEBUG'
@@ -38,13 +38,13 @@ const MCP_CONFIGS: MCPEnvironmentConfig = {
     env: {
       ENVIRONMENT: 'development',
       LOG_LEVEL: 'DEBUG',
-      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://maratron:${POSTGRES_PASSWORD}@host.docker.internal:5432/maratrondb'
+      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://maratron:password@postgres:5432/maratrondb'
     }
   },
   
   test: {
-    command: 'python',
-    args: ['./apps/ai/run_server.py'],
+    command: 'bash',
+    args: ['-c', 'cd ../../apps/ai && uv run python run_server.py'],
     env: {
       ENVIRONMENT: 'testing',
       LOG_LEVEL: 'ERROR'
@@ -59,6 +59,8 @@ export function getMCPConfig(): MCPServerConfig {
   const nodeEnv = process.env.NODE_ENV || 'development';
   const isDocker = process.env.DOCKER === 'true' || process.env.RUNNING_IN_DOCKER === 'true';
   
+  console.log(`MCP Config Debug: NODE_ENV=${nodeEnv}, DOCKER=${process.env.DOCKER}, RUNNING_IN_DOCKER=${process.env.RUNNING_IN_DOCKER}, isDocker=${isDocker}`);
+  
   // Determine environment type
   let envType: keyof MCPEnvironmentConfig;
   
@@ -71,6 +73,8 @@ export function getMCPConfig(): MCPServerConfig {
   } else {
     envType = 'development';
   }
+  
+  console.log(`MCP Config: Selected environment type: ${envType}`);
   
   // Get base config
   const baseConfig = MCP_CONFIGS[envType];
@@ -91,6 +95,8 @@ export function getMCPConfig(): MCPServerConfig {
       ) as Record<string, string>
     }
   };
+  
+  console.log(`MCP Config: Final config - command: ${config.command}, args: ${JSON.stringify(config.args)}`);
   
   return config;
 }
