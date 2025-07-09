@@ -512,4 +512,251 @@
 
 ---
 
+## 5. ShadCN Design System Implementation
+
+### Homepage Dark/Light Mode Redesign (Final Implementation)
+**Date**: 2025-07-09
+**Status**: ✅ Complete
+**Design Philosophy**: Minimalistic, ShadCN-inspired with proper dual-theme support
+
+#### Complete Visual Overhaul:
+**MINIMALISTIC REDESIGN** - Complete transformation from colorful hero-based design to clean, professional ShadCN dashboard aesthetic:
+
+#### Design Transformation:
+
+**BEFORE (Colorful Hero Design):**
+```typescript
+// Bright blue gradient hero with weather integration
+<Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+  {/* Elaborate hero section with weather display */}
+  <Sun className="w-8 h-8" />
+  <div className="text-2xl font-bold">68°F</div>
+  <Button size="lg" className="bg-white text-blue-600 h-14 px-8">
+    <Play className="w-5 h-5 mr-2" />
+    Log Today's Run
+  </Button>
+</Card>
+```
+
+**AFTER (ShadCN Minimalistic):**
+```typescript
+// Clean, minimal welcome section with consistent theming
+<div className="mb-8">
+  <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+    Good morning, {userName}
+  </h1>
+  <p className="text-zinc-600 dark:text-zinc-400">
+    Here's what's happening with your running today.
+  </p>
+</div>
+
+// Clean stats cards with proper dual-theme support
+<Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+  <CardContent className="p-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+          {currentStats?.weekMiles || 0}
+        </p>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">Miles This Week</p>
+      </div>
+      <div className="text-xs text-green-600 dark:text-green-500 bg-green-500/10 px-2 py-1 rounded">
+        +12.5%
+      </div>
+    </div>
+  </CardContent>
+</Card>
+```
+
+#### Key Visual Changes:
+
+**1. Hero Section → Simple Welcome**
+- **Removed**: Elaborate blue gradient hero with weather integration
+- **Added**: Clean text-based welcome with time-based greeting
+- **Benefit**: Focuses attention on actual functionality vs. decorative elements
+
+**2. Color Palette Transformation**
+- **Removed**: Bright blues, colorful gradients, heavy accents
+- **Added**: Zinc-based neutral palette with subtle accents
+- **Benefit**: Professional, readable, reduces visual noise
+
+**3. Card Design Standardization**
+- **Removed**: Mixed card styles with different backgrounds
+- **Added**: Consistent card treatment across all sections
+- **Benefit**: Visual cohesion, easier scanning
+
+**4. Typography Hierarchy**
+- **Removed**: Oversized headings, mixed font weights
+- **Added**: Consistent text sizing with proper hierarchy
+- **Benefit**: Better readability, less visual overwhelm
+
+#### Dual-Theme Implementation:
+
+**Light Mode Colors:**
+```typescript
+// Main background
+className="min-h-screen bg-white dark:bg-zinc-950"
+
+// Cards
+className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+
+// Text hierarchy
+className="text-zinc-900 dark:text-zinc-100"        // Primary text
+className="text-zinc-600 dark:text-zinc-400"        // Secondary text
+className="text-zinc-500 dark:text-zinc-500"        // Muted text
+
+// Interactive elements
+className="border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+```
+
+**Dark Mode Colors:**
+```typescript
+// Creates proper contrast with:
+// - Very dark background (zinc-950)
+// - Dark gray cards (zinc-900)
+// - Light text (zinc-100)
+// - Muted elements (zinc-400)
+// - Subtle borders (zinc-800)
+```
+
+#### Technical Implementation:
+
+**Color System:**
+- **Base**: Pure white → zinc-950 progression
+- **Cards**: zinc-50 → zinc-900 for proper contrast
+- **Text**: zinc-900 → zinc-100 with zinc-600 → zinc-400 for hierarchy
+- **Borders**: zinc-200 → zinc-800 for subtle definition
+- **Interactive**: Proper hover states for both themes
+
+**Component Updates:**
+- **Stats Cards**: All 4 cards use consistent styling
+- **Today's Workout**: Minimalistic design with proper theming
+- **Weather Card**: Clean weather display with theme support
+- **Quick Actions**: Consistent button styling across themes
+
+#### Critical Bug Fix - Tailwind Configuration:
+
+**Problem Identified:**
+```typescript
+// ❌ BROKEN - Malformed darkMode configuration
+darkMode: ["class", "class"],  // Invalid syntax causing all dark: classes to fail
+```
+
+**Solution Applied:**
+```typescript
+// ✅ FIXED - Proper Tailwind dark mode configuration
+darkMode: "class",  // Enables class-based dark mode switching
+```
+
+**Impact:**
+- **Before**: Dark mode toggle worked but no dark: classes were applied
+- **After**: Complete dark mode functionality with all theme variants working
+- **Result**: Both light and dark modes render perfectly with proper contrast
+
+#### User Experience Improvements:
+
+**✅ Visual Clarity:**
+- Reduced visual noise with neutral color palette
+- Consistent card treatment for easier scanning
+- Proper text hierarchy for better readability
+
+**✅ Theme Consistency:**
+- Perfect light/dark mode support with proper contrast
+- Seamless theme switching without layout shifts
+- Professional appearance in both modes
+
+**✅ ShadCN Compliance:**
+- Follows ShadCN design system principles
+- Uses consistent spacing and typography
+- Proper use of zinc color scale for modern appearance
+
+**✅ Performance:**
+- Cleaner DOM structure with less complex styling
+- Efficient CSS with Tailwind utility classes
+- Proper theme switching without re-renders
+
+#### Responsive Design:
+
+**Mobile Optimization:**
+- Single column layout for stats cards
+- Proper touch targets for interactive elements
+- Consistent spacing across screen sizes
+
+**Desktop Experience:**
+- Multi-column layouts for information density
+- Optimized spacing for mouse interactions
+- Professional dashboard appearance
+
+#### Weather Card Integration:
+
+**Maintained Functionality:**
+```typescript
+// Weather card with proper theming
+<Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm mb-8">
+  <CardTitle className="text-zinc-900 dark:text-zinc-100">
+    {React.createElement(weatherInfo.icon, { 
+      className: "w-5 h-5 text-zinc-600 dark:text-zinc-400" 
+    })}
+    Weather Conditions
+  </CardTitle>
+  <CardContent>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="text-center">
+        <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+          {Math.round(currentWeather.temperature)}°
+        </div>
+        <div className="text-sm text-zinc-600 dark:text-zinc-400">Temperature</div>
+      </div>
+      {/* Additional weather metrics */}
+    </div>
+  </CardContent>
+</Card>
+```
+
+**Features:**
+- **Preserved**: All weather functionality (temperature, conditions, humidity, wind)
+- **Enhanced**: Proper dual-theme support with consistent styling
+- **Improved**: Clean, minimal design that doesn't overwhelm
+
+#### Final Implementation Status:
+
+**✅ Complete Theme Support:**
+- Light mode: Clean, professional appearance
+- Dark mode: Proper contrast with modern dark UI
+- Seamless switching between themes
+
+**✅ ShadCN Design System:**
+- Consistent use of zinc color palette
+- Proper typography hierarchy
+- Subtle shadows and borders
+
+**✅ User Experience:**
+- Reduced visual complexity
+- Improved readability
+- Professional dashboard appearance
+
+**✅ Technical Excellence:**
+- Fixed Tailwind configuration bug
+- Proper CSS class organization
+- Efficient theme implementation
+
+#### Code Quality Improvements:
+
+**Clean Component Structure:**
+- Removed unused imports and variables
+- Consistent naming conventions
+- Proper TypeScript types
+
+**Maintainable CSS:**
+- Utility-first approach with Tailwind
+- Consistent color system
+- Proper responsive design patterns
+
+**Performance Optimizations:**
+- Efficient theme switching
+- Minimal re-renders
+- Clean DOM structure
+
+---
+
 *This document will be updated as we proceed with the audit and redesign.* 

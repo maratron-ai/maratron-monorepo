@@ -42,12 +42,7 @@ export function useRecentRuns(limit: number = 3) {
         console.error('Recent runs fetch error:', err);
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to fetch runs');
-          // Fallback to mock data
-          setRuns([
-            { id: '1', date: 'Yesterday', distance: '3.2 mi', time: '26:45', pace: '8:21' },
-            { id: '2', date: '2 days ago', distance: '6.0 mi', time: '51:30', pace: '8:35' },
-            { id: '3', date: '4 days ago', distance: '3.5 mi', time: '28:12', pace: '8:03' }
-          ]);
+          setRuns([]);
         }
       } finally {
         if (mounted) {

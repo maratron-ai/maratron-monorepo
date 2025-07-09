@@ -75,10 +75,15 @@ p {
   }
 }
 
-button {
-  @apply bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary hover:opacity-80
-         transition-colors focus:outline-none focus:ring-2 focus:ring-ring;
-}
 button.avatar-btn {
   @apply bg-transparent hover:bg-transparent p-0 text-transparent rounded-none focus:outline-none focus:ring-0;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

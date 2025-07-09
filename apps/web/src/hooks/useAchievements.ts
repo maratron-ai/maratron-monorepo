@@ -73,19 +73,8 @@ export function useAchievements() {
         console.error('Achievements fetch error:', err);
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to fetch achievements');
-          // Fallback to mock data
-          setAchievements([
-            { title: "5-Day Streak", description: "5 consecutive running days", icon: Trophy, isNew: true },
-            { title: "Personal Best", description: "Fastest 5K this month", icon: Award, isNew: false }
-          ]);
-          setAlerts([
-            {
-              type: 'tip',
-              title: 'Daily Tip',
-              message: 'Stay hydrated! Drink water 2-3 hours before your run for optimal performance.',
-              color: 'green'
-            }
-          ]);
+          setAchievements([]);
+          setAlerts([]);
         }
       } finally {
         if (mounted) {

@@ -53,6 +53,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/home", label: "Home" },
+    { href: "/dashboard", label: "Dashboard" },
     { href: "/social", label: "Social" },
     { href: "/analytics", label: "Analytics" },
     { href: "/chat", label: "AI Assistant" }

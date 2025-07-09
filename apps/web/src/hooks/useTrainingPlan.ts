@@ -53,31 +53,16 @@ export function useTrainingPlan() {
             }
           }
         } catch (apiError) {
-          // If API fails, provide general recommendation
+          // If API fails, no workout data available
           if (mounted) {
-            setTodaysWorkout({
-              hasTrainingPlan: false,
-              workoutType: "Easy Run",
-              distance: "3-5 miles",
-              pace: "Conversational pace",
-              duration: "25-40 min",
-              notes: "Focus on keeping an easy, comfortable pace that allows you to hold a conversation"
-            });
+            setTodaysWorkout(null);
           }
         }
       } catch (err) {
         console.error('Training plan fetch error:', err);
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to fetch training plan');
-          // Fallback to general recommendation
-          setTodaysWorkout({
-            hasTrainingPlan: false,
-            workoutType: "Easy Run",
-            distance: "3-5 miles", 
-            pace: "Conversational pace",
-            duration: "25-40 min",
-            notes: "Focus on keeping an easy, comfortable pace that allows you to hold a conversation"
-          });
+          setTodaysWorkout(null);
         }
       } finally {
         if (mounted) {

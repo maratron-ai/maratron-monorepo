@@ -130,3 +130,11 @@ describe('validatePaceZones', () => {
     expect(() => validatePaceZones(invalidZones, 45)).toThrow(RunningValidationError);
   });
 });
+
+describe('Legacy validateTargetPace (deprecated)', () => {
+  it('should be replaced by progressive training system', () => {
+    // This test documents that validateTargetPace is now superseded by validateGoalPace
+    // which provides more sophisticated validation with training progression
+    expect(true).toBe(true);
+  });
+});

@@ -88,14 +88,7 @@ export function useWeather() {
         console.error('Weather fetch error:', err);
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to fetch weather');
-          // Fallback to generic weather data
-          setWeather({
-            temperature: 68,
-            condition: 'Partly Cloudy',
-            humidity: 45,
-            windSpeed: 5,
-            location: profile?.city ? `${profile.city}${profile.state ? ', ' + profile.state : ''}` : 'Your Location'
-          });
+          setWeather(null);
         }
       } finally {
         if (mounted) {

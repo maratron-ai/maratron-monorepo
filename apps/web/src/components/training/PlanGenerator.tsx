@@ -17,6 +17,8 @@ import {
   generateHalfMarathonPlan,
   generateClassicMarathonPlan,
 } from "@utils/running/plans/distancePlans";
+import { calculatePaceForVDOT } from "@utils/running/jackDaniels";
+import { validateGoalPace } from "@utils/running/validation";
 import { RunningPlanData } from "@maratypes/runningPlan";
 import { listRunningPlans } from "@lib/api/plan";
 import { assignDatesToPlan } from "@utils/running/planDates";
@@ -50,7 +52,7 @@ const [targetDistance, setTargetDistance] = useState<number>(
 );
   const [vdot, setVdot] = useState<number>(30);
   const [useTotalTime, setUseTotalTime] = useState<boolean>(false);
-  const [targetPace, setTargetPace] = useState<string>("10:00");
+  const [targetPace, setTargetPace] = useState<string>("8:00");
   const [targetTotalTime, setTargetTotalTime] = useState<string>("3:45:00");
   const [planData, setPlanData] = useState<RunningPlanData | null>(null);
   const [showJson, setShowJson] = useState<boolean>(false);
@@ -58,6 +60,11 @@ const [targetDistance, setTargetDistance] = useState<number>(
     defaultPlanName(DEFAULT_RACE, 1)
   );
   const [endDate, setEndDate] = useState<string>("");
+  const [goalValidation, setGoalValidation] = useState<{
+    isValid: boolean;
+    projectedVDOT: number;
+    message?: string;
+  } | null>(null);
 
   const [trainingLevel, setTrainingLevel] = useState<TrainingLevel>(
     TrainingLevel.Beginner
@@ -139,60 +146,119 @@ const [targetDistance, setTargetDistance] = useState<number>(
     );
   }, [raceType, distanceUnit]);
 
+  // Calculate realistic default target pace based on VDOT and race distance
+  useEffect(() => {
+    if (vdot && targetDistance) {
+      const toMeters = distanceUnit === "miles" ? 1609.34 : 1000;
+      const raceMeters = targetDistance * toMeters;
+      const calculatedMarathonPace = calculatePaceForVDOT(raceMeters, vdot, "M");
+      setTargetPace(calculatedMarathonPace);
+    }
+  }, [vdot, targetDistance, distanceUnit]);
+
+  // Validate goal pace and provide progression feedback
+  useEffect(() => {
+    if (vdot && targetDistance && targetPace && weeks) {
+      try {
+        const toMeters = distanceUnit === "miles" ? 1609.34 : 1000;
+        const raceMeters = targetDistance * toMeters;
+        const calculatedMarathonPace = calculatePaceForVDOT(raceMeters, vdot, "M");
+        
+        const validation = validateGoalPace(targetPace, calculatedMarathonPace, vdot, weeks);
+        setGoalValidation(validation);
+      } catch (error) {
+        // Handle validation errors gracefully
+        if (error instanceof Error) {
+          setGoalValidation({
+            isValid: false,
+            projectedVDOT: vdot,
+            message: `Invalid pace format: ${error.message.includes('format') ? 'Please use mm:ss format (e.g., "8:30")' : error.message}`
+          });
+        } else {
+          setGoalValidation({
+            isValid: false,
+            projectedVDOT: vdot,
+            message: 'Please check your pace format (use mm:ss like "8:30")'
+          });
+        }
+      }
+    } else {
+      setGoalValidation(null);
+    }
+  }, [vdot, targetDistance, targetPace, weeks, distanceUnit]);
+
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
-    const opts = {
-      weeks,
-      distanceUnit,
-      trainingLevel,
-      vdot,
-      targetPace: useTotalTime ? undefined : targetPace,
-      targetTotalTime: useTotalTime ? targetTotalTime : undefined,
-      runsPerWeek,
-      crossTrainingDays,
-      // runTypeDays,
-    };
-    let plan: RunningPlanData;
-    switch (raceType) {
-      case "5k":
-        plan = generate5kPlan(opts);
-        break;
-      case "10k":
-        plan = generate10kPlan(opts);
-        break;
-      case "half":
-        plan = generateHalfMarathonPlan(opts);
-        break;
-      default:
-        plan = generateClassicMarathonPlan(opts);
-        break;
+    
+    // Validate inputs before generating plan
+    if (!useTotalTime && goalValidation && !goalValidation.isValid) {
+      alert(`Cannot generate plan: ${goalValidation.message}`);
+      return;
     }
-    // Assign default start and end dates if not provided
-    const today = new Date();
-    const base = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
-    const diff = (7 - base.getUTCDay()) % 7;
-    base.setUTCDate(base.getUTCDate() + (diff === 0 ? 7 : diff));
-    const assumedStartDate = base.toISOString().slice(0, 10);
-    let assumedEndDate = endDate;
+    
+    try {
+      const opts = {
+        weeks,
+        distanceUnit,
+        trainingLevel,
+        vdot,
+        targetPace: useTotalTime ? undefined : targetPace,
+        targetTotalTime: useTotalTime ? targetTotalTime : undefined,
+        runsPerWeek,
+        crossTrainingDays,
+        // runTypeDays,
+      };
+      let plan: RunningPlanData;
+      switch (raceType) {
+        case "5k":
+          plan = generate5kPlan(opts);
+          break;
+        case "10k":
+          plan = generate10kPlan(opts);
+          break;
+        case "half":
+          plan = generateHalfMarathonPlan(opts);
+          break;
+        default:
+          plan = generateClassicMarathonPlan(opts);
+          break;
+      }
+      
+      // Assign default start and end dates if not provided
+      const today = new Date();
+      const base = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+      const diff = (7 - base.getUTCDay()) % 7;
+      base.setUTCDate(base.getUTCDate() + (diff === 0 ? 7 : diff));
+      const assumedStartDate = base.toISOString().slice(0, 10);
+      let assumedEndDate = endDate;
 
-    if (!endDate) {
-      const projectedEndDate = new Date(today);
-      projectedEndDate.setDate(today.getDate() + weeks * 7);
+      if (!endDate) {
+        const projectedEndDate = new Date(today);
+        projectedEndDate.setDate(today.getDate() + weeks * 7);
 
-      // Adjust to nearest following Sunday
-      const dayOfWeek = projectedEndDate.getDay(); // 0 is Sunday
-      const daysToAdd = (7 - dayOfWeek) % 7;
-      projectedEndDate.setDate(projectedEndDate.getDate() + daysToAdd);
+        // Adjust to nearest following Sunday
+        const dayOfWeek = projectedEndDate.getDay(); // 0 is Sunday
+        const daysToAdd = (7 - dayOfWeek) % 7;
+        projectedEndDate.setDate(projectedEndDate.getDate() + daysToAdd);
 
-      assumedEndDate = projectedEndDate.toISOString().slice(0, 10);
+        assumedEndDate = projectedEndDate.toISOString().slice(0, 10);
+      }
+
+      const withDates = assignDatesToPlan(plan, {
+        startDate: assumedStartDate,
+        endDate: assumedEndDate,
+      });
+      setPlanData(withDates);
+      setEndDate(withDates.endDate?.slice(0, 10) ?? "");
+    } catch (error) {
+      // Handle plan generation errors gracefully
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'An unexpected error occurred while generating the plan';
+      
+      alert(`Error generating training plan: ${errorMessage}`);
+      console.error('Plan generation error:', error);
     }
-
-    const withDates = assignDatesToPlan(plan, {
-      startDate: assumedStartDate,
-      endDate: assumedEndDate,
-    });
-    setPlanData(withDates);
-    setEndDate(withDates.endDate?.slice(0, 10) ?? "");
   };
 
   return (
@@ -274,14 +340,35 @@ const [targetDistance, setTargetDistance] = useState<number>(
               className="mt-1"
             />
           ) : (
-            <Input
-              label="Target Pace (mm:ss)"
-              name="targetPace"
-              type="text"
-              value={targetPace}
-              onChange={(_n, v) => setTargetPace(v)}
-              className="mt-1"
-            />
+            <div className="space-y-2">
+              <Input
+                label="Target Pace (mm:ss)"
+                name="targetPace"
+                type="text"
+                value={targetPace}
+                onChange={(_n, v) => setTargetPace(v)}
+                className="mt-1"
+              />
+              {goalValidation && (
+                <div className={`text-sm p-2 rounded ${
+                  goalValidation.isValid 
+                    ? 'bg-green-50 text-green-800 border border-green-200' 
+                    : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
+                }`}>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-lg">
+                      {goalValidation.isValid ? '🎯' : '⚠️'}
+                    </span>
+                    <div>
+                      <p className="font-medium">
+                        {goalValidation.isValid ? 'Progressive Training Plan' : 'Ambitious Goal'}
+                      </p>
+                      <p className="text-xs">{goalValidation.message}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
           <div className="flex items-center w-full space-x-2">
             <Button

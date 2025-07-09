@@ -3,7 +3,7 @@ import { WeekPlan, RunningPlanData, PlannedRun } from "@maratypes/runningPlan";
 import { DayOfWeek } from "@maratypes/basics";
 import { formatPace } from "@utils/running/paces";
 import { parseDuration } from "@utils/time";
-import { validatePaceZones } from "../validation";
+import { validatePaceZones, validateGoalPace, createProgressivePaceZones } from "../validation";
 
 // const formatPace = (sec: number): string => {
 //   const m = Math.floor(sec / 60);
@@ -171,16 +171,40 @@ export function generateLongDistancePlan(
   const toMeters = distanceUnit === "miles" ? 1609.34 : 1000;
   const raceMeters = targetDistance * toMeters;
 
-  // -- pace zones
-  const zones: PaceZones = {
+  // -- Initialize with current fitness pace zones
+  const baseZones: PaceZones = {
     easy: calculatePaceForVDOT(raceMeters, vdot, "E"),
     marathon: calculatePaceForVDOT(raceMeters, vdot, "M"),
     tempo: calculatePaceForVDOT(raceMeters, vdot, "T"),
     interval: calculatePaceForVDOT(raceMeters, vdot, "I"),
   };
-  if (goalPaceSec !== undefined) zones.marathon = formatPace(goalPaceSec);
+  
+  // Track whether we're using progressive training
+  let usingProgressiveTraining = false;
+  let goalValidation: { isValid: boolean; projectedVDOT: number; message?: string } | null = null;
+  
+  // If user has a goal pace, validate and set up progressive training
+  if (goalPaceSec !== undefined) {
+    const goalPaceStr = formatPace(goalPaceSec);
+    goalValidation = validateGoalPace(goalPaceStr, baseZones.marathon, vdot, weeks);
+    
+    if (goalValidation.isValid) {
+      usingProgressiveTraining = true;
+      console.log(`🎯 Progressive training enabled: ${goalValidation.message}`);
+    } else {
+      console.warn(`⚠️ Goal pace adjustment: ${goalValidation.message}`);
+      // Still allow the goal but warn user
+    }
+  }
+  
+  // Start with base zones for week 1, will be updated per week if progressive
+  let zones = { ...baseZones };
+  if (goalPaceSec !== undefined && !usingProgressiveTraining) {
+    // Static goal pace override (original behavior for conservative goals)
+    zones.marathon = formatPace(goalPaceSec);
+  }
 
-  // -- validate pace zone relationships
+  // -- validate pace zone relationships for initial zones
   validatePaceZones(zones, vdot);
   
   // Get tempo pace in seconds for calculations (after validation passes)
@@ -229,6 +253,24 @@ export function generateLongDistancePlan(
   const progressWeeks = weeks - TAPER_WEEKS;
 
   const schedule: WeekPlan[] = progression.map(({ week, mileage, phase, cutback }) => {
+    // Update pace zones for progressive training
+    let currentZones = zones;
+    if (usingProgressiveTraining && goalPaceSec !== undefined) {
+      const goalPaceStr = formatPace(goalPaceSec);
+      const progressiveResult = createProgressivePaceZones(
+        vdot,
+        goalPaceStr,
+        weeks,
+        week,
+        raceMeters
+      );
+      currentZones = progressiveResult.zones;
+      
+      // Log progression for debugging
+      if (week === 1 || week === Math.floor(weeks / 2) || week === weeks) {
+        console.log(`📈 Week ${week} pace zones (VDOT ${progressiveResult.currentTrainingVDOT.toFixed(1)}): M=${currentZones.marathon}, T=${currentZones.tempo}`);
+      }
+    }
 
     // Long-run progression logic
     let longDist: number;
@@ -249,7 +291,7 @@ export function generateLongDistancePlan(
     const intervalMileage = roundToHalf(
       (workout.reps * workout.distanceMeters) / toMeters
     );
-    const baseIntervalPaceSec = parseDuration(zones.interval);
+    const baseIntervalPaceSec = parseDuration(currentZones.interval);
     const repDistanceUnits = workout.distanceMeters / toMeters;
     const repPaceSec = baseIntervalPaceSec * repDistanceUnits;
     const repPace = formatPace(repPaceSec);
@@ -269,7 +311,7 @@ export function generateLongDistancePlan(
       adjustedLong = roundToHalf(longDist * CUTBACK_RUN_FACTOR);
     }
     const tempoNotes = `Tempo at T-pace (${
-      zones.tempo
+      currentZones.tempo
     }) for ${tempoMileage} ${distanceUnit}, plus ${WUCD_PERCENT * 100}% WU/CD`;
 
     let runs: PlannedRun[];
@@ -279,7 +321,7 @@ export function generateLongDistancePlan(
           type: "marathon",
           unit: distanceUnit,
           mileage: roundToHalf(targetDistance),
-          targetPace: { unit: distanceUnit, pace: zones.marathon },
+          targetPace: { unit: distanceUnit, pace: currentZones.marathon },
         },
       ];
     } else {
@@ -288,27 +330,27 @@ export function generateLongDistancePlan(
           type: "easy",
           unit: distanceUnit,
           mileage: easyMileage,
-          targetPace: { unit: distanceUnit, pace: zones.easy },
+          targetPace: { unit: distanceUnit, pace: currentZones.easy },
         },
         {
           type: "interval",
           unit: distanceUnit,
           mileage: intervalMileage,
-          targetPace: { unit: distanceUnit, pace: zones.interval },
+          targetPace: { unit: distanceUnit, pace: currentZones.interval },
           notes: intervalNotes,
         },
         {
           type: "tempo",
           unit: distanceUnit,
           mileage: tempoMileage,
-          targetPace: { unit: distanceUnit, pace: formatPace(tempoSecNum) },
+          targetPace: { unit: distanceUnit, pace: currentZones.tempo },
           notes: tempoNotes,
         },
         {
           type: "long",
           unit: distanceUnit,
           mileage: adjustedLong,
-          targetPace: { unit: distanceUnit, pace: zones.marathon },
+          targetPace: { unit: distanceUnit, pace: currentZones.marathon },
         },
       ];
     }

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { 
@@ -9,45 +10,22 @@ import {
   CardHeader, 
   CardTitle,
   Skeleton, 
-  Badge, 
-  Progress, 
-  Separator,
-  Button,
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Alert,
-  AlertTitle,
-  AlertDescription,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
+  Badge,
+  Button
 } from "@components/ui";
 import {
-  PlusCircle,
   CalendarCheck,
   User,
-  BarChart3,
   Activity,
-  Trophy,
-  Target,
   ArrowRight,
   TrendingUp,
   Cloud,
   Sun,
   CloudRain,
-  Thermometer,
   Calendar,
-  Timer,
   Zap,
-  MapPin,
-  Play,
   MessageSquare,
-  Award,
-  Lightbulb,
-  Bell,
-  ExternalLink
+  Lightbulb
 } from "lucide-react";
 
 import { Icon } from "lucide-react";
@@ -60,41 +38,6 @@ import { useUser } from "@hooks/useUser";
 import { useTrainingPlan } from "@hooks/useTrainingPlan";
 import { useAchievements } from "@hooks/useAchievements";
 
-// Mock data for demo
-const mockWeather = {
-  temperature: 68,
-  condition: "Sunny",
-  icon: Sun,
-  humidity: 45,
-  windSpeed: 5
-};
-
-const mockStats = {
-  weekMiles: 12.5,
-  weekRuns: 3,
-  currentStreak: 5,
-  goalProgress: 68
-};
-
-const mockTodaysWorkout = {
-  hasTrainingPlan: true,
-  workoutType: "Easy Run",
-  distance: "5 miles",
-  pace: "8:30-9:00 min/mi",
-  duration: "42-45 min",
-  notes: "Focus on keeping an easy conversational pace"
-};
-
-const mockRecentRuns = [
-  { id: 1, date: "Yesterday", distance: "3.2 mi", time: "26:45", pace: "8:21" },
-  { id: 2, date: "2 days ago", distance: "6.0 mi", time: "51:30", pace: "8:35" },
-  { id: 3, date: "4 days ago", distance: "3.5 mi", time: "28:12", pace: "8:03" }
-];
-
-const mockAchievements = [
-  { title: "5-Day Streak", description: "5 consecutive running days", icon: Trophy, isNew: true },
-  { title: "Personal Best", description: "Fastest 5K this month", icon: Award, isNew: false }
-];
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -103,12 +46,10 @@ export default function HomePage() {
   const demoMode = isDemoMode();
 
   // Real data hooks
-  const { weather, loading: weatherLoading } = useWeather();
+  const { weather } = useWeather();
   const { stats, loading: statsLoading } = useUserStats();
-  const { runs: recentRuns, loading: runsLoading } = useRecentRuns(3);
   const { profile } = useUser();
   const { todaysWorkout, loading: workoutLoading } = useTrainingPlan();
-  const { achievements, alerts, loading: achievementsLoading } = useAchievements();
 
   if (status === "loading" && !demoMode) {
     return (
@@ -154,20 +95,19 @@ export default function HomePage() {
 
   const userName = demoMode ? "Demo User" : (profile?.name || session?.user?.name || session?.user?.email?.split('@')[0]);
 
-  // Use real data when available, fallback to mock data
-  const currentWeather = weather || mockWeather;
-  const currentStats = stats || mockStats;
-  const displayRuns = recentRuns.length > 0 ? recentRuns : mockRecentRuns;
-  const currentWorkout = todaysWorkout || mockTodaysWorkout;
-  const displayAchievements = achievements.length > 0 ? achievements : mockAchievements;
-  const displayAlerts = alerts.length > 0 ? alerts : [
-    {
-      type: 'tip' as const,
-      title: 'Daily Tip',
-      message: 'Stay hydrated! Drink water 2-3 hours before your run for optimal performance.',
-      color: 'green' as const
-    }
-  ];
+  // Use only real data from database/API
+  const currentWeather = weather;
+  const currentStats = stats;
+  const currentWorkout = todaysWorkout;
+
+  // Enhanced workout logic - handles 4 scenarios:
+  // Scenario 1: User has workout today -> Show today's workout
+  // Scenario 2: User has active plan but nothing today -> Show next scheduled workout
+  // Scenario 3: User has no plan and no workout -> Hide entire section
+  // Scenario 4: User has rest day today -> Show rest day message
+  
+  // Only show workout section if there's actual data
+  const showWorkoutSection = !!currentWorkout;
 
   // Determine weather icon and colors
   const getWeatherInfo = (condition: string) => {
@@ -211,477 +151,312 @@ export default function HomePage() {
     };
   };
 
-  const weatherInfo = getWeatherInfo(currentWeather.condition);
-  const WeatherIcon = weatherInfo.icon;
+  // Safe weather info with null check
+  const weatherInfo = currentWeather ? getWeatherInfo(currentWeather.condition) : {
+    icon: Sun,
+    bgFrom: 'from-blue-500',
+    bgTo: 'to-sky-600',
+    darkBgFrom: 'dark:from-blue-600',
+    darkBgTo: 'dark:to-sky-700'
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="container mx-auto px-4 py-6 space-y-8">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
         
-        {/* 1. Hero Section - Weather + Primary Action */}
-        <Card className={`relative overflow-hidden bg-gradient-to-br ${weatherInfo.bgFrom} ${weatherInfo.bgTo} ${weatherInfo.darkBgFrom} ${weatherInfo.darkBgTo} text-white border-0`}>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              
-              {/* Weather Info */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3">
-                    {weatherLoading ? (
-                      <Skeleton className="w-8 h-8 rounded-full bg-white/20" />
-                    ) : (
-                      <WeatherIcon className="w-8 h-8" />
-                    )}
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Good morning, {userName}</h1>
+          <p className="text-zinc-600 dark:text-zinc-400">Here&apos;s what&apos;s happening with your running today.</p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <CardContent className="p-6">
+              {statsLoading ? (
+                <>
+                  <Skeleton className="h-8 w-20 mb-2 bg-zinc-200 dark:bg-zinc-800" />
+                  <Skeleton className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800" />
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
                     <div>
-                      {weatherLoading ? (
-                        <>
-                          <Skeleton className="h-8 w-16 bg-white/20" />
-                          <Skeleton className="h-4 w-20 bg-white/20 mt-1" />
-                        </>
-                      ) : (
-                        <>
-                          <div className="text-2xl font-bold">{currentWeather.temperature}°F</div>
-                          <div className="text-blue-100">{currentWeather.condition}</div>
-                        </>
-                      )}
+                      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.weekMiles || 0}</p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">Miles This Week</p>
+                    </div>
+                    <div className="text-xs text-green-600 dark:text-green-500 bg-green-500/10 px-2 py-1 rounded">
+                      +12.5%
                     </div>
                   </div>
-                  <div className="text-sm text-blue-100 space-y-1">
-                    {weatherLoading ? (
-                      <>
-                        <Skeleton className="h-4 w-24 bg-white/20" />
-                        <Skeleton className="h-4 w-20 bg-white/20" />
-                      </>
-                    ) : (
-                      <>
-                        <div>Humidity: {currentWeather.humidity}%</div>
-                        <div>Wind: {currentWeather.windSpeed} mph</div>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <h1 className="text-xl font-semibold">Good morning, {userName}!</h1>
-                  <p className="text-blue-100">Perfect weather for a run today</p>
-                </div>
-              </div>
-
-              {/* Primary CTA */}
-              <div className="flex-shrink-0">
-                <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-50 h-14 px-8 text-lg font-semibold shadow-lg">
-                  <Link href="/runs/new">
-                    <Play className="w-5 h-5 mr-2" />
-                    Log Today's Run
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 2. Today's Focus */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-600" />
-              <CardTitle className="text-lg">Today's Workout</CardTitle>
-              {workoutLoading ? (
-                <Skeleton className="h-6 w-20 ml-auto" />
-              ) : (
-                <Badge variant="outline" className="ml-auto">
-                  {currentWorkout.hasTrainingPlan ? "Training Plan" : "Recommendation"}
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {workoutLoading ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <Skeleton className="h-8 w-16 mx-auto" />
-                      <Skeleton className="h-4 w-12 mx-auto mt-1" />
-                    </div>
-                  ))}
-                </div>
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              </>
-            ) : currentWorkout.isRestDay ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="w-8 h-8 text-green-600 dark:text-green-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-green-600 dark:text-green-400 mb-2">Rest Day</h3>
-                <p className="text-gray-600 dark:text-gray-400">Take a well-deserved break to let your body recover</p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{currentWorkout.distance}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Distance</div>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{currentWorkout.pace}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Target Pace</div>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{currentWorkout.duration}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Duration</div>
-                  </div>
-                </div>
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-500">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Lightbulb className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium text-blue-900 dark:text-blue-100">
-                      {currentWorkout.hasTrainingPlan ? "Coach's Note" : "General Advice"}
-                    </span>
-                  </div>
-                  <p className="text-blue-800 dark:text-blue-200 text-sm">{currentWorkout.notes}</p>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 3. Progress Dashboard */}
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="hover:shadow-lg transition-shadow duration-200">
-                <CardContent className="p-4 text-center">
-                  {statsLoading ? (
-                    <>
-                      <Skeleton className="h-8 w-12 mx-auto" />
-                      <Skeleton className="h-4 w-20 mx-auto mt-1" />
-                      <Skeleton className="h-2 w-full mt-2" />
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <div className="text-2xl font-bold text-blue-600">{currentStats.weekMiles}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Miles This Week</div>
-                      </div>
-                      <Progress value={Math.min((currentStats.weekMiles / 20) * 100, 100)} className="mt-2 h-3" />
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-lg transition-shadow duration-200">
-                <CardContent className="p-4 text-center">
-                  {statsLoading ? (
-                    <>
-                      <Skeleton className="h-8 w-8 mx-auto" />
-                      <Skeleton className="h-4 w-20 mx-auto mt-1" />
-                      <Skeleton className="h-2 w-full mt-2" />
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <div className="text-2xl font-bold text-green-600">{currentStats.weekRuns}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Runs This Week</div>
-                      </div>
-                      <Progress value={Math.min((currentStats.weekRuns / 5) * 100, 100)} className="mt-2 h-3" />
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-lg transition-shadow duration-200">
-                <CardContent className="p-4 text-center">
-                  {statsLoading ? (
-                    <>
-                      <Skeleton className="h-8 w-8 mx-auto" />
-                      <Skeleton className="h-4 w-16 mx-auto mt-1" />
-                      <Skeleton className="h-4 w-4 mx-auto mt-2" />
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <div className="text-2xl font-bold text-orange-600">{currentStats.currentStreak}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Day Streak</div>
-                      </div>
-                      <div className="flex items-center justify-center mt-2">
-                        <Zap className="w-4 h-4 text-orange-500" />
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-lg transition-shadow duration-200">
-                <CardContent className="p-4 text-center">
-                  {statsLoading ? (
-                    <>
-                      <Skeleton className="h-8 w-12 mx-auto" />
-                      <Skeleton className="h-4 w-20 mx-auto mt-1" />
-                      <Skeleton className="h-2 w-full mt-2" />
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <div className="text-2xl font-bold text-purple-600">{currentStats.goalProgress}%</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Monthly Goal</div>
-                      </div>
-                      <Progress value={currentStats.goalProgress} className="mt-2 h-3" />
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="progress" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Weekly Progress</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Miles</span>
-                      <span>{currentStats.weekMiles}/20</span>
-                    </div>
-                    <Progress value={Math.min((currentStats.weekMiles / 20) * 100, 100)} className="h-3" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Runs</span>
-                      <span>{currentStats.weekRuns}/5</span>
-                    </div>
-                    <Progress value={Math.min((currentStats.weekRuns / 5) * 100, 100)} className="h-3" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Monthly Goal</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center space-y-2">
-                    <div className="text-3xl font-bold text-purple-600">{currentStats.goalProgress}%</div>
-                    <Progress value={currentStats.goalProgress} className="h-4" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Keep up the great work!</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="activity" className="space-y-4">
-
-        {/* 4. Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <Button asChild variant="outline" className="h-16 flex-col gap-2">
-                <Link href="/plan-generator">
-                  <CalendarCheck className="w-5 h-5" />
-                  <span className="text-sm">Training Plan</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-16 flex-col gap-2">
-                <Link href="/analytics">
-                  <TrendingUp className="w-5 h-5" />
-                  <span className="text-sm">Analytics</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-16 flex-col gap-2">
-                <Link href="/chat">
-                  <MessageSquare className="w-5 h-5" />
-                  <span className="text-sm">AI Assistant</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-16 flex-col gap-2">
-                <Link href="/shoes/new">
-                  <Icon iconNode={sneaker} size={20} />
-                  <span className="text-sm">Add Shoes</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-16 flex-col gap-2">
-                <Link href="/social">
-                  <Activity className="w-5 h-5" />
-                  <span className="text-sm">Social Feed</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-16 flex-col gap-2">
-                <Link href="/profile">
-                  <User className="w-5 h-5" />
-                  <span className="text-sm">Profile</span>
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-            {/* Recent Activity in Activity Tab */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Recent Runs</CardTitle>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/runs">
-                      View All <ExternalLink className="w-4 h-4 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {runsLoading ? (
-                    [...Array(3)].map((_, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Skeleton className="w-10 h-10 rounded-full" />
-                          <div>
-                            <Skeleton className="h-4 w-16" />
-                            <Skeleton className="h-3 w-20 mt-1" />
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Skeleton className="h-4 w-12" />
-                          <Skeleton className="h-3 w-16 mt-1" />
-                        </div>
-                      </div>
-                    ))
-                  ) : displayRuns.length > 0 ? (
-                    displayRuns.map((run) => (
-                      <div key={run.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                            <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div>
-                            <div className="font-medium">{run.distance}</div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">{run.date}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium">{run.time}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">{run.pace} pace</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p>No recent runs found</p>
-                      <Button asChild variant="outline" size="sm" className="mt-2">
-                        <Link href="/runs/new">Log your first run</Link>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* 6. Motivational Elements */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Achievements */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-600" />
-                <CardTitle className="text-lg">Recent Achievements</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {achievementsLoading ? (
-                [...Array(2)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Skeleton className="w-10 h-10 rounded-full" />
-                    <div className="flex-1">
-                      <Skeleton className="h-4 w-24 mb-1" />
-                      <Skeleton className="h-3 w-32" />
-                    </div>
-                  </div>
-                ))
-              ) : displayAchievements.length > 0 ? (
-                displayAchievements.map((achievement, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
-                      <achievement.icon className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium flex items-center gap-2">
-                        {achievement.title}
-                        {achievement.isNew && <Badge variant="secondary" className="text-xs">New</Badge>}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">{achievement.description}</div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                  <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Keep running to unlock achievements!</p>
-                </div>
+                </>
               )}
             </CardContent>
           </Card>
 
-          {/* Daily Tip & Alerts */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-blue-600" />
-                <CardTitle className="text-lg">Tips & Alerts</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {achievementsLoading ? (
-                [...Array(2)].map((_, i) => (
-                  <div key={i} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <Skeleton className="h-4 w-20 mb-1" />
-                    <Skeleton className="h-8 w-full" />
-                  </div>
-                ))
+          <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <CardContent className="p-6">
+              {statsLoading ? (
+                <>
+                  <Skeleton className="h-8 w-20 mb-2 bg-zinc-200 dark:bg-zinc-800" />
+                  <Skeleton className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800" />
+                </>
               ) : (
-                displayAlerts.map((alert, index) => {
-                  const getAlertVariant = (color: string) => {
-                    switch (color) {
-                      case 'green':
-                        return 'default';
-                      case 'orange':
-                        return 'destructive';
-                      default:
-                        return 'default';
-                    }
-                  };
-                  
-                  return (
-                    <Alert key={index} variant={getAlertVariant(alert.color)} className="border-l-4 border-blue-500">
-                      {alert.type === 'tip' ? (
-                        <Lightbulb className="h-4 w-4" />
-                      ) : alert.type === 'warning' ? (
-                        <Bell className="h-4 w-4" />
-                      ) : (
-                        <Icon iconNode={sneaker} size={16} className="h-4 w-4" />
-                      )}
-                      <AlertTitle>{alert.title}</AlertTitle>
-                      <AlertDescription>{alert.message}</AlertDescription>
-                    </Alert>
-                  );
-                })
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.weekRuns || 0}</p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">Runs This Week</p>
+                    </div>
+                    <div className="text-xs text-red-600 dark:text-red-500 bg-red-500/10 px-2 py-1 rounded">
+                      -20%
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <CardContent className="p-6">
+              {statsLoading ? (
+                <>
+                  <Skeleton className="h-8 w-20 mb-2 bg-zinc-200 dark:bg-zinc-800" />
+                  <Skeleton className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800" />
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.currentStreak || 0}</p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">Day Streak</p>
+                    </div>
+                    <div className="text-xs text-green-600 dark:text-green-500 bg-green-500/10 px-2 py-1 rounded">
+                      +12.5%
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <CardContent className="p-6">
+              {statsLoading ? (
+                <>
+                  <Skeleton className="h-8 w-20 mb-2 bg-zinc-200 dark:bg-zinc-800" />
+                  <Skeleton className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800" />
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.goalProgress || 4.5}%</p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">Growth Rate</p>
+                    </div>
+                    <div className="text-xs text-green-600 dark:text-green-500 bg-green-500/10 px-2 py-1 rounded">
+                      +4.5%
+                    </div>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
         </div>
 
+        {/* Today's Workout */}
+        {showWorkoutSection && (
+          <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm mb-8">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                  <CardTitle className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Today&apos;s Workout</CardTitle>
+                </div>
+                {!workoutLoading && currentWorkout && (
+                  <Badge variant="outline" className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800">
+                    {currentWorkout?.hasTrainingPlan ? "Training Plan" : "Recommendation"}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {workoutLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Card key={i} className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+                      <CardContent className="p-4 text-center">
+                        <Skeleton className="h-8 w-16 mx-auto mb-2 bg-zinc-200 dark:bg-zinc-700" />
+                        <Skeleton className="h-4 w-12 mx-auto bg-zinc-200 dark:bg-zinc-700" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : currentWorkout?.isRestDay ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-8 h-8 text-zinc-600 dark:text-zinc-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Rest Day</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400">Take a well-deserved break to let your body recover</p>
+                </div>
+              ) : currentWorkout ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentWorkout.distance}</div>
+                        <div className="text-sm text-zinc-600 dark:text-zinc-400">Distance</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentWorkout.pace}</div>
+                        <div className="text-sm text-zinc-600 dark:text-zinc-400">Target Pace</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentWorkout.duration}</div>
+                        <div className="text-sm text-zinc-600 dark:text-zinc-400">Duration</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 border-l-4 border-l-blue-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {currentWorkout.hasTrainingPlan ? "Coach&apos;s Note" : "General Advice"}
+                        </span>
+                      </div>
+                      <p className="text-zinc-600 dark:text-zinc-400 text-sm">{currentWorkout.notes}</p>
+                    </CardContent>
+                  </Card>
+                  {currentWorkout.hasTrainingPlan && (
+                    <div className="flex gap-3 justify-center">
+                      <Button asChild variant="outline" size="sm" className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                        <Link href="/plans">View Training Plan</Link>
+                      </Button>
+                      <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+                        <Link href="/runs/new">Log This Run</Link>
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : null}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Weather Card */}
+        <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm mb-8">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+              {currentWeather ? (
+                <>
+                  {React.createElement(weatherInfo.icon, { className: "w-5 h-5 text-zinc-600 dark:text-zinc-400" })}
+                  Weather Conditions
+                </>
+              ) : (
+                <>
+                  <Sun className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                  Weather
+                </>
+              )}
+            </CardTitle>
+            <CardDescription className="text-zinc-600 dark:text-zinc-400">
+              Current conditions for your run
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {currentWeather ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{Math.round(currentWeather.temperature)}°</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">Temperature</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 capitalize">{currentWeather.condition}</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">Conditions</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{currentWeather.humidity}%</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">Humidity</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{currentWeather.windSpeed} mph</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">Wind</div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <div className="w-12 h-12 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Sun className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
+                </div>
+                <p className="text-zinc-600 dark:text-zinc-400">Weather data unavailable</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+              Quick Actions
+            </CardTitle>
+            <CardDescription className="text-zinc-600 dark:text-zinc-400">Streamline your running workflow</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <Button asChild variant="outline" className="h-auto p-4 flex-col gap-2 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <Link href="/plan-generator">
+                  <CalendarCheck className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Training Plan</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-500">Create structured workouts</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto p-4 flex-col gap-2 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <Link href="/analytics">
+                  <TrendingUp className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Analytics</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-500">Track your progress</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto p-4 flex-col gap-2 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <Link href="/chat">
+                  <MessageSquare className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">AI Assistant</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-500">Get training advice</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto p-4 flex-col gap-2 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <Link href="/shoes/new">
+                  <Icon iconNode={sneaker} size={20} className="text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Add Shoes</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-500">Track shoe mileage</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto p-4 flex-col gap-2 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <Link href="/social">
+                  <Activity className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Social Feed</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-500">Connect with runners</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto p-4 flex-col gap-2 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <Link href="/profile">
+                  <User className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Profile</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-500">Manage your settings</span>
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -42,15 +42,7 @@ export function useUserStats() {
         console.error('Stats fetch error:', err);
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to fetch stats');
-          // Fallback to mock data
-          setStats({
-            weekMiles: 12.5,
-            weekRuns: 3,
-            currentStreak: 5,
-            goalProgress: 68,
-            totalRuns: 45,
-            totalMiles: 280
-          });
+          setStats(null);
         }
       } finally {
         if (mounted) {
