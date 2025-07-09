@@ -4,11 +4,12 @@ import { useUser } from "@hooks/useUser";
 import { TrainingLevel } from "@maratypes/user";
 // import type { DayOfWeek } from "@maratypes/basics";
 // import type { PlannedRun } from "@maratypes/runningPlan";
-import ToggleSwitch from "@components/ToggleSwitch";
 import { Spinner } from "@components/ui";
 import { Input } from "@components/ui/input";
 import { SelectField } from "@components/ui/FormField";
 import { Button } from "@components/ui/button";
+import { Switch } from "@components/ui/switch";
+import { Label } from "@components/ui/label";
 import InfoTooltip from "@components/ui/info-tooltip";
 import RunningPlanDisplay from "./RunningPlanDisplay";
 import {
@@ -323,12 +324,26 @@ const [targetDistance, setTargetDistance] = useState<number>(
           />
 
           {/* Goal Input Mode */}
-          <ToggleSwitch
-            checked={useTotalTime}
-            onChange={(c) => setUseTotalTime(c)}
-            leftLabel="Pace"
-            rightLabel="Total Time"
-          />
+          <div className="flex items-center justify-between gap-4 p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+            <div className="flex items-center space-x-4">
+              <Label htmlFor="goal-mode" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                Goal Input Mode
+              </Label>
+              <div className="flex items-center space-x-2">
+                <span className={`text-sm ${!useTotalTime ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                  Pace
+                </span>
+                <Switch
+                  id="goal-mode"
+                  checked={useTotalTime}
+                  onCheckedChange={(c) => setUseTotalTime(c)}
+                />
+                <span className={`text-sm ${useTotalTime ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                  Total Time
+                </span>
+              </div>
+            </div>
+          </div>
           {/* Target Pace or Total Time */}
           {useTotalTime ? (
             <Input

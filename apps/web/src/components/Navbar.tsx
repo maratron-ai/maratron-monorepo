@@ -3,12 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import DefaultAvatar from "@components/DefaultAvatar";
 import { Sheet, SheetTrigger } from "@components/ui";
 import { Button } from "@components/ui/button";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "@components/ui/dropdown-menu";
 import { useSocialProfile } from "@hooks/useSocialProfile";
 import ModeToggle from "@components/ModeToggle";
 import { isDemoMode } from "@lib/utils/demo-mode";
@@ -19,8 +25,6 @@ export default function Navbar() {
   // Demo mode for testing/screenshots
   const demoMode = isDemoMode();
   const { profile } = useSocialProfile();
-  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   // const router = useRouter();
 
@@ -29,27 +33,6 @@ export default function Navbar() {
     if (demoMode) return "/default_profile.png";
     return session?.user?.avatarUrl || profile?.profilePhoto || "/default_profile.png";
   };
-
-  // Close dropdowns when route changes
-  useEffect(() => {
-    setDesktopMenuOpen(false);
-    setMobileMenuOpen(false);
-  }, [pathname]);
-
-  // Auto-close dropdowns after 5 seconds
-  useEffect(() => {
-    if (desktopMenuOpen) {
-      const timer = setTimeout(() => setDesktopMenuOpen(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [desktopMenuOpen]);
-
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      const timer = setTimeout(() => setMobileMenuOpen(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [mobileMenuOpen]);
 
   const navLinks = [
     { href: "/home", label: "Home" },
@@ -60,7 +43,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-background border-b border-transparent backdrop-blur-sm relative z-20">
+    <nav className="bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 backdrop-blur-sm relative z-20">
       <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between py-6">
         {/* Logo and links */}
         <div className="flex items-center md:justify-start justify-center flex-1 md:flex-none">
@@ -90,7 +73,8 @@ export default function Navbar() {
                 <Button
                   key={link.href}
                   asChild
-                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-brand-to hover:no-underline hover:bg-transparent focus:ring-0 text-base"
+                  variant="ghost"
+                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <Link href={link.href}>{link.label}</Link>
                 </Button>
@@ -99,13 +83,15 @@ export default function Navbar() {
               <>
                 <Button
                   asChild
-                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-brand-to hover:no-underline hover:bg-transparent focus:ring-0 text-base"
+                  variant="ghost"
+                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <Link href="/about">About</Link>
                 </Button>
                 <Button
                   asChild
-                  className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-brand-to hover:no-underline hover:bg-transparent focus:ring-0 text-base"
+                  variant="ghost"
+                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <Link href="/contact">Contact</Link>
                 </Button>
@@ -119,56 +105,54 @@ export default function Navbar() {
           {status === "loading" ? null : (session?.user || demoMode) ? (
             <>
               {/* User Avatar + Dropdown */}
-              <div className="relative">
-                <Button
-                  onClick={() => setDesktopMenuOpen((o) => !o)}
-                  aria-label="Toggle user menu"
-                  aria-expanded={desktopMenuOpen}
-                  className="focus:outline-none bg-transparent p-0 hover:bg-transparent focus:ring-0 block w-auto text-foreground no-underline transition-colors hover:text-background hover:no-underline"
-                >
-                  {getAvatarUrl() !== "/default_profile.png" ? (
-                    <Image
-                      src={getAvatarUrl()}
-                      alt={session.user?.name || "User Avatar"}
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 rounded-full object-cover border-2 border-background bg-foreground"
-                      priority
-                    />
-                  ) : (
-                    <DefaultAvatar
-                      size={32}
-                    />
-                  )}
-                </Button>
-                {desktopMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-background border border-accent rounded shadow-md z-50 flex flex-col items-center">
-                    <Button
-                      asChild
-                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple rounded-none focus:ring-0 text-base"
-                    >
-                      <Link href="/profile">Profile</Link>
-                    </Button>
-                    <Button
-                      asChild
-                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple rounded-none focus:ring-0 text-base"
-                    >
-                      <Link href="/settings">Settings</Link>
-                    </Button>
-                    <Button
-                      onClick={() => signOut()}
-                      className="block w-full text-center py-2 bg-transparent justify-center text-foreground no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple rounded-none focus:ring-0 text-base"
-                    >
-                      Logout
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full"
+                  >
+                    {getAvatarUrl() !== "/default_profile.png" ? (
+                      <Image
+                        src={getAvatarUrl()}
+                        alt={session.user?.name || "User Avatar"}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-700"
+                        priority
+                      />
+                    ) : (
+                      <DefaultAvatar
+                        size={32}
+                      />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" sideOffset={5}>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="w-full">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="w-full">
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => signOut()}
+                    className="w-full"
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Button
               onClick={() => signIn()}
-              className="block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-purple focus:ring-0"
+              variant="ghost"
+              className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               Sign In
             </Button>
