@@ -13,7 +13,8 @@ import {
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuPortal
 } from "@components/ui/dropdown-menu";
 import { useSocialProfile } from "@hooks/useSocialProfile";
 import ModeToggle from "@components/ModeToggle";
@@ -74,7 +75,8 @@ export default function Navbar() {
                   key={link.href}
                   asChild
                   variant="ghost"
-                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  size="lg"
+                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-base px-4 py-2"
                 >
                   <Link href={link.href}>{link.label}</Link>
                 </Button>
@@ -84,14 +86,16 @@ export default function Navbar() {
                 <Button
                   asChild
                   variant="ghost"
-                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  size="lg"
+                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-base px-4 py-2"
                 >
                   <Link href="/about">About</Link>
                 </Button>
                 <Button
                   asChild
                   variant="ghost"
-                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  size="lg"
+                  className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-base px-4 py-2"
                 >
                   <Link href="/contact">Contact</Link>
                 </Button>
@@ -109,50 +113,53 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
+                    className="relative h-9 w-9 rounded-full p-0"
                   >
                     {getAvatarUrl() !== "/default_profile.png" ? (
                       <Image
                         src={getAvatarUrl()}
                         alt={session.user?.name || "User Avatar"}
-                        width={32}
-                        height={32}
-                        className="w-8 h-8 rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-700"
+                        width={36}
+                        height={36}
+                        className="w-9 h-9 rounded-full object-cover border-2 border-zinc-200 dark:border-zinc-700"
                         priority
                       />
                     ) : (
                       <DefaultAvatar
-                        size={32}
+                        size={36}
                       />
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" sideOffset={5}>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="w-full">
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="w-full">
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => signOut()}
-                    className="w-full"
-                  >
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
+                <DropdownMenuPortal>
+                  <DropdownMenuContent className="w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg z-50" align="end" sideOffset={5}>
+                    <DropdownMenuItem asChild className="text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                      <Link href="/profile" className="w-full no-underline hover:no-underline">
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                      <Link href="/settings" className="w-full no-underline hover:no-underline">
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800" />
+                    <DropdownMenuItem
+                      onClick={() => signOut()}
+                      className="w-full text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenuPortal>
               </DropdownMenu>
             </>
           ) : (
             <Button
               onClick={() => signIn()}
               variant="ghost"
-              className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              size="lg"
+              className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-base px-4 py-2"
             >
               Sign In
             </Button>

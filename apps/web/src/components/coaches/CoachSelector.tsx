@@ -34,7 +34,7 @@ export const CoachSelector: React.FC<CoachSelectorProps> = ({
         data-testid="coach-selector-loading" 
         className="flex flex-col items-center justify-center p-8 space-y-4"
       >
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-purple"></div>
         <p className="text-muted-foreground">Loading coaches...</p>
       </div>
     );
@@ -78,10 +78,10 @@ export const CoachSelector: React.FC<CoachSelectorProps> = ({
     >
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-foreground">
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
           Choose Your Coach
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-zinc-600 dark:text-zinc-400">
           Select a coaching personality that matches your training style and motivation preferences
         </p>
       </div>
@@ -104,9 +104,9 @@ export const CoachSelector: React.FC<CoachSelectorProps> = ({
       </div>
 
       {/* Selection Info */}
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-zinc-600 dark:text-zinc-400">
         {selectedCoachId ? (
-          <p>Coach selected! Click again to deselect, or choose a different coach.</p>
+          <p className="text-brand-purple font-medium">✓ Coach selected! Click again to deselect, or choose a different coach.</p>
         ) : (
           <p>Click on a coach to select them as your training companion.</p>
         )}

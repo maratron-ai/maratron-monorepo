@@ -22,11 +22,13 @@ const TextAreaField: React.FC<TextAreaFieldProps> = ({
   ...props
 }) => {
   return (
-    <div className={`space-y-1 ${className}`}>
-      <Label htmlFor={name} className="block font-medium">
-        {label}
-        {props.required && <span className="text-brand-orange-dark ml-1">*</span>}
-      </Label>
+    <div className={`space-y-2 ${className}`}>
+      {label && (
+        <Label htmlFor={name} className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          {label}
+          {props.required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
+      )}
 
       {editing ? (
         <Textarea
@@ -34,11 +36,11 @@ const TextAreaField: React.FC<TextAreaFieldProps> = ({
           name={name}
           value={value}
           onChange={(e) => onChange(name, e.target.value)}
-          className="mt-1"
+          className="bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-300 dark:focus:ring-zinc-600"
           {...props}
         />
       ) : (
-        <p className="mt-1 text-foreground dark:text-foreground">{value ?? "–"}</p>
+        <p className="mt-1 text-zinc-900 dark:text-zinc-100">{value ?? "–"}</p>
       )}
     </div>
   );

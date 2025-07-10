@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Label } from "@components/ui";
-import { Input } from "@components/ui/input";
+import { Checkbox } from "@components/ui/checkbox";
 
 export interface CheckboxGroupFieldProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
@@ -25,39 +25,41 @@ const CheckboxGroupField: React.FC<CheckboxGroupFieldProps> = ({
   ...inputProps
 }) => {
   return (
-    <div className={`space-y-1 ${className}`}>
-      <Label htmlFor={name} className="block font-medium">
-        {label}
-        {inputProps.required && <span className="text-brand-orange-dark ml-1">*</span>}
-      </Label>
+    <div className={`space-y-2 ${className}`}>
+      {label && (
+        <Label htmlFor={name} className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          {label}
+          {inputProps.required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
+      )}
 
       {editing ? (
         <div className="flex flex-wrap gap-4">
           {options.map((opt) => (
-            <label key={opt.value} className="inline-flex items-center">
-                <Input
-                  id={opt.value}
-                  name={name}
-                  type="checkbox"
-                  {...inputProps}
-                  checked={value.includes(opt.value)}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const next = e.target.checked
-                      ? [...value, opt.value]
-                      : value.filter((v) => v !== opt.value);
-                    onChange(name, next);
-                  }}
-                  value={opt.value}
-                  className="rounded border-accent text-primary focus:ring-2 focus:ring-primary"
-                />
-              <span className="ml-2 text-foreground dark:text-foreground">
+            <div key={opt.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={opt.value}
+                name={name}
+                checked={value.includes(opt.value)}
+                onCheckedChange={(checked) => {
+                  const next = checked
+                    ? [...value, opt.value]
+                    : value.filter((v) => v !== opt.value);
+                  onChange(name, next);
+                }}
+                className="border-zinc-300 dark:border-zinc-700 data-[state=checked]:bg-zinc-900 data-[state=checked]:border-zinc-900 dark:data-[state=checked]:bg-zinc-100 dark:data-[state=checked]:border-zinc-100"
+              />
+              <Label
+                htmlFor={opt.value}
+                className="text-sm text-zinc-900 dark:text-zinc-100 cursor-pointer"
+              >
                 {opt.label}
-              </span>
-            </label>
+              </Label>
+            </div>
           ))}
         </div>
       ) : (
-        <p className="mt-1 text-foreground dark:text-foreground">
+        <p className="mt-1 text-zinc-900 dark:text-zinc-100">
           {value.length > 0 ? value.join(", ") : "–"}
         </p>
       )}

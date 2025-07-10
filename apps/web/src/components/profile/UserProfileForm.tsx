@@ -17,6 +17,8 @@ interface Props {
   submitLabel?: string;
   /** show VDOT field when editing */
   showVDOTField?: boolean;
+  /** show coach selection section */
+  showCoachSection?: boolean;
 }
 
 export default function UserProfileForm({
@@ -25,6 +27,7 @@ export default function UserProfileForm({
   alwaysEdit = false,
   submitLabel = "Save Profile",
   showVDOTField = true,
+  showCoachSection = true,
 }: Props) {
   const {
     formData,
@@ -93,11 +96,13 @@ export default function UserProfileForm({
         isEditing={editing}
         onChange={handleChange}
       />
-      <CoachSection
-        formData={formData}
-        isEditing={editing}
-        onChange={handleChange}
-      />
+      {showCoachSection && (
+        <CoachSection
+          formData={formData}
+          isEditing={editing}
+          onChange={handleChange}
+        />
+      )}
 
       {editing && (
         <div className="mt-6 flex justify-end">

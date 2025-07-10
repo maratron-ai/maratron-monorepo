@@ -10,6 +10,9 @@ export interface UserStats {
   goalProgress: number;
   totalRuns: number;
   totalMiles: number;
+  weekMilesChange?: number;
+  weekRunsChange?: number;
+  streakChange?: number;
 }
 
 export function useUserStats() {
@@ -67,14 +70,33 @@ function calculateStats(runs: Run[]): UserStats {
   weekStart.setDate(now.getDate() - now.getDay()); // Start of current week
   weekStart.setHours(0, 0, 0, 0);
 
+  const lastWeekStart = new Date(weekStart);
+  lastWeekStart.setDate(weekStart.getDate() - 7);
+  const lastWeekEnd = new Date(weekStart);
+  lastWeekEnd.setTime(lastWeekEnd.getTime() - 1);
+
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  // Calculate weekly stats
+  // Calculate current week stats
   const weekRuns = runs.filter(run => new Date(run.date) >= weekStart);
   const weekMiles = weekRuns.reduce((total, run) => {
     const distance = run.distanceUnit === 'kilometers' ? run.distance * 0.621371 : run.distance;
     return total + distance;
   }, 0);
+
+  // Calculate last week stats for comparison
+  const lastWeekRuns = runs.filter(run => {
+    const runDate = new Date(run.date);
+    return runDate >= lastWeekStart && runDate <= lastWeekEnd;
+  });
+  const lastWeekMiles = lastWeekRuns.reduce((total, run) => {
+    const distance = run.distanceUnit === 'kilometers' ? run.distance * 0.621371 : run.distance;
+    return total + distance;
+  }, 0);
+
+  // Calculate percentage changes
+  const weekMilesChange = lastWeekMiles > 0 ? ((weekMiles - lastWeekMiles) / lastWeekMiles) * 100 : 0;
+  const weekRunsChange = lastWeekRuns.length > 0 ? ((weekRuns.length - lastWeekRuns.length) / lastWeekRuns.length) * 100 : 0;
 
   // Calculate monthly goal progress (assuming 100 miles/month goal)
   const monthRuns = runs.filter(run => new Date(run.date) >= monthStart);
@@ -86,6 +108,11 @@ function calculateStats(runs: Run[]): UserStats {
 
   // Calculate running streak
   const currentStreak = calculateRunningStreak(runs);
+
+  // Calculate streak change (simplified - compare to streak 7 days ago)
+  const weekAgoRuns = runs.filter(run => new Date(run.date) >= lastWeekStart);
+  const lastWeekStreak = calculateRunningStreak(weekAgoRuns);
+  const streakChange = lastWeekStreak > 0 ? ((currentStreak - lastWeekStreak) / lastWeekStreak) * 100 : 0;
 
   // Total stats
   const totalMiles = runs.reduce((total, run) => {
@@ -99,7 +126,10 @@ function calculateStats(runs: Run[]): UserStats {
     currentStreak,
     goalProgress,
     totalRuns: runs.length,
-    totalMiles: Math.round(totalMiles * 10) / 10
+    totalMiles: Math.round(totalMiles * 10) / 10,
+    weekMilesChange: Math.round(weekMilesChange * 10) / 10,
+    weekRunsChange: Math.round(weekRunsChange * 10) / 10,
+    streakChange: Math.round(streakChange * 10) / 10
   };
 }
 

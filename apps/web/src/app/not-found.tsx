@@ -18,7 +18,6 @@ export default function NotFound() {
     const interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          router.push("/");
           return 0;
         }
         return prev - 1;
@@ -26,7 +25,14 @@ export default function NotFound() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [router, showCountdown]);
+  }, [showCountdown]);
+
+  // Handle navigation when countdown reaches 0
+  useEffect(() => {
+    if (countdown === 0 && showCountdown) {
+      router.push("/");
+    }
+  }, [countdown, showCountdown, router]);
 
   const handleStopCountdown = () => {
     setShowCountdown(false);

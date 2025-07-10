@@ -7,9 +7,14 @@ import { TrainingLevel } from "@maratypes/user";
 import { Spinner } from "@components/ui";
 import { Input } from "@components/ui/input";
 import { SelectField } from "@components/ui/FormField";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui";
 import { Button } from "@components/ui/button";
 import { Switch } from "@components/ui/switch";
 import { Label } from "@components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
+import { Calendar } from "@components/ui/calendar";
+import { ChevronDownIcon } from "lucide-react";
 import InfoTooltip from "@components/ui/info-tooltip";
 import RunningPlanDisplay from "./RunningPlanDisplay";
 import {
@@ -39,6 +44,7 @@ const DISTANCE_INFO: Record<RaceType, { miles: number; km: number; weeks: number
 
 const DEFAULT_RACE: RaceType = "full";
 
+
 const PlanGenerator: React.FC = () => {
   const { profile: user, loading } = useUser();
 
@@ -60,7 +66,8 @@ const [targetDistance, setTargetDistance] = useState<number>(
   const [planName, setPlanName] = useState<string>(
     defaultPlanName(DEFAULT_RACE, 1)
   );
-  const [endDate, setEndDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [goalValidation, setGoalValidation] = useState<{
     isValid: boolean;
     projectedVDOT: number;
@@ -231,7 +238,7 @@ const [targetDistance, setTargetDistance] = useState<number>(
       const diff = (7 - base.getUTCDay()) % 7;
       base.setUTCDate(base.getUTCDate() + (diff === 0 ? 7 : diff));
       const assumedStartDate = base.toISOString().slice(0, 10);
-      let assumedEndDate = endDate;
+      let assumedEndDate: string;
 
       if (!endDate) {
         const projectedEndDate = new Date(today);
@@ -243,6 +250,8 @@ const [targetDistance, setTargetDistance] = useState<number>(
         projectedEndDate.setDate(projectedEndDate.getDate() + daysToAdd);
 
         assumedEndDate = projectedEndDate.toISOString().slice(0, 10);
+      } else {
+        assumedEndDate = endDate.toISOString().slice(0, 10);
       }
 
       const withDates = assignDatesToPlan(plan, {
@@ -250,7 +259,9 @@ const [targetDistance, setTargetDistance] = useState<number>(
         endDate: assumedEndDate,
       });
       setPlanData(withDates);
-      setEndDate(withDates.endDate?.slice(0, 10) ?? "");
+      if (withDates.endDate) {
+        setEndDate(new Date(withDates.endDate));
+      }
     } catch (error) {
       // Handle plan generation errors gracefully
       const errorMessage = error instanceof Error 
@@ -263,263 +274,543 @@ const [targetDistance, setTargetDistance] = useState<number>(
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 p-4 space-y-4">
-      <h1 className="text-2xl font-bold text-center mb-4">
-        Generate Your Running Plan
-      </h1>
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="text-center max-w-2xl mx-auto">
+        <h1 className="text-2xl font-light text-zinc-900 dark:text-zinc-100 mb-2">
+          Generate Your Running Plan
+        </h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          Create a personalized training plan based on your goals and fitness level.
+        </p>
+      </div>
+
       {loading ? (
-        <div className="flex justify-center py-4">
-          <Spinner className="h-5 w-5" />
+        <div className="flex justify-center py-8">
+          <Spinner className="h-6 w-6 text-zinc-400" />
         </div>
       ) : (
-        <form onSubmit={handleGenerate} className="space-y-4">
-          {/* Weeks */}
-          <Input
-            label="Weeks"
-            name="weeks"
-            type="number"
-            min={8}
-            value={String(weeks)}
-            onChange={(_n, v) => setWeeks(Number(v))}
-            className="mt-1"
-          />
-          {/* Race Date */}
-          <Input
-            label="Race Date"
-            name="raceDate"
-            type="date"
-            value={endDate}
-            onChange={(_n, v) => setEndDate(v)}
-            className="mt-1"
-          />
-          {/* Race Selection */}
-          <SelectField
-            label="Race Distance"
-            name="raceType"
-            options={[
-              { value: "5k", label: "5K" },
-              { value: "10k", label: "10K" },
-              { value: "half", label: "Half Marathon" },
-              { value: "full", label: "Marathon" },
-            ]}
-            value={raceType}
-            onChange={(_n, v) => setRaceType(v as RaceType)}
-            className="mt-1"
-          />
-          <span className="text-sm mt-1">
-            Target Distance: {targetDistance} {distanceUnit}
-          </span>
-          {/* Training Level */}
-          <SelectField
-            label="Training Level"
-            name="trainingLevel"
-            options={[
-              { value: TrainingLevel.Beginner, label: "Beginner" },
-              { value: TrainingLevel.Intermediate, label: "Intermediate" },
-              { value: TrainingLevel.Advanced, label: "Advanced" },
-            ]}
-            value={trainingLevel}
-            onChange={(_n, v) => setTrainingLevel(v as TrainingLevel)}
-            className="mt-1"
-          />
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-white/50 dark:bg-zinc-900/50 border-0 shadow-none backdrop-blur-sm">
+            <CardContent className="p-6 space-y-6">
+            <form onSubmit={handleGenerate} className="space-y-6">
+              {/* Basic Configuration */}
+              <div className="bg-zinc-50/30 dark:bg-zinc-800/20 p-5 rounded-xl border border-zinc-200/30 dark:border-zinc-700/30">
+                <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-5 flex items-center">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                  Basic Configuration
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 items-start">
+                  {/* Row 1: Race Distance */}
+                  <div className="md:col-start-1">
+                    <div className="space-y-2">
+                      <Label htmlFor="race-distance" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        Race Distance
+                      </Label>
+                      <Select value={raceType} onValueChange={(value) => setRaceType(value as RaceType)}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select race distance" />
+                        </SelectTrigger>
+                        <SelectContent 
+                          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg"
+                          position="popper"
+                          side="bottom"
+                          align="start"
+                        >
+                          <SelectItem value="5k">5K</SelectItem>
+                          <SelectItem value="10k">10K</SelectItem>
+                          <SelectItem value="half">Half Marathon</SelectItem>
+                          <SelectItem value="full">Marathon</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Row 1: Training Weeks */}
+                  <div className="md:col-start-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="training-weeks" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        Training Weeks
+                      </Label>
+                      <Input
+                        id="training-weeks"
+                        name="weeks"
+                        type="number"
+                        min={8}
+                        value={String(weeks)}
+                        onChange={(e) => setWeeks(Number(e.target.value))}
+                        className="h-10"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Row 2: Training Level */}
+                  <div className="md:col-start-1">
+                    <div className="space-y-2">
+                      <Label htmlFor="training-level" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        Training Level
+                      </Label>
+                      <Select value={trainingLevel} onValueChange={(value) => setTrainingLevel(value as TrainingLevel)}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select training level" />
+                        </SelectTrigger>
+                        <SelectContent 
+                          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg"
+                          position="popper"
+                          side="bottom"
+                          align="start"
+                        >
+                          <SelectItem value={TrainingLevel.Beginner}>Beginner</SelectItem>
+                          <SelectItem value={TrainingLevel.Intermediate}>Intermediate</SelectItem>
+                          <SelectItem value={TrainingLevel.Advanced}>Advanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Row 2: Race Date */}
+                  <div className="md:col-start-2">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        Race Date
+                      </Label>
+                      <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between text-left font-normal h-10"
+                            aria-label="Select race date"
+                            aria-haspopup="dialog"
+                            aria-expanded={datePickerOpen}
+                          >
+                            <span>{endDate ? endDate.toLocaleDateString() : "Select date"}</span>
+                            <ChevronDownIcon className="h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent 
+                          className="w-auto p-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg rounded-lg" 
+                          align="start"
+                          sideOffset={4}
+                        >
+                          <div className="p-4 space-y-4">
+                            {/* Month/Year Controls */}
+                            <div className="flex items-center justify-between">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-accent"
+                                onClick={() => {
+                                  const newDate = new Date(endDate || new Date());
+                                  newDate.setMonth(newDate.getMonth() - 1);
+                                  setEndDate(newDate);
+                                }}
+                                aria-label="Previous month"
+                              >
+                                <ChevronDownIcon className="h-4 w-4 rotate-90" />
+                              </Button>
+                              
+                              <div className="flex items-center gap-2">
+                                <div className="relative">
+                                  <select 
+                                    className="bg-background border border-input rounded px-3 py-1 pr-8 text-sm font-medium min-w-[100px] appearance-none cursor-pointer"
+                                    value={endDate?.getMonth() || new Date().getMonth()}
+                                    onChange={(e) => {
+                                      const newDate = new Date(endDate || new Date());
+                                      newDate.setMonth(parseInt(e.target.value));
+                                      setEndDate(newDate);
+                                    }}
+                                    aria-label="Select month"
+                                  >
+                                    {Array.from({ length: 12 }, (_, i) => (
+                                      <option key={i} value={i}>
+                                        {new Date(2024, i, 1).toLocaleDateString('en-US', { month: 'long' })}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <ChevronDownIcon className="absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 pointer-events-none opacity-50" />
+                                </div>
+                                
+                                <div className="relative">
+                                  <select 
+                                    className="bg-background border border-input rounded px-3 py-1 pr-8 text-sm font-medium min-w-[80px] appearance-none cursor-pointer"
+                                    value={endDate?.getFullYear() || new Date().getFullYear()}
+                                    onChange={(e) => {
+                                      const newDate = new Date(endDate || new Date());
+                                      newDate.setFullYear(parseInt(e.target.value));
+                                      setEndDate(newDate);
+                                    }}
+                                    aria-label="Select year"
+                                  >
+                                    {Array.from({ length: 10 }, (_, i) => {
+                                      const year = new Date().getFullYear() + i;
+                                      return (
+                                        <option key={year} value={year}>
+                                          {year}
+                                        </option>
+                                      );
+                                    })}
+                                  </select>
+                                  <ChevronDownIcon className="absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 pointer-events-none opacity-50" />
+                                </div>
+                              </div>
+                              
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-accent"
+                                onClick={() => {
+                                  const newDate = new Date(endDate || new Date());
+                                  newDate.setMonth(newDate.getMonth() + 1);
+                                  setEndDate(newDate);
+                                }}
+                                aria-label="Next month"
+                              >
+                                <ChevronDownIcon className="h-4 w-4 -rotate-90" />
+                              </Button>
+                            </div>
 
-          {/* Goal Input Mode */}
-          <div className="flex items-center justify-between gap-4 p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
-            <div className="flex items-center space-x-4">
-              <Label htmlFor="goal-mode" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                Goal Input Mode
-              </Label>
-              <div className="flex items-center space-x-2">
-                <span className={`text-sm ${!useTotalTime ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-600 dark:text-zinc-400'}`}>
-                  Pace
-                </span>
-                <Switch
-                  id="goal-mode"
-                  checked={useTotalTime}
-                  onCheckedChange={(c) => setUseTotalTime(c)}
-                />
-                <span className={`text-sm ${useTotalTime ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-600 dark:text-zinc-400'}`}>
-                  Total Time
-                </span>
+                            {/* Calendar Grid */}
+                            <div className="space-y-2">
+                              {/* Day Headers */}
+                              <div className="grid grid-cols-7 gap-1">
+                                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                                  <div
+                                    key={day}
+                                    className="h-8 w-8 text-xs font-medium text-muted-foreground flex items-center justify-center"
+                                  >
+                                    {day}
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* Calendar Days */}
+                              <div className="grid grid-cols-7 gap-1">
+                                {(() => {
+                                  const currentDate = endDate || new Date();
+                                  const year = currentDate.getFullYear();
+                                  const month = currentDate.getMonth();
+                                  
+                                  // Get first day of month and how many days
+                                  const firstDay = new Date(year, month, 1);
+                                  const lastDay = new Date(year, month + 1, 0);
+                                  const daysInMonth = lastDay.getDate();
+                                  const startingDayOfWeek = firstDay.getDay();
+                                  
+                                  // Get days from previous month
+                                  const prevMonth = new Date(year, month - 1, 0);
+                                  const daysInPrevMonth = prevMonth.getDate();
+                                  
+                                  const days = [];
+                                  
+                                  // Previous month days (muted)
+                                  for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+                                    const day = daysInPrevMonth - i;
+                                    days.push(
+                                      <button
+                                        key={`prev-${day}`}
+                                        className="h-8 w-8 text-sm text-muted-foreground/30 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
+                                        onClick={() => {
+                                          const newDate = new Date(year, month - 1, day);
+                                          setEndDate(newDate);
+                                          setDatePickerOpen(false);
+                                        }}
+                                      >
+                                        {day}
+                                      </button>
+                                    );
+                                  }
+                                  
+                                  // Current month days
+                                  for (let day = 1; day <= daysInMonth; day++) {
+                                    const date = new Date(year, month, day);
+                                    const isSelected = endDate && 
+                                      date.getDate() === endDate.getDate() && 
+                                      date.getMonth() === endDate.getMonth() && 
+                                      date.getFullYear() === endDate.getFullYear();
+                                    const isToday = 
+                                      date.toDateString() === new Date().toDateString();
+                                    
+                                    days.push(
+                                      <button
+                                        key={`current-${day}`}
+                                        className={`h-8 w-8 text-sm rounded-md transition-colors relative ${
+                                          isSelected
+                                            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 font-semibold shadow-sm'
+                                            : isToday
+                                            ? 'bg-accent text-accent-foreground hover:bg-accent/80 font-bold'
+                                            : 'hover:bg-accent hover:text-accent-foreground'
+                                        }`}
+                                        onClick={() => {
+                                          setEndDate(date);
+                                          setDatePickerOpen(false);
+                                        }}
+                                        aria-label={`Select ${date.toLocaleDateString()}`}
+                                      >
+                                        {day}
+                                      </button>
+                                    );
+                                  }
+                                  
+                                  // Next month days to fill the grid (muted)
+                                  const totalCells = 42; // 6 weeks * 7 days
+                                  const remainingCells = totalCells - days.length;
+                                  for (let day = 1; day <= remainingCells; day++) {
+                                    days.push(
+                                      <button
+                                        key={`next-${day}`}
+                                        className="h-8 w-8 text-sm text-muted-foreground/30 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
+                                        onClick={() => {
+                                          const newDate = new Date(year, month + 1, day);
+                                          setEndDate(newDate);
+                                          setDatePickerOpen(false);
+                                        }}
+                                      >
+                                        {day}
+                                      </button>
+                                    );
+                                  }
+                                  
+                                  return days;
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          {/* Target Pace or Total Time */}
-          {useTotalTime ? (
-            <Input
-              label="Target Total Time (hh:mm:ss or mm:ss)"
-              name="targetTotalTime"
-              type="text"
-              value={targetTotalTime}
-              onChange={(_n, v) => setTargetTotalTime(v)}
-              className="mt-1"
-            />
-          ) : (
-            <div className="space-y-2">
-              <Input
-                label="Target Pace (mm:ss)"
-                name="targetPace"
-                type="text"
-                value={targetPace}
-                onChange={(_n, v) => setTargetPace(v)}
-                className="mt-1"
-              />
-              {goalValidation && (
-                <div className={`text-sm p-2 rounded ${
-                  goalValidation.isValid 
-                    ? 'bg-green-50 text-green-800 border border-green-200' 
-                    : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
-                }`}>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-lg">
-                      {goalValidation.isValid ? '🎯' : '⚠️'}
-                    </span>
-                    <div>
-                      <p className="font-medium">
-                        {goalValidation.isValid ? 'Progressive Training Plan' : 'Ambitious Goal'}
-                      </p>
-                      <p className="text-xs">{goalValidation.message}</p>
+
+              {/* Goal Configuration */}
+              <div className="bg-zinc-50/30 dark:bg-zinc-800/20 p-5 rounded-xl border border-zinc-200/30 dark:border-zinc-700/30">
+                <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-5 flex items-center">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                  Goal Configuration
+                </h2>
+                <div className="space-y-5">
+                  {/* Goal Input Mode Toggle */}
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-zinc-100/50 to-zinc-50/30 dark:from-zinc-800/40 dark:to-zinc-800/20 rounded-lg border border-zinc-200/40 dark:border-zinc-700/40">
+                    <Label htmlFor="goal-mode" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      Goal Input Mode
+                    </Label>
+                    <div className="flex items-center space-x-3">
+                      <span className={`text-sm transition-colors ${!useTotalTime ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                        Pace
+                      </span>
+                      <Switch
+                        id="goal-mode"
+                        checked={useTotalTime}
+                        onCheckedChange={(c) => setUseTotalTime(c)}
+                      />
+                      <span className={`text-sm transition-colors ${useTotalTime ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                        Total Time
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Target Pace or Total Time */}
+                  <div className="space-y-4">
+                    <div className="max-w-md">
+                      {useTotalTime ? (
+                        <Input
+                          label="Target Total Time"
+                          name="targetTotalTime"
+                          type="text"
+                          placeholder="3:45:00 or 45:00"
+                          value={targetTotalTime}
+                          onChange={(_n, v) => setTargetTotalTime(v)}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <Input
+                          label="Target Pace"
+                          name="targetPace"
+                          type="text"
+                          placeholder="8:30"
+                          value={targetPace}
+                          onChange={(_n, v) => setTargetPace(v)}
+                          className="mt-1"
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Validation Feedback - Full Width */}
+                    {goalValidation && !useTotalTime && (
+                      <div className={`p-4 rounded-lg border transition-all ${
+                        goalValidation.isValid 
+                          ? 'bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border-emerald-200/50 dark:border-emerald-800/50' 
+                          : 'bg-amber-50/50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 border-amber-200/50 dark:border-amber-800/50'
+                      }`}>
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 mt-0.5">
+                            <div className={`w-2 h-2 rounded-full ${goalValidation.isValid ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="font-medium text-sm">
+                              {goalValidation.isValid ? 'Progressive Training Plan' : 'Ambitious Goal'}
+                            </p>
+                            <p className="text-sm opacity-90 leading-relaxed">{goalValidation.message}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* Advanced Settings Toggle */}
+              <div className="flex items-center justify-center py-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced((p) => !p)}
+                  className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors underline underline-offset-2"
+                >
+                  {showAdvanced ? "Hide Advanced Settings" : "Show Advanced Settings"}
+                </button>
+              </div>
+
+              {showAdvanced && (
+                <div className="bg-zinc-50/30 dark:bg-zinc-800/20 p-5 rounded-xl border border-zinc-200/30 dark:border-zinc-700/30">
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-5 flex items-center">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                    Advanced Settings
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {/* Runs Per Week */}
+                    <Input
+                      label="Runs Per Week"
+                      name="runsPerWeek"
+                      type="number"
+                      min={1}
+                      max={7}
+                      value={String(runsPerWeek)}
+                      onChange={(_n, v) => setRunsPerWeek(Number(v))}
+                      className="mt-1"
+                    />
+                    {/* Cross Training Days */}
+                    <Input
+                      label="Cross Training Days"
+                      name="crossTrainingDays"
+                      type="number"
+                      min={0}
+                      max={7 - runsPerWeek}
+                      value={String(crossTrainingDays)}
+                      onChange={(_n, v) => setCrossTrainingDays(Number(v))}
+                      className="mt-1"
+                    />
+                    {/* VDOT */}
+                    <div className="space-y-1">
+                      <label className="flex items-center text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        VDOT
+                        <InfoTooltip 
+                          content={
+                            <div className="max-w-sm">
+                              <p className="font-semibold mb-1">VDOT (V-dot O2 max)</p>
+                              <p className="text-sm">
+                                Jack Daniels&apos; training intensity measure based on your race performance. 
+                                Higher values indicate better aerobic fitness. Used to calculate your 
+                                training paces for easy runs, tempo runs, and intervals.
+                              </p>
+                            </div>
+                          }
+                        />
+                      </label>
+                      <Input
+                        name="vdot"
+                        type="number"
+                        min={20}
+                        max={60}
+                        value={String(vdot)}
+                        onChange={(_n, v) => setVdot(Number(v))}
+                        className="mt-1"
+                      />
                     </div>
                   </div>
                 </div>
               )}
-            </div>
-          )}
-          <div className="flex items-center w-full space-x-2">
-            <Button
-              type="button"
-              onClick={() => setShowAdvanced((p) => !p)}
-              className="w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
-            >
-              {showAdvanced ? "Hide Advanced" : "Show Advanced"}
-            </Button>
-          </div>
-          {showAdvanced && (
-            <div className="space-y-4">
-              {/* Runs Per Week */}
-              <Input
-                label="Runs Per Week"
-                name="runsPerWeek"
-                type="number"
-                min={1}
-                max={7}
-                value={String(runsPerWeek)}
-                onChange={(_n, v) => setRunsPerWeek(Number(v))}
-                className="mt-1"
-              />
-              {/* Cross Training Days */}
-              <Input
-                label="Cross Training Days"
-                name="crossTrainingDays"
-                type="number"
-                min={0}
-                max={7 - runsPerWeek}
-                value={String(crossTrainingDays)}
-                onChange={(_n, v) => setCrossTrainingDays(Number(v))}
-                className="mt-1"
-              />
-              {/* VDOT */}
-              <div className="space-y-1">
-                <label className="flex items-center text-sm font-medium text-foreground">
-                  VDOT
-                  <InfoTooltip 
-                    content={
-                      <div className="max-w-sm">
-                        <p className="font-semibold mb-1">VDOT (V-dot O2 max)</p>
-                        <p className="text-sm">
-                          Jack Daniels&apos; training intensity measure based on your race performance. 
-                          Higher values indicate better aerobic fitness. Used to calculate your 
-                          training paces for easy runs, tempo runs, and intervals.
-                        </p>
-                      </div>
-                    }
-                  />
-                </label>
-                <Input
-                  name="vdot"
-                  type="number"
-                  min={20}
-                  max={60}
-                  value={String(vdot)}
-                  onChange={(_n, v) => setVdot(Number(v))}
-                  className="mt-1"
-                />
-              </div>
-              {/* Run Type Days
-              <div className="grid grid-cols-2 gap-4">
-                {runTypes.map((type) => (
-                  <SelectField
-                    key={type}
-                    label={`${type.charAt(0).toUpperCase() + type.slice(1)} Day`}
-                    name={`runType-${type}`}
-                    options={[
-                      { value: "", label: "None" },
-                      ...days.map((day) => ({ value: day, label: day })),
-                    ]}
-                    value={runTypeDays[type] || ""}
-                    onChange={(_n, v) => handleRunDayChange(type, v as DayOfWeek)}
-                  />
-                ))}
-              </div> */}
-            </div>
-          )}
-          <div className="flex-1 flex justify-center">
-            <Button
-              type="submit"
-              className="w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
-            >
-              Generate Plan
-            </Button>
-          </div>
-        </form>
-      )}
-      {planData && (
-        <div className="mt-6">
-          <RunningPlanDisplay
-            planData={planData}
-            planName={planName}
-            showPlanMeta
-            showBulkDaySetter
-            onPlanNameChange={setPlanName}
-            onPlanChange={setPlanData}
-          />
-          <div className="mt-4">
-            <label className="flex items-center space-x-2">
-              <label htmlFor="showJson" className="flex items-center space-x-2">
-                {/* Keep this as input not Input */}
-                <input
-                  id="showJson"
-                  name="showJson"
-                  type="checkbox"
-                  checked={showJson}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setShowJson(e.target.checked)
-                  }
-                  className="form-checkbox"
-                />
-                <span>Show JSON</span>
-              </label>
-              {showJson && (
+
+              {/* Generate Button */}
+              <div className="flex justify-center pt-8">
                 <Button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      JSON.stringify(planData, null, 2)
-                    );
-                    alert("JSON copied to clipboard!");
-                  }}
-                  className="ml-2 text-primary underline block w-auto bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from"
+                  type="submit"
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white px-10 py-4 text-base font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] hover:-translate-y-0.5"
                 >
-                  Copy JSON
+                  <div className="flex items-center space-x-2">
+                    <span>Generate Training Plan</span>
+                    <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
+                  </div>
                 </Button>
-              )}
-            </label>
-            {showJson && (
-              <pre className="bg-background p-4 rounded overflow-x-auto mt-2 text-foreground">
-                {JSON.stringify(planData, null, 2)}
-              </pre>
-            )}
-          </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+        </div>
+      )}
+
+      {/* Generated Plan Display */}
+      {planData && (
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-white/50 dark:bg-zinc-900/50 border-0 shadow-none backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="text-center mb-6">
+                <h2 className="text-lg font-light text-zinc-900 dark:text-zinc-100 mb-1">
+                  Your Training Plan
+                </h2>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Review and customize your personalized training plan
+                </p>
+              </div>
+              
+              <RunningPlanDisplay
+                planData={planData}
+                planName={planName}
+                showPlanMeta
+                showBulkDaySetter
+                onPlanNameChange={setPlanName}
+                onPlanChange={setPlanData}
+              />
+              
+              {/* Debug Section */}
+              <div className="mt-6 pt-4 border-t border-zinc-200/50 dark:border-zinc-700/50">
+                <div className="flex items-center space-x-2 mb-3">
+                  <input
+                    id="showJson"
+                    name="showJson"
+                    type="checkbox"
+                    checked={showJson}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setShowJson(e.target.checked)
+                    }
+                    className="rounded border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+                  />
+                  <Label htmlFor="showJson" className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Show JSON Debug Info
+                  </Label>
+                  {showJson && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          JSON.stringify(planData, null, 2)
+                        );
+                        alert("JSON copied to clipboard!");
+                      }}
+                      className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors underline underline-offset-1"
+                    >
+                      Copy JSON
+                    </button>
+                  )}
+                </div>
+                {showJson && (
+                  <pre className="bg-zinc-50/50 dark:bg-zinc-800/30 border border-zinc-200/50 dark:border-zinc-700/50 p-3 rounded-lg overflow-x-auto text-xs text-zinc-700 dark:text-zinc-300 font-mono">
+                    {JSON.stringify(planData, null, 2)}
+                  </pre>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

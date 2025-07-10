@@ -7,10 +7,11 @@ import type { SocialProfile } from "@maratypes/social";
 import type { User } from "@maratypes/user";
 import type { Run } from "@maratypes/run";
 import DefaultAvatar from "@components/DefaultAvatar";
-import { Card, Button } from "@components/ui";
+import { Card, CardContent, Button } from "@components/ui";
 import UserStatsDialog from "@components/social/UserStatsDialog";
 import FollowUserButton from "@components/social/FollowUserButton";
 import { PROFILE_STATS_LIMIT } from "@lib/socialLimits";
+import { Edit, Calendar, Users, MapPin } from "lucide-react";
 
 interface Props {
   profile: SocialProfile;
@@ -48,126 +49,147 @@ export default function ProfileInfoCard({
   // const pathname = usePathname();
 
   return (
-    <>
-    <Card className="relative p-4 flex flex-wrap flex-col sm:flex-row gap-4 items-start overflow-hidden">
-      {isDefaultAvatar ? (
-        <DefaultAvatar size={64} />
-      ) : (
-        <Image
-          src={avatar}
-          alt={profile.username}
-          width={64}
-          height={64}
-          className="w-16 h-16 rounded-full object-cover"
-          onError={() => setImageError(true)}
-        />
-      )}
-      <div className="flex-1 min-w-0 break-words">
-        <h2 className="text-xl font-bold truncate">
-          <a href={`/u/${profile.username}`} className="font-semibold">
-            @{profile.username}
-          </a>
-          <span className="block text-sm text-foreground opacity-60 font-normal">
-            Since {joinedText}
-          </span>
-        </h2>
+    <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <CardContent className="p-6">
+        
+        {/* Header with Avatar and Basic Info */}
+        <div className="flex items-start gap-4 mb-6">
+          <div className="flex-shrink-0">
+            {isDefaultAvatar ? (
+              <DefaultAvatar size={64} />
+            ) : (
+              <Image
+                src={avatar}
+                alt={profile.username}
+                width={64}
+                height={64}
+                className="w-16 h-16 rounded-full object-cover ring-2 ring-zinc-200 dark:ring-zinc-700"
+                onError={() => setImageError(true)}
+              />
+            )}
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <Link 
+                  href={`/u/${profile.username}`} 
+                  className="text-xl font-bold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  @{profile.username}
+                </Link>
+                <div className="flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>Since {joinedText}</span>
+                </div>
+              </div>
+              
+              {/* Action Button */}
+              <div>
+                {isSelf ? (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  >
+                    <Link href="/social/profile/edit">
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Link>
+                  </Button>
+                ) : (
+                  <FollowUserButton profileId={profile.id} />
+                )}
+              </div>
+            </div>
+            
+            {/* Bio */}
+            {profile.bio && (
+              <p className="text-zinc-700 dark:text-zinc-300 mt-3 text-sm leading-relaxed">
+                {profile.bio}
+              </p>
+            )}
+          </div>
+        </div>
+        
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Runs Stat */}
+          {isSelf && disableSelfStats ? (
+            <div className="flex items-baseline justify-center p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mr-1">{profile.runCount ?? 0}</span>
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">runs</span>
+            </div>
+          ) : (
+            <UserStatsDialog
+              title="Runs"
+              trigger={
+                <div className="flex items-baseline justify-center p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+                  <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mr-1">{profile.runCount ?? 0}</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">runs</span>
+                </div>
+              }
+            >
+              {runsList.length > 0 ? (
+                <ul className="list-disc ml-4 space-y-1 text-left">
+                  {runsList.map((r) => (
+                    <li key={r.id}>
+                      {r.name || new Date(r.date).toLocaleDateString()} - {r.distance}{" "}
+                      {r.distanceUnit}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No runs found.</p>
+              )}
+            </UserStatsDialog>
+          )}
 
-        {profile.bio && (
-          <p className="text-sm text-foreground opacity-70 break-words">
-            {profile.bio}
-          </p>
-        )}
-      </div>
-      <div className="w-full flex flex-col sm:flex-row justify-center items-center text-center gap-4 text-sm text-muted-foreground">
-        {isSelf && disableSelfStats ? (
-          <div className="flex items-baseline justify-center w-full sm:w-auto gap-1">
-            <span className="text-lg font-semibold">
-              {profile.runCount ?? 0} runs
-            </span>
-          </div>
-        ) : (
-          <UserStatsDialog
-            title="Runs"
-            trigger={
-              <div className="flex items-baseline justify-center w-full sm:w-auto gap-1 cursor-pointer hover:underline">
-                <span className="text-lg font-semibold">
-                  {profile.runCount ?? 0} runs
-                </span>
-              </div>
-            }
-          >
-            {runsList.length > 0 ? (
-              <ul className="list-disc ml-4 space-y-1 text-left">
-                {runsList.map((r) => (
-                  <li key={r.id}>
-                    {r.name || new Date(r.date).toLocaleDateString()} - {r.distance}{" "}
-                    {r.distanceUnit}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No runs found.</p>
-            )}
-          </UserStatsDialog>
-        )}
-        {/* <div className="flex items-baseline justify-center w-full sm:w-auto gap-1">
-          <span className="text-lg font-semibold">
-            {profile.postCount ?? 0} posts
-          </span>
-        </div> */}
-        {isSelf && disableSelfStats ? (
-          <div className="flex items-baseline justify-center w-full sm:w-auto gap-1">
-            <span className="text-lg font-semibold">
-              {profile.totalDistance ?? 0} mi
-            </span>
-          </div>
-        ) : (
-          <UserStatsDialog
-            title="Distance"
-            trigger={
-              <div className="flex items-baseline justify-center w-full sm:w-auto gap-1 cursor-pointer hover:underline">
-                <span className="text-lg font-semibold">
-                  {profile.totalDistance ?? 0} mi
-                </span>
-              </div>
-            }
-          >
-            {runsList.length > 0 ? (
-              <ul className="list-disc ml-4 space-y-1 text-left">
-                {runsList.map((r) => (
-                  <li key={r.id}>
-                    {r.name || new Date(r.date).toLocaleDateString()} - {r.distance}{" "}
-                    {r.distanceUnit}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No runs found.</p>
-            )}
-          </UserStatsDialog>
-        )}
-        {isSelf && disableSelfStats ? (
-          <>
-            <div className="flex items-baseline justify-center w-full sm:w-auto gap-1">
-              <span className="text-lg font-semibold">
-                {profile.followerCount ?? 0} followers
-              </span>
+          {/* Distance Stat */}
+          {isSelf && disableSelfStats ? (
+            <div className="flex items-baseline justify-center p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mr-1">{profile.totalDistance ?? 0}</span>
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">miles</span>
             </div>
-            <div className="flex items-baseline justify-center w-full sm:w-auto gap-1">
-              <span className="text-lg font-semibold">
-                {profile.followingCount ?? 0} following
-              </span>
+          ) : (
+            <UserStatsDialog
+              title="Distance"
+              trigger={
+                <div className="flex items-baseline justify-center p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+                  <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mr-1">{profile.totalDistance ?? 0}</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">miles</span>
+                </div>
+              }
+            >
+              {runsList.length > 0 ? (
+                <ul className="list-disc ml-4 space-y-1 text-left">
+                  {runsList.map((r) => (
+                    <li key={r.id}>
+                      {r.name || new Date(r.date).toLocaleDateString()} - {r.distance}{" "}
+                      {r.distanceUnit}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No runs found.</p>
+              )}
+            </UserStatsDialog>
+          )}
+
+          {/* Followers Stat */}
+          {isSelf && disableSelfStats ? (
+            <div className="flex items-baseline justify-center p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mr-1">{profile.followerCount ?? 0}</span>
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">followers</span>
             </div>
-          </>
-        ) : (
-          <>
+          ) : (
             <UserStatsDialog
               title="Followers"
               trigger={
-                <div className="flex items-baseline justify-center w-full sm:w-auto gap-1 cursor-pointer hover:underline">
-                  <span className="text-lg font-semibold">
-                    {profile.followerCount ?? 0} followers
-                  </span>
+                <div className="flex items-baseline justify-center p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+                  <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mr-1">{profile.followerCount ?? 0}</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">followers</span>
                 </div>
               }
             >
@@ -175,7 +197,7 @@ export default function ProfileInfoCard({
                 <ul className="space-y-1">
                   {followersList.map((f) => (
                     <li key={f.id}>
-                      <Link href={`/u/${f.username}`} className="underline">
+                      <Link href={`/u/${f.username}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                         @{f.username}
                       </Link>
                     </li>
@@ -185,13 +207,21 @@ export default function ProfileInfoCard({
                 <p>No followers yet.</p>
               )}
             </UserStatsDialog>
+          )}
+
+          {/* Following Stat */}
+          {isSelf && disableSelfStats ? (
+            <div className="flex items-baseline justify-center p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mr-1">{profile.followingCount ?? 0}</span>
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">following</span>
+            </div>
+          ) : (
             <UserStatsDialog
               title="Following"
               trigger={
-                <div className="flex items-baseline justify-center w-full sm:w-auto gap-1 cursor-pointer hover:underline">
-                  <span className="text-lg font-semibold">
-                    {profile.followingCount ?? 0} following
-                  </span>
+                <div className="flex items-baseline justify-center p-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+                  <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mr-1">{profile.followingCount ?? 0}</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400">following</span>
                 </div>
               }
             >
@@ -199,7 +229,7 @@ export default function ProfileInfoCard({
                 <ul className="space-y-1">
                   {followingList.map((f) => (
                     <li key={f.id}>
-                      <Link href={`/u/${f.username}`} className="underline">
+                      <Link href={`/u/${f.username}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                         @{f.username}
                       </Link>
                     </li>
@@ -209,24 +239,10 @@ export default function ProfileInfoCard({
                 <p>Not following anyone.</p>
               )}
             </UserStatsDialog>
-          </>
-        )}
-      </div>
-      {isSelf ? (
-        <Button
-          asChild
-          size="sm"
-          className="absolute top-4 right-4 text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from"
-        >
-          <Link href="/social/profile/edit">Edit</Link>
-        </Button>
-      ) : (
-        <div className="absolute top-4 right-4">
-          <FollowUserButton profileId={profile.id} />
+          )}
         </div>
-      )}
+        
+      </CardContent>
     </Card>
-
-    </>
   );
 }

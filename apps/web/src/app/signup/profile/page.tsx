@@ -6,19 +6,28 @@ import { updateUser } from "@lib/api/user/user";
 import UserForm from "@components/profile/UserProfileForm";
 import { User } from "@maratypes/user";
 import { useEffect } from "react";
-import { Card } from "@components/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import { useSignupFlow } from "@lib/contexts/SignupFlowContext";
 
 export default function OnboardingProfile() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const { canAccessStep, completeStep } = useSignupFlow();
 
   // If not authenticated, redirect to signup
   useEffect(() => {
     if (status === "loading") return; // Wait for loading
     if (!session?.user) {
       router.replace("/signup");
+      return;
     }
-  }, [session, status, router]);
+
+    // Check if user can access this step
+    if (!canAccessStep("profile")) {
+      router.replace("/signup");
+      return;
+    }
+  }, [session, status, router, canAccessStep]);
 
   // Don't render until loaded & logged in
   if (status === "loading" || !session?.user) {
@@ -39,28 +48,35 @@ export default function OnboardingProfile() {
     await updateUser(initialUser.id, updated);
     // Refresh session so avatar updates in navbar
     await update({ user: { avatarUrl: updated.avatarUrl ?? null } });
+    // Mark profile step as complete
+    completeStep("profile");
     router.push("/signup/vdot");
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <section className="relative py-20 overflow-hidden flex items-center justify-center">
-        <div className="absolute inset-0 bg-background opacity-80 backdrop-blur-sm" />
-        <div className="relative w-full px-4 sm:px-6 lg:px-8 flex justify-center">
-          <Card className="w-full max-w-2xl p-8 bg-background border border-muted shadow-xl space-y-6">
-            <h1 className="text-3xl font-bold text-center">
+    <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 bg-white dark:bg-zinc-950">
+      <div className="w-full max-w-2xl">
+        <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-3xl text-center text-zinc-900 dark:text-zinc-100">
               Almost done—tell us about your running!
-            </h1>
+            </CardTitle>
+            <CardDescription className="text-center text-zinc-600 dark:text-zinc-400">
+              Complete your profile to get personalized training recommendations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <UserForm
               initialUser={initialUser}
               onSave={onSave}
               alwaysEdit
-              submitLabel="Finish Setup"
+              submitLabel="Continue to VDOT Setup"
               showVDOTField={false}
+              showCoachSection={false}
             />
-          </Card>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

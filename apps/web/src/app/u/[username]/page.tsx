@@ -141,9 +141,9 @@ export default async function UserProfilePage({ params }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 max-w-screen-lg py-8 flex flex-col gap-8">
-        <div className="w-full flex flex-col items-stretch space-y-4">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+      <div className="container mx-auto px-6 py-8 max-w-4xl">
+        <div className="space-y-8">
           <ProfileInfoCard
             profile={profile}
             user={{ avatarUrl: data.avatarUrl ?? undefined, createdAt: data.userCreatedAt }}
@@ -152,12 +152,19 @@ export default async function UserProfilePage({ params }: Props) {
             following={data.following}
             runs={data.runs}
           />
+          
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Recent Posts</h2>
+            {data.posts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-zinc-600 dark:text-zinc-400">No posts yet.</p>
+              </div>
+            ) : (
+              <PostList posts={data.posts} />
+            )}
+          </section>
         </div>
-        <section className="w-full space-y-6">
-          <h2 className="text-xl font-semibold">Posts</h2>
-          {data.posts.length === 0 ? <p>No posts yet.</p> : <PostList posts={data.posts} />}
-        </section>
-      </main>
+      </div>
     </div>
   );
 }

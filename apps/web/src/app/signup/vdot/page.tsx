@@ -3,47 +3,59 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Card } from "@components/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import { useSignupFlow } from "@lib/contexts/SignupFlowContext";
 import VDOTEstimator from "@components/profile/VDOTEstimator";
 
 export default function SignupVDOTPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { canAccessStep, completeStep } = useSignupFlow();
 
   useEffect(() => {
     if (status === "loading") return;
     if (!session?.user) {
       router.replace("/signup");
+      return;
     }
-  }, [session, status, router]);
+
+    // Check if user can access this step
+    if (!canAccessStep("vdot")) {
+      router.replace("/signup/profile");
+      return;
+    }
+  }, [session, status, router, canAccessStep]);
 
   if (status === "loading" || !session?.user) {
     return null;
   }
 
   const handleComplete = () => {
+    // Mark VDOT step as complete
+    completeStep("vdot");
     router.push("/signup/coach");
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <section className="relative py-20 overflow-hidden flex items-center justify-center">
-        <div className="absolute inset-0 bg-background backdrop-blur-sm" />
-        <div className="relative w-full px-4 sm:px-6 lg:px-8 flex justify-center">
-          <Card className="w-full max-w-md p-8 bg-background border border-muted shadow-xl space-y-6">
-            <h1 className="text-3xl font-bold text-center">
+    <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 bg-white dark:bg-zinc-950">
+      <div className="w-full max-w-md">
+        <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-3xl text-center text-zinc-900 dark:text-zinc-100">
               Estimate Your VDOT
-            </h1>
-            <p className="text-center text-sm text-muted-foreground">
+            </CardTitle>
+            <CardDescription className="text-center text-zinc-600 dark:text-zinc-400">
               This should be your fastest time for the given distance.
-            </p>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <VDOTEstimator
               userId={session.user.id!}
               onComplete={handleComplete}
             />
-          </Card>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

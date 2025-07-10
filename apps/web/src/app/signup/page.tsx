@@ -4,7 +4,12 @@ import { useState, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { createUser } from "@lib/api/user/user";
-import { Card, Input, Label, Button } from "@components/ui";
+import { Input } from "@components/ui/input";
+import { Button } from "@components/ui/button";
+import { Label } from "@components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import { Alert, AlertDescription } from "@components/ui/alert";
+import { useSignupFlow } from "@lib/contexts/SignupFlowContext";
 
 interface UserRegistrationData {
   name: string;
@@ -19,6 +24,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const { completeStep } = useSignupFlow();
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -39,6 +45,8 @@ export default function SignupPage() {
         });
 
         if (signInRes?.ok) {
+          // Mark register step as complete
+          completeStep("register");
           router.push("/signup/profile");
         } else {
           setError("Invalid email or password");
@@ -53,57 +61,103 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <section className="relative py-20 overflow-hidden flex items-center justify-center">
-        <div className="absolute inset-0 bg-background backdrop-blur-sm" />
-        <div className="relative w-full px-4 sm:px-6 lg:px-8 flex justify-center">
-          <Card className="w-full max-w-md p-8 bg-background dark:bg-background shadow-xl space-y-6">
-            <h1 className="text-3xl font-bold text-center">
-              Create Your Account
-            </h1>
-            {error && (
-              <p className="text-brand-orange-dark text-center">{error}</p>
-            )}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                  placeholder="Your Name"
-                />
+    <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 bg-white dark:bg-zinc-950">
+      <div className="w-full max-w-sm">
+        <Card className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-2xl text-zinc-900 dark:text-zinc-100">
+              Create your account
+            </CardTitle>
+            <CardDescription className="text-zinc-600 dark:text-zinc-400">
+              Enter your details below to create your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit}>
+              <div className="flex flex-col gap-6">
+                {error && (
+                  <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+                    <AlertDescription className="text-red-600 dark:text-red-400">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="name" className="text-zinc-900 dark:text-zinc-100">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="email" className="text-zinc-900 dark:text-zinc-100">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="password" className="text-zinc-900 dark:text-zinc-100">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+                
+                <Button
+                  type="submit"
+                  className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                >
+                  Create Account
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  onClick={() => {
+                    // Mark register step as complete for Google signup
+                    completeStep("register");
+                    signIn("google", { callbackUrl: "/signup/profile" });
+                  }}
+                >
+                  Sign up with Google
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
+              <div className="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
+                Already have an account?{" "}
+                <a href="/login" className="text-zinc-900 dark:text-zinc-100 underline underline-offset-4 hover:no-underline">
+                  Sign in
+                </a>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                  placeholder="Password"
-                />
-              </div>
-              <Button
-                type="submit"
-                className="block mx-auto w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from"
-              >
-                Sign Up
-              </Button>
             </form>
-          </Card>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -47,9 +47,10 @@ export const CoachCard: React.FC<CoachCardProps> = ({
       onKeyDown={handleKeyDown}
       className={cn(
         'cursor-pointer transition-all duration-200 hover:shadow-lg',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+        'focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-offset-2',
         'transform hover:scale-105',
-        isSelected && 'ring-2 ring-blue-500 ring-offset-2 selected',
+        'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800',
+        isSelected && 'ring-4 ring-brand-purple ring-offset-2 border-brand-purple selected shadow-lg shadow-brand-purple/20',
         disabled && 'opacity-50 cursor-not-allowed hover:scale-100 disabled',
         `personality-${coach.personality}`,
         'hover' 
@@ -66,20 +67,21 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           </div>
 
           {/* Coach Name */}
-          <h3 className="text-lg font-semibold text-foreground">
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             {coach.name}
           </h3>
 
           {/* Personality Badge */}
           <div className={cn(
             'px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wide',
-            'bg-muted text-muted-foreground'
+            'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300',
+            isSelected && 'bg-brand-purple text-white'
           )}>
             {coach.personality}
           </div>
 
           {/* Coach Description */}
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
             {coach.description}
           </p>
         </div>

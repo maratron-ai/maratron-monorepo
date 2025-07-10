@@ -103,11 +103,11 @@ export default function HomePage() {
   // Enhanced workout logic - handles 4 scenarios:
   // Scenario 1: User has workout today -> Show today's workout
   // Scenario 2: User has active plan but nothing today -> Show next scheduled workout
-  // Scenario 3: User has no plan and no workout -> Hide entire section
+  // Scenario 3: User has no plan and no workout -> Show smaller "no workout scheduled" message
   // Scenario 4: User has rest day today -> Show rest day message
   
-  // Only show workout section if there's actual data
-  const showWorkoutSection = !!currentWorkout;
+  // Always show workout section, but vary the content based on state
+  const showWorkoutSection = true;
 
   // Determine weather icon and colors
   const getWeatherInfo = (condition: string) => {
@@ -186,9 +186,15 @@ export default function HomePage() {
                       <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.weekMiles || 0}</p>
                       <p className="text-sm text-zinc-600 dark:text-zinc-400">Miles This Week</p>
                     </div>
-                    <div className="text-xs text-green-600 dark:text-green-500 bg-green-500/10 px-2 py-1 rounded">
-                      +12.5%
-                    </div>
+                    {currentStats?.weekMilesChange !== undefined && currentStats.weekMilesChange !== 0 && (
+                      <div className={`text-xs px-2 py-1 rounded ${
+                        currentStats.weekMilesChange >= 0 
+                          ? 'text-green-600 dark:text-green-500 bg-green-500/10' 
+                          : 'text-red-600 dark:text-red-500 bg-red-500/10'
+                      }`}>
+                        {currentStats.weekMilesChange >= 0 ? '+' : ''}{currentStats.weekMilesChange.toFixed(1)}%
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -209,9 +215,15 @@ export default function HomePage() {
                       <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.weekRuns || 0}</p>
                       <p className="text-sm text-zinc-600 dark:text-zinc-400">Runs This Week</p>
                     </div>
-                    <div className="text-xs text-red-600 dark:text-red-500 bg-red-500/10 px-2 py-1 rounded">
-                      -20%
-                    </div>
+                    {currentStats?.weekRunsChange !== undefined && currentStats.weekRunsChange !== 0 && (
+                      <div className={`text-xs px-2 py-1 rounded ${
+                        currentStats.weekRunsChange >= 0 
+                          ? 'text-green-600 dark:text-green-500 bg-green-500/10' 
+                          : 'text-red-600 dark:text-red-500 bg-red-500/10'
+                      }`}>
+                        {currentStats.weekRunsChange >= 0 ? '+' : ''}{currentStats.weekRunsChange.toFixed(1)}%
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -232,9 +244,15 @@ export default function HomePage() {
                       <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.currentStreak || 0}</p>
                       <p className="text-sm text-zinc-600 dark:text-zinc-400">Day Streak</p>
                     </div>
-                    <div className="text-xs text-green-600 dark:text-green-500 bg-green-500/10 px-2 py-1 rounded">
-                      +12.5%
-                    </div>
+                    {currentStats?.streakChange !== undefined && currentStats.streakChange !== 0 && (
+                      <div className={`text-xs px-2 py-1 rounded ${
+                        currentStats.streakChange >= 0 
+                          ? 'text-green-600 dark:text-green-500 bg-green-500/10' 
+                          : 'text-red-600 dark:text-red-500 bg-red-500/10'
+                      }`}>
+                        {currentStats.streakChange >= 0 ? '+' : ''}{currentStats.streakChange.toFixed(1)}%
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -252,12 +270,18 @@ export default function HomePage() {
                 <>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.goalProgress || 4.5}%</p>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">Growth Rate</p>
+                      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentStats?.goalProgress || 0}%</p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">Monthly Goal</p>
                     </div>
-                    <div className="text-xs text-green-600 dark:text-green-500 bg-green-500/10 px-2 py-1 rounded">
-                      +4.5%
-                    </div>
+                    {currentStats?.goalProgress !== undefined && currentStats.goalProgress > 0 && (
+                      <div className={`text-xs px-2 py-1 rounded ${
+                        currentStats.goalProgress >= 100 
+                          ? 'text-green-600 dark:text-green-500 bg-green-500/10' 
+                          : 'text-blue-600 dark:text-blue-500 bg-blue-500/10'
+                      }`}>
+                        {currentStats.goalProgress >= 100 ? 'Complete!' : `${currentStats.goalProgress}%`}
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -272,7 +296,11 @@ export default function HomePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-                  <CardTitle className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Today&apos;s Workout</CardTitle>
+                  <CardTitle className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                    {currentWorkout?.hasTrainingPlan && currentWorkout?.hasWorkoutToday === false && currentWorkout?.nextWorkout 
+                      ? "Next Workout" 
+                      : "Today's Workout"}
+                  </CardTitle>
                 </div>
                 {!workoutLoading && currentWorkout && (
                   <Badge variant="outline" className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800">
@@ -293,7 +321,84 @@ export default function HomePage() {
                     </Card>
                   ))}
                 </div>
+              ) : !currentWorkout?.hasTrainingPlan ? (
+                // No training plan - show smaller message
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Calendar className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-1">No workout scheduled</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 text-sm">Consider creating a training plan or logging a run</p>
+                  <div className="flex gap-2 justify-center mt-4">
+                    <Button asChild variant="outline" size="sm" className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                      <Link href="/plan-generator">Create Plan</Link>
+                    </Button>
+                    <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      <Link href="/runs/new">Log Run</Link>
+                    </Button>
+                  </div>
+                </div>
+              ) : currentWorkout?.hasTrainingPlan && currentWorkout?.hasWorkoutToday === false ? (
+                // Has training plan but no workout today - show next workout
+                currentWorkout?.nextWorkout ? (
+                  <div className="space-y-4">
+                    <div className="text-center py-2">
+                      <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                        No workout scheduled for today. Your next workout is {currentWorkout.nextWorkout.date.toLowerCase()}.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentWorkout.nextWorkout.distance}</div>
+                          <div className="text-sm text-zinc-600 dark:text-zinc-400">Distance</div>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentWorkout.nextWorkout.pace}</div>
+                          <div className="text-sm text-zinc-600 dark:text-zinc-400">Target Pace</div>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{currentWorkout.nextWorkout.duration}</div>
+                          <div className="text-sm text-zinc-600 dark:text-zinc-400">Duration</div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 border-l-4 border-l-blue-500">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Lightbulb className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                          <span className="font-medium text-zinc-900 dark:text-zinc-100">Coach&apos;s Note</span>
+                        </div>
+                        <p className="text-zinc-600 dark:text-zinc-400 text-sm">{currentWorkout.nextWorkout.notes}</p>
+                      </CardContent>
+                    </Card>
+                    <div className="flex gap-3 justify-center">
+                      <Button asChild variant="outline" size="sm" className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                        <Link href="/plans">View Training Plan</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  // Has training plan but no next workout data
+                  <div className="text-center py-4">
+                    <div className="w-12 h-12 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Calendar className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-1">No workout scheduled</h3>
+                    <p className="text-zinc-600 dark:text-zinc-400 text-sm">Check your training plan for upcoming workouts</p>
+                    <div className="flex gap-2 justify-center mt-4">
+                      <Button asChild variant="outline" size="sm" className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                        <Link href="/plans">View Training Plan</Link>
+                      </Button>
+                    </div>
+                  </div>
+                )
               ) : currentWorkout?.isRestDay ? (
+                // Rest day
                 <div className="text-center py-8">
                   <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Calendar className="w-8 h-8 text-zinc-600 dark:text-zinc-400" />
@@ -302,6 +407,7 @@ export default function HomePage() {
                   <p className="text-zinc-600 dark:text-zinc-400">Take a well-deserved break to let your body recover</p>
                 </div>
               ) : currentWorkout ? (
+                // Regular workout today
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card className="bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">

@@ -10,6 +10,16 @@ export interface TodaysWorkout {
   duration: string;
   notes: string;
   isRestDay?: boolean;
+  hasWorkoutToday?: boolean;
+  nextWorkout?: {
+    date: string;
+    workoutType: string;
+    distance: string;
+    pace: string;
+    duration: string;
+    notes: string;
+    isRestDay?: boolean;
+  };
 }
 
 export function useTrainingPlan() {
@@ -44,6 +54,7 @@ export function useTrainingPlan() {
               // No active training plan, provide general recommendation
               setTodaysWorkout({
                 hasTrainingPlan: false,
+                hasWorkoutToday: false,
                 workoutType: "Easy Run",
                 distance: "3-5 miles",
                 pace: "Conversational pace",

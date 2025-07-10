@@ -12,6 +12,9 @@ import { Input } from "@components/ui/input";
 import { SelectField } from "@components/ui/FormField";
 import { useRouter } from "next/navigation";
 import { assignDatesToPlan } from "@utils/running/planDates";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@components/ui/accordion";
+import { Badge } from "@components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 
 interface RunningPlanDisplayProps {
   planData: RunningPlanData;
@@ -271,35 +274,35 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
       {(isEditable || showBulkDaySetter) && (
         <BulkDaySetter planData={planData} onPlanChange={onPlanChange} />
       )}
-      {planData.schedule.map((weekPlan, wi) => (
-        <CollapsibleWeek
-          key={weekPlan.weekNumber}
-          weekPlan={weekPlan}
-          editable={isEditable}
-          weekIndex={wi}
-          updateRun={updateRun}
-        />
-      ))}
+      <Accordion type="multiple" className="w-full space-y-4">
+        {planData.schedule.map((weekPlan, wi) => (
+          <AccordionWeek
+            key={weekPlan.weekNumber}
+            weekPlan={weekPlan}
+            editable={isEditable}
+            weekIndex={wi}
+            updateRun={updateRun}
+          />
+        ))}
+      </Accordion>
     </div>
   );
 };
 
-interface CollapsibleWeekProps {
+interface AccordionWeekProps {
   weekPlan: WeekPlan;
   editable: boolean;
   weekIndex: number;
   updateRun: (weekIdx: number, runIdx: number, field: string, value: unknown) => void;
 }
 
-const CollapsibleWeek: React.FC<CollapsibleWeekProps> = ({
+const AccordionWeek: React.FC<AccordionWeekProps> = ({
   weekPlan,
   editable,
   weekIndex,
   updateRun,
 }) => {
   const isWeekComplete = weekPlan.runs.every(run => run.done);
-
-  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const days: DayOfWeek[] = [
     "Sunday",
@@ -313,192 +316,203 @@ const CollapsibleWeek: React.FC<CollapsibleWeekProps> = ({
   const runTypes = ["easy", "tempo", "interval", "long", "marathon", "cross", "race"] as const;
 
   return (
-    <div
-      className={`border border-accent rounded shadow-sm mb-4 ${
-        isWeekComplete ? "bg-background text-foreground opacity-60" : ""
-      }`}
-    >
-      <div
-        className={`flex justify-between items-center p-4 cursor-pointer ${
-          isWeekComplete ? "bg-accent" : "bg-accent-2 opacity-80"
-        }`}
-        onClick={() => setIsOpen((prev) => !prev)}
-      >
-        <h3 className="text-xl font-semibold text-foreground">
-          Week {weekPlan.weekNumber}
-          {weekPlan.phase && ` – ${weekPlan.phase} phase`} - Total Mileage:
-          {" "}
-          {weekPlan.weeklyMileage} {weekPlan.unit}
-          {weekPlan.notes && ` – ${weekPlan.notes}`}
-          {isWeekComplete ? " (Complete)" : ""}
-        </h3>
-        <span className="text-2xl">{isOpen ? "−" : "+"}</span>
-      </div>
-      {isOpen && (
-        <div
-          className={`p-4 text-foreground ${
-            isWeekComplete ? "bg-background" : "bg-accent-2 opacity-80"
-          }`}
-        >
-          <p className="mb-2">Start: {weekPlan.startDate?.slice(0, 10)}</p>
-          {weekPlan.notes && <p className="mb-2">{weekPlan.notes}</p>}
-          <ul className="space-y-3">
-            {weekPlan.runs.map((run, index) => {
-              const past = run.date ? new Date(run.date) < new Date() : false;
-              const classes =
-                past || run.done ? "text-foreground opacity-60 line-through" : "";
-              return (
-                <li
-                  key={index}
-                  className={`border-t border-accent pt-2 space-y-1 ${classes}`}
-                >
-                  {editable ? (
-                    <div className="space-y-1">
-                      <label className="block">
-                        <span className="mr-2">Type:</span>
-                        <SelectField
-                          name="type"
-                          label=""
-                          options={runTypes.map((t) => ({ label: t, value: t }))}
-                          value={run.type}
-                          onChange={(_, value) =>
-                            updateRun(weekIndex, index, "type", value)
-                          }
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="mr-2">Mileage:</span>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          value={run.mileage}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            updateRun(
-                              weekIndex,
-                              index,
-                              "mileage",
-                              Math.round(Number(e.target.value) * 10) / 10
-                            )
-                          }
-                          className="border p-1 rounded text-foreground"
-                        />
-                        <span className="ml-1">{run.unit}</span>
-                      </label>
-                      <label className="block">
-                        <span className="mr-2">Target Pace:</span>
-                        <Input
-                          type="text"
-                          value={run.targetPace.pace}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            updateRun(weekIndex, index, "targetPace", {
-                              ...run.targetPace,
-                              pace: formatPace(parsePace(e.target.value)),
-                            })
-                          }
-                          className="border p-1 rounded text-foreground"
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="mr-2">Day:</span>
-                        <SelectField
-                          name="day"
-                          label=""
-                          options={days.map((d) => ({ label: d, value: d }))}
-                          value={run.day || "Sunday"}
-                          onChange={(_, value) =>
-                            updateRun(
-                              weekIndex,
-                              index,
-                              "day",
-                              value as DayOfWeek
-                            )
-                          }
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="mr-2">Notes:</span>
-                        <Input
-                          type="text"
-                          value={run.notes || ""}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            updateRun(weekIndex, index, "notes", e.target.value)
-                          }
-                          className="border p-1 rounded text-foreground w-full"
-                        />
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`run-${weekIndex}-${index}-edit-done`}
-                          checked={run.done || false}
-                          onCheckedChange={(checked: boolean) =>
-                            updateRun(weekIndex, index, "done", Boolean(checked))
-                          }
-                          className="h-4 w-4 bg-foreground text-background"
-                        />
-                        <Label
-                          htmlFor={`run-${weekIndex}-${index}-edit-done`}
-                          className="text-sm"
-                        >
-                          Mark done
-                        </Label>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <p>
-                        <strong>Type:</strong>{" "}
-                        {run.type.charAt(0).toUpperCase() + run.type.slice(1)}
-                      </p>
-                      <p>
-                        <strong>Mileage:</strong> {run.mileage} {run.unit}
-                      </p>
-                      <p>
-                        <strong>Target Pace:</strong> {run.targetPace.pace} per{" "}
-                        {run.targetPace.unit}
-                      </p>
-                      {run.day && (
-                        <p>
-                          <strong>Day:</strong> {run.day}
-                        </p>
-                      )}
-                      {run.date && (
-                        <p>
-                          <strong>Date:</strong> {run.date.slice(0, 10)}
-                        </p>
-                      )}
-                      {run.notes && (
-                        <p>
-                          <strong>Notes:</strong> {run.notes}
-                        </p>
-                      )}
-                      {typeof run.done !== "undefined" && (
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`run-${weekIndex}-${index}-view-done`}
-                            checked={run.done}
-                            onCheckedChange={(checked: boolean) =>
-                              updateRun(weekIndex, index, "done", Boolean(checked))
-                            }
-                            className="h-4 w-4 bg-foreground text-background"
-                            disabled={editable}
-                          />
-                          <Label
-                            htmlFor={`run-${weekIndex}-${index}-view-done`}
-                            className="text-sm"
-                          >
-                            Done
-                          </Label>
+    <AccordionItem value={`week-${weekPlan.weekNumber}`}>
+      <Card className={`bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm ${
+        isWeekComplete ? "opacity-75" : ""
+      }`}>
+        <AccordionTrigger className="hover:no-underline">
+          <CardHeader className="flex-row items-center justify-between w-full py-4">
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100">
+                Week {weekPlan.weekNumber}
+              </CardTitle>
+              {weekPlan.phase && (
+                <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                  {weekPlan.phase} phase
+                </Badge>
+              )}
+              {isWeekComplete && (
+                <Badge className="bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100">
+                  Complete
+                </Badge>
+              )}
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                Total Mileage: {weekPlan.weeklyMileage} {weekPlan.unit}
+              </div>
+              {weekPlan.notes && (
+                <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {weekPlan.notes}
+                </div>
+              )}
+            </div>
+          </CardHeader>
+        </AccordionTrigger>
+        <AccordionContent>
+          <CardContent className="pt-0">
+            <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+              <p>Start: {weekPlan.startDate?.slice(0, 10)}</p>
+              {weekPlan.notes && <p className="mt-1">{weekPlan.notes}</p>}
+            </div>
+            <div className="space-y-4">
+              {weekPlan.runs.map((run, index) => {
+                const past = run.date ? new Date(run.date) < new Date() : false;
+                const isCompleted = past || run.done;
+                return (
+                  <Card key={index} className={`bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 ${
+                    isCompleted ? "opacity-75" : ""
+                  }`}>
+                    <CardContent className="p-4">
+                      {editable ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-zinc-900 dark:text-zinc-100 text-sm font-medium">Type</Label>
+                              <SelectField
+                                name="type"
+                                label=""
+                                options={runTypes.map((t) => ({ label: t, value: t }))}
+                                value={run.type}
+                                onChange={(_, value) =>
+                                  updateRun(weekIndex, index, "type", value)
+                                }
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-zinc-900 dark:text-zinc-100 text-sm font-medium">Mileage</Label>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  value={run.mileage}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                    updateRun(
+                                      weekIndex,
+                                      index,
+                                      "mileage",
+                                      Math.round(Number(e.target.value) * 10) / 10
+                                    )
+                                  }
+                                  className="bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                                />
+                                <span className="text-zinc-600 dark:text-zinc-400">{run.unit}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-zinc-900 dark:text-zinc-100 text-sm font-medium">Target Pace</Label>
+                              <Input
+                                type="text"
+                                value={run.targetPace.pace}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                  updateRun(weekIndex, index, "targetPace", {
+                                    ...run.targetPace,
+                                    pace: formatPace(parsePace(e.target.value)),
+                                  })
+                                }
+                                className="bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-zinc-900 dark:text-zinc-100 text-sm font-medium">Day</Label>
+                              <SelectField
+                                name="day"
+                                label=""
+                                options={days.map((d) => ({ label: d, value: d }))}
+                                value={run.day || "Sunday"}
+                                onChange={(_, value) =>
+                                  updateRun(
+                                    weekIndex,
+                                    index,
+                                    "day",
+                                    value as DayOfWeek
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-zinc-900 dark:text-zinc-100 text-sm font-medium">Notes</Label>
+                            <Input
+                              type="text"
+                              value={run.notes || ""}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                updateRun(weekIndex, index, "notes", e.target.value)
+                              }
+                              className="bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`run-${weekIndex}-${index}-edit-done`}
+                              checked={run.done || false}
+                              onCheckedChange={(checked: boolean) =>
+                                updateRun(weekIndex, index, "done", Boolean(checked))
+                              }
+                            />
+                            <Label
+                              htmlFor={`run-${weekIndex}-${index}-edit-done`}
+                              className="text-sm text-zinc-900 dark:text-zinc-100"
+                            >
+                              Mark as completed
+                            </Label>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100">
+                              {run.type.charAt(0).toUpperCase() + run.type.slice(1)}
+                            </Badge>
+                            <span className="text-zinc-600 dark:text-zinc-400">•</span>
+                            <span className="text-zinc-900 dark:text-zinc-100">{run.mileage} {run.unit}</span>
+                            <span className="text-zinc-600 dark:text-zinc-400">•</span>
+                            <span className="text-zinc-900 dark:text-zinc-100">{run.targetPace.pace} per {run.targetPace.unit}</span>
+                          </div>
+                          {run.day && (
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                              <strong>Day:</strong> {run.day}
+                            </div>
+                          )}
+                          {run.date && (
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                              <strong>Date:</strong> {run.date.slice(0, 10)}
+                            </div>
+                          )}
+                          {run.notes && (
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                              <strong>Notes:</strong> {run.notes}
+                            </div>
+                          )}
+                          {typeof run.done !== "undefined" && (
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                id={`run-${weekIndex}-${index}-view-done`}
+                                checked={run.done}
+                                onCheckedChange={(checked: boolean) =>
+                                  updateRun(weekIndex, index, "done", Boolean(checked))
+                                }
+                                disabled={editable}
+                              />
+                              <Label
+                                htmlFor={`run-${weekIndex}-${index}-view-done`}
+                                className="text-sm text-zinc-900 dark:text-zinc-100"
+                              >
+                                Completed
+                              </Label>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-    </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </AccordionContent>
+      </Card>
+    </AccordionItem>
   );
 };
 
