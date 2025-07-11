@@ -205,8 +205,9 @@ export default function SocialFeed({ groupId }: Props) {
               )}
               
               {/* Actions */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+              <div>
+                {/* Action Buttons - Fixed Position */}
+                <div className="flex items-center gap-4 mb-3">
                   <LikeButton
                     postId={post.id}
                     initialLiked={post.liked ?? false}

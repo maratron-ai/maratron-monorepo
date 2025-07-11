@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { cn } from "@components/lib/utils"
 import { Button } from "@components/components/ui/button"
@@ -19,11 +19,22 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  // Redirect logged-in users to their profile
+  useEffect(() => {
+    if (status === "loading") return; // Still loading
+    
+    if (session?.user) {
+      // User is already logged in, redirect to profile
+      router.replace("/profile");
+    }
+  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +63,20 @@ export function LoginForm({
   const handleGoogleSignIn = () => {
     signIn("google", { callbackUrl: "/home" });
   };
+
+  // Show loading while checking authentication status
+  if (status === "loading") {
+    return (
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+        <div className="text-zinc-600 dark:text-zinc-400">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render login form if user is already logged in
+  if (session?.user) {
+    return null; // Will redirect via useEffect
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

@@ -39,7 +39,7 @@ export default function GroupsPage() {
               <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Run Groups</h1>
               <p className="text-zinc-600 dark:text-zinc-400">Discover and join running communities in your area.</p>
             </div>
-            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button asChild className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200">
               <Link href="/social/groups/new">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Group

@@ -36,16 +36,16 @@ export default function PostList({ posts }: Props) {
   return (
     <div className="space-y-6">
       {posts.slice(0, visibleCount).map((post) => (
-        <Card key={post.id} className="space-y-2 p-4">
-          <p className="text-base font-semibold">
+        <Card key={post.id} className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2 p-4">
+          <p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
             {post.distance} mi in {post.time}
           </p>
           <DateDisplay 
             date={post.createdAt}
             format="full"
-            className="text-sm text-foreground opacity-60"
+            className="text-sm text-zinc-600 dark:text-zinc-400"
           />
-          {post.caption && <p className="mt-2">{post.caption}</p>}
+          {post.caption && <p className="mt-2 text-zinc-900 dark:text-zinc-100">{post.caption}</p>}
           {post.photoUrl && (
             <Dialog>
               <DialogTrigger asChild>
@@ -66,16 +66,19 @@ export default function PostList({ posts }: Props) {
               </DialogContent>
             </Dialog>
           )}
-          <div className="flex gap-2 mt-2 items-start">
-            <LikeButton
-              postId={post.id}
-              initialLiked={post.liked ?? false}
-              initialCount={post.likeCount ?? post._count?.likes ?? 0}
-            />
-            <CommentSection
-              postId={post.id}
-              initialCount={post.commentCount ?? post._count?.comments ?? 0}
-            />
+          <div className="mt-2">
+            {/* Action Buttons - Fixed Position */}
+            <div className="flex gap-2 items-start mb-3">
+              <LikeButton
+                postId={post.id}
+                initialLiked={post.liked ?? false}
+                initialCount={post.likeCount ?? post._count?.likes ?? 0}
+              />
+              <CommentSection
+                postId={post.id}
+                initialCount={post.commentCount ?? post._count?.comments ?? 0}
+              />
+            </div>
           </div>
         </Card>
       ))}

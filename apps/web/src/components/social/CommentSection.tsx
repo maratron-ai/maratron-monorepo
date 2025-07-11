@@ -60,26 +60,18 @@ export default function CommentSection({
   };
 
   return (
-    <div className="space-y-2">
+    <>
       <Button
         size="sm"
         variant={open ? "secondary" : "outline"}
         onClick={() => setOpen((o) => !o)}
-        className="
-          flex items-center gap-1
-          text-foreground bg-transparent
-          transition-colors
-          hover:bg-transparent hover:ring-0
-          border-none
-          focus:outline-none focus:ring-0
-          focus-visible:outline-none focus-visible:ring-0
-        "
+        className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 bg-transparent transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:ring-0 border border-zinc-300 dark:border-zinc-700"
       >
         <MessageCircle className="w-4 h-4" />
         {count}
       </Button>
       {open && (
-        <>
+        <div className="mt-3 space-y-3">
           {loading ? (
             <div className="flex justify-center py-2">
               <Spinner className="h-3 w-3" />
@@ -90,7 +82,7 @@ export default function CommentSection({
               const isDefaultAvatar = !avatarUrl || avatarUrl === "/default_profile.png" || avatarUrl === "" || avatarUrl?.includes("default_profile");
               
               return (
-                <div key={c.id} className="flex items-start gap-2 text-sm">
+                <div key={c.id} className="flex items-start gap-2 text-sm text-zinc-900 dark:text-zinc-100">
                   {isDefaultAvatar ? (
                     <DefaultAvatar size={24} />
                   ) : (
@@ -106,12 +98,12 @@ export default function CommentSection({
                   {c.socialProfile?.username ? (
                     <Link
                       href={`/u/${c.socialProfile.username}`}
-                      className="font-semibold hover:underline"
+                      className="font-semibold hover:underline text-zinc-900 dark:text-zinc-100"
                     >
                       {c.socialProfile.username}
                     </Link>
                   ) : (
-                    <span className="font-semibold">{c.socialProfile?.username}</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{c.socialProfile?.username}</span>
                   )}{" "}
                   {c.text}
                   </p>
@@ -120,26 +112,27 @@ export default function CommentSection({
             })
           )}
           {profile && (
-            <form onSubmit={onSubmit} className="flex gap-2 mt-2">
+            <form onSubmit={onSubmit} className="flex gap-2">
               <Input
                 value={text}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setText(e.target.value)
                 }
                 placeholder="Add a comment"
-                className="h-8"
+                className="h-8 bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
               />
               <Button
                 type="submit"
                 size="sm"
                 disabled={submitting || !text.trim()}
+                className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
               >
                 Post
               </Button>
             </form>
           )}
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 }

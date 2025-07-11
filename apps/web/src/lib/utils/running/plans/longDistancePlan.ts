@@ -227,7 +227,8 @@ export function generateLongDistancePlan(
         [TrainingLevel.Advanced]: { startMult: 1.2, endMult: 1.6 },
       } as const;
 
-  const { startMult, endMult } = levelBounds[trainingLevel];
+  const bounds = levelBounds[trainingLevel] || levelBounds[TrainingLevel.Beginner];
+  const { startMult, endMult } = bounds;
 
   const startMileage = targetDistance * startMult;
   const maxMileage = targetDistance * endMult;

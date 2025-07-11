@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { signIn } from "next-auth/react";
+import { useState, FormEvent, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { createUser } from "@lib/api/user/user";
 import { Input } from "@components/ui/input";
@@ -19,12 +19,23 @@ interface UserRegistrationData {
 
 
 export default function SignupPage() {
+  const { data: session, status } = useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
   const { completeStep } = useSignupFlow();
+
+  // Redirect logged-in users to their profile
+  useEffect(() => {
+    if (status === "loading") return; // Still loading
+    
+    if (session?.user) {
+      // User is already logged in, redirect to profile
+      router.replace("/profile");
+    }
+  }, [session, status, router]);
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -59,6 +70,20 @@ export default function SignupPage() {
       setError("Signup failed. Please try again.");
     }
   };
+
+  // Show loading while checking authentication status
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 bg-white dark:bg-zinc-950">
+        <div className="text-zinc-600 dark:text-zinc-400">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render signup form if user is already logged in
+  if (session?.user) {
+    return null; // Will redirect via useEffect
+  }
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 bg-white dark:bg-zinc-950">

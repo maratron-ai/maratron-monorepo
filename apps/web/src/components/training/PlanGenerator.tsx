@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
 import { Calendar } from "@components/ui/calendar";
 import { ChevronDownIcon } from "lucide-react";
 import InfoTooltip from "@components/ui/info-tooltip";
+import { TimePicker } from "@components/ui/time-picker";
 import RunningPlanDisplay from "./RunningPlanDisplay";
 import {
   generate5kPlan,
@@ -49,14 +50,14 @@ const PlanGenerator: React.FC = () => {
   const { profile: user, loading } = useUser();
 
   // Set initial state to user's info (if available), fallback to defaults
-const [raceType, setRaceType] = useState<RaceType>(DEFAULT_RACE);
-const [distanceUnit, setDistanceUnit] = useState<"miles" | "kilometers">(
-  "miles"
-);
-const [weeks, setWeeks] = useState<number>(DISTANCE_INFO[DEFAULT_RACE].weeks);
-const [targetDistance, setTargetDistance] = useState<number>(
-  DISTANCE_INFO[DEFAULT_RACE].miles
-);
+  const [raceType, setRaceType] = useState<RaceType>(DEFAULT_RACE);
+  const [distanceUnit, setDistanceUnit] = useState<"miles" | "kilometers">(
+    "miles"
+  );
+  const [weeks, setWeeks] = useState<number>(DISTANCE_INFO[DEFAULT_RACE].weeks);
+  const [targetDistance, setTargetDistance] = useState<number>(
+    DISTANCE_INFO[DEFAULT_RACE].miles
+  );
   const [vdot, setVdot] = useState<number>(30);
   const [useTotalTime, setUseTotalTime] = useState<boolean>(false);
   const [targetPace, setTargetPace] = useState<string>("8:00");
@@ -291,15 +292,11 @@ const [targetDistance, setTargetDistance] = useState<number>(
         </div>
       ) : (
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-white/50 dark:bg-zinc-900/50 border-0 shadow-none backdrop-blur-sm">
-            <CardContent className="p-6 space-y-6">
-            <form onSubmit={handleGenerate} className="space-y-6">
-              {/* Basic Configuration */}
-              <div className="bg-zinc-50/30 dark:bg-zinc-800/20 p-5 rounded-xl border border-zinc-200/30 dark:border-zinc-700/30">
-                <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-5 flex items-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  Basic Configuration
-                </h2>
+          <Card className="bg-white/70 dark:bg-zinc-900/70 border-zinc-200/50 dark:border-zinc-700/50 shadow-sm backdrop-blur-sm">
+            <CardContent className="p-8">
+              <form onSubmit={handleGenerate} className="space-y-6">
+                {/* Basic Configuration */}
+                <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 items-start">
                   {/* Row 1: Race Distance */}
                   <div className="md:col-start-1">
@@ -308,11 +305,11 @@ const [targetDistance, setTargetDistance] = useState<number>(
                         Race Distance
                       </Label>
                       <Select value={raceType} onValueChange={(value) => setRaceType(value as RaceType)}>
-                        <SelectTrigger className="h-10">
+                        <SelectTrigger className="h-10 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70">
                           <SelectValue placeholder="Select race distance" />
                         </SelectTrigger>
                         <SelectContent 
-                          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg"
+                          className="bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-700/50 shadow-lg"
                           position="popper"
                           side="bottom"
                           align="start"
@@ -339,7 +336,7 @@ const [targetDistance, setTargetDistance] = useState<number>(
                         min={8}
                         value={String(weeks)}
                         onChange={(e) => setWeeks(Number(e.target.value))}
-                        className="h-10"
+                        className="h-10 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
                       />
                     </div>
                   </div>
@@ -351,11 +348,11 @@ const [targetDistance, setTargetDistance] = useState<number>(
                         Training Level
                       </Label>
                       <Select value={trainingLevel} onValueChange={(value) => setTrainingLevel(value as TrainingLevel)}>
-                        <SelectTrigger className="h-10">
+                        <SelectTrigger className="h-10 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70">
                           <SelectValue placeholder="Select training level" />
                         </SelectTrigger>
                         <SelectContent 
-                          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg"
+                          className="bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-700/50 shadow-lg"
                           position="popper"
                           side="bottom"
                           align="start"
@@ -378,7 +375,7 @@ const [targetDistance, setTargetDistance] = useState<number>(
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-between text-left font-normal h-10"
+                            className="w-full justify-between text-left font-normal h-10 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
                             aria-label="Select race date"
                             aria-haspopup="dialog"
                             aria-expanded={datePickerOpen}
@@ -389,7 +386,8 @@ const [targetDistance, setTargetDistance] = useState<number>(
                         </PopoverTrigger>
                         <PopoverContent 
                           className="w-auto p-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg rounded-lg" 
-                          align="start"
+                          align="center"
+                          side="bottom"
                           sideOffset={4}
                         >
                           <div className="p-4 space-y-4">
@@ -508,7 +506,7 @@ const [targetDistance, setTargetDistance] = useState<number>(
                                     days.push(
                                       <button
                                         key={`prev-${day}`}
-                                        className="h-8 w-8 text-sm text-muted-foreground/30 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
+                                        className="h-8 w-8 text-sm text-zinc-400 dark:text-zinc-600 opacity-30 hover:opacity-70 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
                                         onClick={() => {
                                           const newDate = new Date(year, month - 1, day);
                                           setEndDate(newDate);
@@ -558,7 +556,7 @@ const [targetDistance, setTargetDistance] = useState<number>(
                                     days.push(
                                       <button
                                         key={`next-${day}`}
-                                        className="h-8 w-8 text-sm text-muted-foreground/30 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
+                                        className="h-8 w-8 text-sm text-zinc-400 dark:text-zinc-600 opacity-30 hover:opacity-70 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
                                         onClick={() => {
                                           const newDate = new Date(year, month + 1, day);
                                           setEndDate(newDate);
@@ -583,60 +581,83 @@ const [targetDistance, setTargetDistance] = useState<number>(
               </div>
 
               {/* Goal Configuration */}
-              <div className="bg-zinc-50/30 dark:bg-zinc-800/20 p-5 rounded-xl border border-zinc-200/30 dark:border-zinc-700/30">
-                <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-5 flex items-center">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                  Goal Configuration
-                </h2>
+              <div>
                 <div className="space-y-5">
-                  {/* Goal Input Mode Toggle */}
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-zinc-100/50 to-zinc-50/30 dark:from-zinc-800/40 dark:to-zinc-800/20 rounded-lg border border-zinc-200/40 dark:border-zinc-700/40">
-                    <Label htmlFor="goal-mode" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      Goal Input Mode
-                    </Label>
-                    <div className="flex items-center space-x-3">
-                      <span className={`text-sm transition-colors ${!useTotalTime ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`}>
-                        Pace
-                      </span>
-                      <Switch
-                        id="goal-mode"
-                        checked={useTotalTime}
-                        onCheckedChange={(c) => setUseTotalTime(c)}
-                      />
-                      <span className={`text-sm transition-colors ${useTotalTime ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`}>
-                        Total Time
-                      </span>
-                    </div>
-                  </div>
-
                   {/* Target Pace or Total Time */}
                   <div className="space-y-4">
-                    <div className="max-w-md">
-                      {useTotalTime ? (
-                        <Input
-                          label="Target Total Time"
-                          name="targetTotalTime"
-                          type="text"
-                          placeholder="3:45:00 or 45:00"
-                          value={targetTotalTime}
-                          onChange={(_n, v) => setTargetTotalTime(v)}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <Input
-                          label="Target Pace"
-                          name="targetPace"
-                          type="text"
-                          placeholder="8:30"
-                          value={targetPace}
-                          onChange={(_n, v) => setTargetPace(v)}
-                          className="mt-1"
-                        />
-                      )}
+                    <div className="flex items-center gap-4">
+                      {/* Toggle */}
+                      <div className="flex-shrink-0">
+                        <div className="flex items-center gap-2 p-1 bg-white/70 dark:bg-zinc-800/70 border border-zinc-200/50 dark:border-zinc-700/50 rounded-lg h-[42px]">
+                          <button
+                            type="button"
+                            onClick={() => setUseTotalTime(false)}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                              !useTotalTime 
+                                ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' 
+                                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                            }`}
+                          >
+                            Pace
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setUseTotalTime(true)}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                              useTotalTime 
+                                ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' 
+                                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                            }`}
+                          >
+                            Total Time
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Time Input */}
+                      <div className="flex-1">
+                        {useTotalTime ? (
+                          <TimePicker
+                            id="target-total-time"
+                            label=""
+                            value={targetTotalTime}
+                            onChange={(value) => setTargetTotalTime(value)}
+                            placeholder="h:mm:ss"
+                            alwaysShowHours
+                          />
+                        ) : (
+                          <TimePicker
+                            id="target-pace"
+                            label=""
+                            value={targetPace}
+                            onChange={(value) => setTargetPace(value)}
+                            placeholder="mm:ss"
+                          />
+                        )}
+                      </div>
                     </div>
                     
-                    {/* Validation Feedback - Full Width */}
+                    {/* Validation Feedback */}
                     {goalValidation && !useTotalTime && (
+                      <div className={`p-4 rounded-lg border transition-all ${
+                        goalValidation.isValid 
+                          ? 'bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border-emerald-200/50 dark:border-emerald-800/50' 
+                          : 'bg-amber-50/50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 border-amber-200/50 dark:border-amber-800/50'
+                      }`}>
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 mt-0.5">
+                            <div className={`w-2 h-2 rounded-full ${goalValidation.isValid ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="font-medium text-sm">
+                              {goalValidation.isValid ? 'Progressive Training Plan' : 'Ambitious Goal'}
+                            </p>
+                            <p className="text-sm opacity-90 leading-relaxed">{goalValidation.message}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {goalValidation && useTotalTime && (
                       <div className={`p-4 rounded-lg border transition-all ${
                         goalValidation.isValid 
                           ? 'bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border-emerald-200/50 dark:border-emerald-800/50' 
@@ -670,12 +691,7 @@ const [targetDistance, setTargetDistance] = useState<number>(
               </div>
 
               {showAdvanced && (
-                <div className="bg-zinc-50/30 dark:bg-zinc-800/20 p-5 rounded-xl border border-zinc-200/30 dark:border-zinc-700/30">
-                  <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-5 flex items-center">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                    Advanced Settings
-                  </h3>
-                  
+                <div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {/* Runs Per Week */}
                     <Input
@@ -686,7 +702,7 @@ const [targetDistance, setTargetDistance] = useState<number>(
                       max={7}
                       value={String(runsPerWeek)}
                       onChange={(_n, v) => setRunsPerWeek(Number(v))}
-                      className="mt-1"
+                      className="mt-1 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
                     />
                     {/* Cross Training Days */}
                     <Input
@@ -697,35 +713,33 @@ const [targetDistance, setTargetDistance] = useState<number>(
                       max={7 - runsPerWeek}
                       value={String(crossTrainingDays)}
                       onChange={(_n, v) => setCrossTrainingDays(Number(v))}
-                      className="mt-1"
+                      className="mt-1 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
                     />
                     {/* VDOT */}
-                    <div className="space-y-1">
-                      <label className="flex items-center text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        VDOT
-                        <InfoTooltip 
-                          content={
-                            <div className="max-w-sm">
-                              <p className="font-semibold mb-1">VDOT (V-dot O2 max)</p>
-                              <p className="text-sm">
-                                Jack Daniels&apos; training intensity measure based on your race performance. 
-                                Higher values indicate better aerobic fitness. Used to calculate your 
-                                training paces for easy runs, tempo runs, and intervals.
-                              </p>
-                            </div>
-                          }
-                        />
-                      </label>
-                      <Input
-                        name="vdot"
-                        type="number"
-                        min={20}
-                        max={60}
-                        value={String(vdot)}
-                        onChange={(_n, v) => setVdot(Number(v))}
-                        className="mt-1"
-                      />
-                    </div>
+                    <Input
+                      label={
+                        <div className="flex items-center gap-1">
+                          VDOT
+                          <InfoTooltip 
+                            content={
+                              <div className="max-w-xs">
+                                <p className="font-medium text-xs mb-1">VDOT</p>
+                                <p className="text-xs">
+                                  Jack Daniels&apos; fitness measure used to calculate training paces.
+                                </p>
+                              </div>
+                            }
+                          />
+                        </div>
+                      }
+                      name="vdot"
+                      type="number"
+                      min={20}
+                      max={60}
+                      value={String(vdot)}
+                      onChange={(_n, v) => setVdot(Number(v))}
+                      className="mt-1 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
+                    />
                   </div>
                 </div>
               )}

@@ -3,8 +3,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { createPost } from "@lib/api/social";
 import { listRuns } from "@lib/api/run";
 import { useSocialProfile } from "@hooks/useSocialProfile";
-import { Card, CardContent, CardHeader, CardTitle, Button, PhotoUpload, Spinner, Skeleton } from "@components/ui";
-import { TextAreaField, SelectField } from "@components/ui/FormField";
+import { Card, CardContent, CardHeader, CardTitle, Button, PhotoUpload, Spinner, Skeleton, Label, Alert, AlertDescription } from "@components/ui";
 import { getRunName } from "@utils/running/getRunName";
 import type { Run } from "@maratypes/run";
 import { PlusCircle } from "lucide-react";
@@ -80,14 +79,18 @@ export default function CreateSocialPost({ onCreated, groupId }: Props) {
           Share a Run
         </CardTitle>
         {error && (
-          <div className="text-red-600 dark:text-red-400 text-sm font-medium bg-red-50 dark:bg-red-950 px-3 py-2 rounded-md border border-red-200 dark:border-red-800">
-            {error}
-          </div>
+          <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+            <AlertDescription className="text-red-600 dark:text-red-400">
+              {error}
+            </AlertDescription>
+          </Alert>
         )}
         {success && (
-          <div className="text-green-600 dark:text-green-400 text-sm font-medium bg-green-50 dark:bg-green-950 px-3 py-2 rounded-md border border-green-200 dark:border-green-800">
-            {success}
-          </div>
+          <Alert className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+            <AlertDescription className="text-green-600 dark:text-green-400">
+              {success}
+            </AlertDescription>
+          </Alert>
         )}
       </CardHeader>
       <CardContent>
@@ -105,32 +108,45 @@ export default function CreateSocialPost({ onCreated, groupId }: Props) {
               </p>
             </div>
           ) : (
-            <SelectField
-              label="Select Run"
-              name="run"
-              options={runs.map((r) => ({
-                value: r.id ?? "",
-                label: `${r.name || getRunName(r)} - ${r.distance} ${r.distanceUnit}`,
-              }))}
-              value={selectedRunId}
-              onChange={(_n, v) => setSelectedRunId(String(v))}
-              required
-            />
+            <div className="grid gap-2">
+              <Label htmlFor="run" className="text-zinc-900 dark:text-zinc-100">
+                Select Run
+              </Label>
+              <select
+                id="run"
+                value={selectedRunId}
+                onChange={(e) => setSelectedRunId(e.target.value)}
+                required
+                className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-950 dark:focus:ring-zinc-300 focus:ring-offset-2 dark:focus:ring-offset-zinc-950"
+              >
+                <option value="">Choose a run to share...</option>
+                {runs.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name || getRunName(r)} - {r.distance} {r.distanceUnit}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
           
-          <TextAreaField
-            label="Caption (optional)"
-            name="caption"
-            value={caption}
-            onChange={(_n, v) => setCaption(String(v))}
-            rows={3}
-            placeholder="Share your thoughts about this run..."
-          />
+          <div className="grid gap-2">
+            <Label htmlFor="caption" className="text-zinc-900 dark:text-zinc-100">
+              Caption (optional)
+            </Label>
+            <textarea
+              id="caption"
+              placeholder="Share your thoughts about this run..."
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              rows={3}
+              className="min-h-[60px] w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-950 dark:focus:ring-zinc-300 focus:ring-offset-2 dark:focus:ring-offset-zinc-950"
+            />
+          </div>
           
-          <div>
-            <label className="block text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+          <div className="grid gap-2">
+            <Label className="text-zinc-900 dark:text-zinc-100">
               Photo (optional)
-            </label>
+            </Label>
             <PhotoUpload value={photoUrl} onChange={(url) => setPhotoUrl(url)} />
           </div>
           
@@ -138,7 +154,7 @@ export default function CreateSocialPost({ onCreated, groupId }: Props) {
             <Button
               type="submit"
               disabled={!selectedRunId || loadingRuns}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+              className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 px-6"
             >
               Share Run
             </Button>

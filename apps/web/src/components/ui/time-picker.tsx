@@ -33,6 +33,9 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   const [hasTypedHours, setHasTypedHours] = React.useState(false)
   const [hasTypedMinutes, setHasTypedMinutes] = React.useState(false)
   const [hasTypedSeconds, setHasTypedSeconds] = React.useState(false)
+  const [shouldReplaceHours, setShouldReplaceHours] = React.useState(false)
+  const [shouldReplaceMinutes, setShouldReplaceMinutes] = React.useState(false)
+  const [shouldReplaceSeconds, setShouldReplaceSeconds] = React.useState(false)
 
   // Parse the initial value
   React.useEffect(() => {
@@ -70,7 +73,14 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   }
 
   const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^0-9]/g, "").slice(0, 2)
+    let val = e.target.value.replace(/[^0-9]/g, "").slice(0, 2)
+    
+    // If we should replace, use only the new input
+    if (shouldReplaceHours) {
+      val = val.slice(-1) // Take only the last character typed
+      setShouldReplaceHours(false)
+    }
+    
     setHasTypedHours(true)
     
     if (val === "") {
@@ -97,7 +107,14 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   }
 
   const handleMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^0-9]/g, "").slice(0, 2)
+    let val = e.target.value.replace(/[^0-9]/g, "").slice(0, 2)
+    
+    // If we should replace, use only the new input
+    if (shouldReplaceMinutes) {
+      val = val.slice(-1) // Take only the last character typed
+      setShouldReplaceMinutes(false)
+    }
+    
     setHasTypedMinutes(true)
     
     if (val === "") {
@@ -124,7 +141,14 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   }
 
   const handleSecondsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^0-9]/g, "").slice(0, 2)
+    let val = e.target.value.replace(/[^0-9]/g, "").slice(0, 2)
+    
+    // If we should replace, use only the new input
+    if (shouldReplaceSeconds) {
+      val = val.slice(-1) // Take only the last character typed
+      setShouldReplaceSeconds(false)
+    }
+    
     setHasTypedSeconds(true)
     
     if (val === "") {
@@ -172,13 +196,12 @@ export const TimePicker: React.FC<TimePickerProps> = ({
       // Only auto-advance when it makes logical sense
       const shouldAutoAdvance = () => {
         if (field === "hours") {
-          // Auto-advance if typing 3+ (since max is 23) or if we have 2 digits
+          // Only auto-advance if we have 2 digits, or typing 3+ when we have 1 digit (since 30+ hours is invalid)
           const numValue = parseInt(newValue)
           return newValue.length === 2 || (newValue.length === 1 && numValue >= 3)
         } else {
-          // For minutes/seconds: auto-advance if typing 6+ (since max is 59) or if we have 2 digits
-          const numValue = parseInt(newValue)
-          return newValue.length === 2 || (newValue.length === 1 && numValue >= 6)
+          // For minutes/seconds: only auto-advance when we have 2 digits (more conservative)
+          return newValue.length === 2
         }
       }
       
@@ -216,9 +239,12 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                 onChange={handleHoursChange}
                 onBlur={handleHoursBlur}
                 onKeyDown={(e) => handleKeyDown(e, "hours")}
-                onFocus={(e) => e.target.select()}
+                onFocus={(e) => {
+                  e.target.select()
+                  setShouldReplaceHours(true)
+                }}
                 placeholder={hasTypedHours ? "" : "00"}
-                className="w-12 text-center bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                className="w-12 text-center bg-white/70 dark:bg-zinc-800/70 border-zinc-200/50 dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-100"
                 maxLength={2}
               />
               <span className="text-zinc-500 dark:text-zinc-400">:</span>
@@ -232,7 +258,10 @@ export const TimePicker: React.FC<TimePickerProps> = ({
             onChange={handleMinutesChange}
             onBlur={handleMinutesBlur}
             onKeyDown={(e) => handleKeyDown(e, "minutes")}
-            onFocus={(e) => e.target.select()}
+            onFocus={(e) => {
+              e.target.select()
+              setShouldReplaceMinutes(true)
+            }}
             placeholder={hasTypedMinutes ? "" : "00"}
             className="w-12 text-center bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
             maxLength={2}
@@ -246,7 +275,10 @@ export const TimePicker: React.FC<TimePickerProps> = ({
             onChange={handleSecondsChange}
             onBlur={handleSecondsBlur}
             onKeyDown={(e) => handleKeyDown(e, "seconds")}
-            onFocus={(e) => e.target.select()}
+            onFocus={(e) => {
+              e.target.select()
+              setShouldReplaceSeconds(true)
+            }}
             placeholder={hasTypedSeconds ? "" : "00"}
             className="w-12 text-center bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
             maxLength={2}
@@ -255,9 +287,6 @@ export const TimePicker: React.FC<TimePickerProps> = ({
         <div className="text-sm text-zinc-500 dark:text-zinc-400">
           {alwaysShowHours || isLongFormat ? "h:mm:ss" : "mm:ss"}
         </div>
-      </div>
-      <div className="text-xs text-zinc-500 dark:text-zinc-400">
-        Enter your race time. Type naturally - fields auto-advance when complete. Use Tab or : to move between fields.
       </div>
     </div>
   )

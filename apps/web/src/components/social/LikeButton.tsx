@@ -48,11 +48,11 @@ export default function LikeButton({ postId, initialLiked = false, initialCount 
       variant={liked ? "secondary" : "outline"}
       onClick={toggleLike}
       disabled={processing}
-      className="flex items-center gap-1 text-foreground bg-transparent transition-colors hover:bg-transparent hover:ring-0 border-none"
+      className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 bg-transparent transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:ring-0 border border-zinc-300 dark:border-zinc-700"
       aria-label={liked ? "Unlike" : "Like"}
     >
       <Heart
-        className={`w-4 h-4 ${liked ? "fill-current text-primary" : ""}`}
+        className={`w-4 h-4 ${liked ? "fill-current text-red-500" : ""}`}
       />
       {count}
     </Button>
