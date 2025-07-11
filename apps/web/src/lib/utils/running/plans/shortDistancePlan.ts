@@ -2,15 +2,10 @@ import { calculateGoalPaceForVDOT } from "../jackDaniels";
 import { parsePace, getPacesFromRacePace } from "../paces";
 import { parseDuration } from "@utils/time";
 import { WeekPlan, RunningPlanData, PlannedRun } from "@maratypes/runningPlan";
+import { TrainingLevel } from "@maratypes/user";
 
 export const Units = ["miles", "kilometers"] as const;
 export type Unit = (typeof Units)[number];
-
-export enum TrainingLevel {
-  Beginner = "beginner",
-  Intermediate = "intermediate",
-  Advanced = "advanced",
-}
 
 const MIN_WEEKS = 4;
 const MAX_WEEKS = 16;

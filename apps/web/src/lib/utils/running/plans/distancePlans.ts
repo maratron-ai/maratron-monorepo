@@ -1,4 +1,5 @@
-import { generateLongDistancePlan, Unit, TrainingLevel } from "./longDistancePlan";
+import { generateLongDistancePlan, Unit } from "./longDistancePlan";
+import { TrainingLevel } from "@maratypes/user";
 import { generateShortDistancePlan } from "./shortDistancePlan";
 import { customizePlanRuns } from "./customizeRuns";
 import type { RunningPlanData, PlannedRun } from "@maratypes/runningPlan";

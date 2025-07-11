@@ -1,6 +1,7 @@
 import { calculatePaceForVDOT } from "../jackDaniels";
 import { WeekPlan, RunningPlanData, PlannedRun } from "@maratypes/runningPlan";
 import { DayOfWeek } from "@maratypes/basics";
+import { TrainingLevel } from "@maratypes/user";
 import { formatPace } from "@utils/running/paces";
 import { parseDuration } from "@utils/time";
 import { validatePaceZones, validateGoalPace, createProgressivePaceZones } from "../validation";
@@ -22,12 +23,6 @@ const CUTBACK_RUN_FACTOR = 0.75;
 
 export const Units = ["miles", "kilometers"] as const;
 export type Unit = (typeof Units)[number];
-
-export enum TrainingLevel {
-  Beginner = "beginner",
-  Intermediate = "intermediate",
-  Advanced = "advanced",
-}
 
 const RAW_INTERVAL_WORKOUTS = [
   {
