@@ -5,6 +5,7 @@ import { useUser } from "@hooks/useUser";
 import { createRunningPlan } from "@lib/api/plan";
 import { RunningPlanData, WeekPlan, PlannedRun } from "@maratypes/runningPlan";
 import { DayOfWeek } from "@maratypes/basics";
+import { TrainingLevel } from "@maratypes/user";
 import { setDayForRunType } from "@utils/running/setRunDay";
 import { parsePace, formatPace } from "@utils/running/paces";
 import { Button, Checkbox, Label } from "@components/ui";
@@ -12,9 +13,16 @@ import { Input } from "@components/ui/input";
 import { SelectField } from "@components/ui/FormField";
 import { useRouter } from "next/navigation";
 import { assignDatesToPlan } from "@utils/running/planDates";
+import { calculateWeeksBetweenDates } from "@utils/running/smartDates";
+import { 
+  generate5kPlan,
+  generate10kPlan,
+  generateHalfMarathonPlan,
+  generateClassicMarathonPlan,
+} from "@utils/running/plans/distancePlans";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@components/ui/accordion";
 import { Badge } from "@components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 
 interface RunningPlanDisplayProps {
   planData: RunningPlanData;
@@ -83,17 +91,113 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
     onPlanChange({ ...planData, schedule: newSchedule });
   };
 
-  const updateStartDate = (date: string) => {
+  const regeneratePlanWithNewDates = (startDate: string, endDate: string) => {
     if (!onPlanChange) return;
-    const updated = assignDatesToPlan(planData, {
-      startDate: date,
-      endDate: planData.endDate,
-    });
-    onPlanChange(updated);
+
+    const newWeeks = calculateWeeksBetweenDates(startDate, endDate);
+    
+    if (newWeeks < 1) {
+      alert('Invalid date range: End date must be at least 1 week after start date.');
+      return;
+    }
+
+    // Extract plan parameters from the existing plan
+    const distanceUnit = planData.schedule[0]?.runs[0]?.unit || 'miles';
+    const targetDistance = planData.schedule[planData.schedule.length - 1]?.runs.find(r => r.type === 'marathon' || r.type === 'race')?.mileage || 26.2;
+    
+    // Estimate VDOT from existing pace zones (fallback to 35 if not available)
+    const marathonRun = planData.schedule.find(w => w.runs.some(r => r.type === 'marathon'))?.runs.find(r => r.type === 'marathon');
+    const targetPace = marathonRun?.targetPace?.pace;
+    
+    // Default parameters for regeneration
+    const regenerationParams = {
+      weeks: newWeeks,
+      distanceUnit: distanceUnit as 'miles' | 'kilometers',
+      trainingLevel: TrainingLevel.Intermediate, // Default to intermediate
+      vdot: 35, // Default VDOT
+      targetPace,
+      runsPerWeek: 4,
+      crossTrainingDays: 0,
+    };
+
+    try {
+      let newPlan: RunningPlanData;
+      
+      // Determine race type based on target distance
+      if (targetDistance <= 3.2) {
+        newPlan = generate5kPlan(regenerationParams);
+      } else if (targetDistance <= 6.5) {
+        newPlan = generate10kPlan(regenerationParams);
+      } else if (targetDistance <= 13.2) {
+        newPlan = generateHalfMarathonPlan(regenerationParams);
+      } else {
+        newPlan = generateClassicMarathonPlan(regenerationParams);
+      }
+
+      // Assign the new dates to the regenerated plan
+      const planWithDates = assignDatesToPlan(newPlan, {
+        startDate,
+        endDate,
+      });
+
+      onPlanChange(planWithDates);
+    } catch (error) {
+      console.error('Error regenerating plan:', error);
+      // Fallback to just updating dates on existing plan
+      const updated = assignDatesToPlan(planData, {
+        startDate,
+        endDate,
+      });
+      onPlanChange(updated);
+    }
+  };
+
+  const updateStartDate = (date: string) => {
+    if (!onPlanChange || !planData.endDate) return;
+    
+    const newWeeks = calculateWeeksBetweenDates(date, planData.endDate);
+    const originalWeeks = planData.schedule.length;
+    
+    // If the number of weeks changed significantly, regenerate the plan
+    if (Math.abs(newWeeks - originalWeeks) > 1) {
+      const shouldRegenerate = confirm(
+        `Changing the start date will change your plan from ${originalWeeks} weeks to ${newWeeks} weeks. This will regenerate your training plan. Continue?`
+      );
+      
+      if (shouldRegenerate) {
+        regeneratePlanWithNewDates(date, planData.endDate);
+      }
+    } else {
+      // Minor change, just update dates
+      const updated = assignDatesToPlan(planData, {
+        startDate: date,
+        endDate: planData.endDate,
+      });
+      onPlanChange(updated);
+    }
   };
 
   const updateEndDateCreation = (date: string) => {
     if (!onPlanChange) return;
+    
+    if (planData.startDate) {
+      const newWeeks = calculateWeeksBetweenDates(planData.startDate, date);
+      const originalWeeks = planData.schedule.length;
+      
+      // If the number of weeks changed significantly, regenerate the plan
+      if (Math.abs(newWeeks - originalWeeks) > 1) {
+        const shouldRegenerate = confirm(
+          `Changing the race date will change your plan from ${originalWeeks} weeks to ${newWeeks} weeks. This will regenerate your training plan. Continue?`
+        );
+        
+        if (shouldRegenerate) {
+          regeneratePlanWithNewDates(planData.startDate, date);
+        }
+        return;
+      }
+    }
+    
+    // Minor change or no start date set, just update dates
     const updated = assignDatesToPlan(planData, {
       startDate: planData.startDate,
       endDate: date,
@@ -102,12 +206,28 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
   };
 
   const updateEndDateSaved = (date: string) => {
-    if (!onPlanChange) return;
-    const recalculated = assignDatesToPlan(planData, { endDate: date });
-    const last = recalculated.schedule[recalculated.schedule.length - 1];
-    const sched = [...planData.schedule];
-    sched[sched.length - 1] = last;
-    onPlanChange({ ...planData, endDate: date, schedule: sched });
+    if (!onPlanChange || !planData.startDate) return;
+    
+    const newWeeks = calculateWeeksBetweenDates(planData.startDate, date);
+    const originalWeeks = planData.schedule.length;
+    
+    // If the number of weeks changed significantly, offer to regenerate
+    if (Math.abs(newWeeks - originalWeeks) > 1) {
+      const shouldRegenerate = confirm(
+        `Changing the race date will change your plan from ${originalWeeks} weeks to ${newWeeks} weeks. This will regenerate your training plan. Continue?`
+      );
+      
+      if (shouldRegenerate) {
+        regeneratePlanWithNewDates(planData.startDate, date);
+      }
+    } else {
+      // Minor change, just update dates
+      const updated = assignDatesToPlan(planData, {
+        startDate: planData.startDate,
+        endDate: date,
+      });
+      onPlanChange(updated);
+    }
   };
 
   const startToday = async () => {
@@ -209,6 +329,19 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
               />
             </div>
             <div className="flex flex-col items-center text-center">
+              <div className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-lg mb-2">
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {planData.startDate && planData.endDate 
+                    ? `${calculateWeeksBetweenDates(planData.startDate, planData.endDate)} weeks`
+                    : `${planData.schedule.length} weeks`
+                  }
+                </span>
+              </div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                Training Plan
+              </div>
+            </div>
+            <div className="flex flex-col items-center text-center">
               <label className="block mb-1 font-semibold text-center">
                 Race Date
               </label>
@@ -256,7 +389,26 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
               )}
             </div>
           )}
-          <div className="mb-4 flex justify-center">
+          <div className="mb-4 flex justify-center items-center gap-6">
+            <div className="flex flex-col items-center text-center">
+              <label className="block mb-1 font-semibold">Start Date</label>
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                {planData.startDate?.slice(0, 10) || "Not set"}
+              </div>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-lg">
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {planData.startDate && planData.endDate 
+                    ? `${calculateWeeksBetweenDates(planData.startDate, planData.endDate)} weeks`
+                    : `${planData.schedule.length} weeks`
+                  }
+                </span>
+              </div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                Training Plan
+              </div>
+            </div>
             <div className="flex flex-col items-center text-center">
               <label className="block mb-1 font-semibold">Race Date</label>
               <Input
@@ -321,16 +473,16 @@ const AccordionWeek: React.FC<AccordionWeekProps> = ({
         isWeekComplete ? "opacity-75" : ""
       }`}>
         <AccordionTrigger className="hover:no-underline">
-          <CardHeader className="flex-row items-center justify-between w-full py-4">
+          <CardHeader className="flex-row items-center justify-between w-full py-2">
             <div className="flex items-center gap-3">
-              <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100">
+              <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                 Week {weekPlan.weekNumber}
+                {weekPlan.phase && (
+                  <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                    {weekPlan.phase} phase
+                  </Badge>
+                )}
               </CardTitle>
-              {weekPlan.phase && (
-                <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
-                  {weekPlan.phase} phase
-                </Badge>
-              )}
               {isWeekComplete && (
                 <Badge className="bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100">
                   Complete
@@ -350,12 +502,12 @@ const AccordionWeek: React.FC<AccordionWeekProps> = ({
           </CardHeader>
         </AccordionTrigger>
         <AccordionContent>
-          <CardContent className="pt-0">
-            <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+          <CardContent className="pt-0 pb-2">
+            <div className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
               <p>Start: {weekPlan.startDate?.slice(0, 10)}</p>
               {weekPlan.notes && <p className="mt-1">{weekPlan.notes}</p>}
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {weekPlan.runs.map((run, index) => {
                 const past = run.date ? new Date(run.date) < new Date() : false;
                 const isCompleted = past || run.done;
@@ -363,7 +515,7 @@ const AccordionWeek: React.FC<AccordionWeekProps> = ({
                   <Card key={index} className={`bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 ${
                     isCompleted ? "opacity-75" : ""
                   }`}>
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                       {editable ? (
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -461,7 +613,14 @@ const AccordionWeek: React.FC<AccordionWeekProps> = ({
                       ) : (
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100">
+                            <Badge 
+                              variant="outline" 
+                              className={
+                                run.type === "marathon" 
+                                  ? "bg-brand-purple text-white border-brand-purple" 
+                                  : "bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                              }
+                            >
                               {run.type.charAt(0).toUpperCase() + run.type.slice(1)}
                             </Badge>
                             <span className="text-zinc-600 dark:text-zinc-400">•</span>

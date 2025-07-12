@@ -234,7 +234,9 @@ export function generateLongDistancePlan(
     [TrainingLevel.Advanced]: { startPct: 0.6, peakPct: 0.85 },
   } as const;
 
-  const { startPct, peakPct } = longBounds[trainingLevel];
+  // Safe lookup with fallback to Beginner level
+  const longBoundsForLevel = longBounds[trainingLevel] || longBounds[TrainingLevel.Beginner];
+  const { startPct, peakPct } = longBoundsForLevel;
   const initialLong = targetDistance * startPct;
   const peakLong = targetDistance * peakPct;
   const weekOneLong = initialLong;

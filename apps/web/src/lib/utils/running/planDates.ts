@@ -79,8 +79,17 @@ export function assignDatesToPlan(
     finalEnd = addWeeks(baseStart, weeks);
   }
 
+  // When we have an end date (race date), prioritize proper race date alignment by working backwards
+  // This ensures the race falls on the correct day within a normal training week and all
+  // weeks are continuous. The start date may be adjusted to achieve this alignment.
+  let adjustedBaseStart = baseStart;
+  if (endDate) {
+    const raceWeekStart = startOfWeekSunday(parseDateUTC(endDate));
+    adjustedBaseStart = addWeeks(raceWeekStart, -(weeks - 1));
+  }
+
   const schedule = plan.schedule.map((week, wi) => {
-    const weekStart = wi === 0 ? baseStart : startOfWeekSunday(addWeeks(baseStart, wi));
+    const weekStart = wi === 0 ? adjustedBaseStart : startOfWeekSunday(addWeeks(adjustedBaseStart, wi));
     const runs = week.runs.map((r) => {
       let date: Date;
       if (
@@ -109,7 +118,7 @@ export function assignDatesToPlan(
     ...plan,
     weeks,
     schedule,
-    startDate: baseStart.toISOString(),
+    startDate: adjustedBaseStart.toISOString(),
     endDate: finalEnd.toISOString(),
   };
 }

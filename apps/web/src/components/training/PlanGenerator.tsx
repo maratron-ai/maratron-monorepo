@@ -34,6 +34,7 @@ import {
   getDistanceLabel,
   RaceType,
 } from "@utils/running/planName";
+import { getStartNowButtonText, calculateWeeksBetweenDates, adjustStartDateToMaintainWeeks } from "@utils/running/smartDates";
 
 
 const DISTANCE_INFO: Record<RaceType, { miles: number; km: number; weeks: number }> = {
@@ -198,7 +199,15 @@ const PlanGenerator: React.FC = () => {
 
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
-    
+    generatePlan(false);
+  };
+
+  const handleStartNow = (e: React.FormEvent) => {
+    e.preventDefault();
+    generatePlan(true);
+  };
+
+  const generatePlan = (startNow: boolean) => {
     // Validate inputs before generating plan
     if (!useTotalTime && goalValidation && !goalValidation.isValid) {
       alert(`Cannot generate plan: ${goalValidation.message}`);
@@ -206,8 +215,56 @@ const PlanGenerator: React.FC = () => {
     }
     
     try {
+      // Calculate the actual weeks needed if starting now
+      let actualWeeks = weeks;
+      let assumedStartDate: string;
+      let assumedEndDate: string;
+
+      if (startNow && endDate) {
+        // Calculate weeks from today to race date
+        const today = new Date();
+        assumedStartDate = today.toISOString().slice(0, 10);
+        assumedEndDate = endDate.toISOString().slice(0, 10);
+        
+        // Use our smart date calculation to get actual weeks needed
+        actualWeeks = calculateWeeksBetweenDates(assumedStartDate, assumedEndDate);
+        
+        // Ensure we have at least 1 week for plan generation
+        if (actualWeeks < 1) {
+          alert('Race date is too close! Please select a race date at least 1 week away.');
+          return;
+        }
+        
+        console.log(`Start Now: Original weeks ${weeks}, actual weeks needed: ${actualWeeks}`);
+      } else {
+        // Calculate start date based on race date and selected weeks
+        if (endDate) {
+          // Race date is set - calculate start date to achieve the selected number of weeks
+          assumedEndDate = endDate.toISOString().slice(0, 10);
+          assumedStartDate = adjustStartDateToMaintainWeeks(assumedEndDate, weeks);
+        } else {
+          // No race date set - start next Sunday and calculate end date
+          const today = new Date();
+          const base = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+          const diff = (7 - base.getUTCDay()) % 7;
+          base.setUTCDate(base.getUTCDate() + (diff === 0 ? 7 : diff));
+          assumedStartDate = base.toISOString().slice(0, 10);
+
+          const projectedEndDate = new Date(today);
+          projectedEndDate.setDate(today.getDate() + weeks * 7);
+
+          // Adjust to nearest following Sunday
+          const dayOfWeek = projectedEndDate.getDay(); // 0 is Sunday
+          const daysToAdd = (7 - dayOfWeek) % 7;
+          projectedEndDate.setDate(projectedEndDate.getDate() + daysToAdd);
+
+          assumedEndDate = projectedEndDate.toISOString().slice(0, 10);
+        }
+      }
+
+      // Generate plan with the correct number of weeks
       const opts = {
-        weeks,
+        weeks: actualWeeks, // Use recalculated weeks
         distanceUnit,
         trainingLevel,
         vdot,
@@ -217,6 +274,7 @@ const PlanGenerator: React.FC = () => {
         crossTrainingDays,
         // runTypeDays,
       };
+      
       let plan: RunningPlanData;
       switch (raceType) {
         case "5k":
@@ -232,28 +290,6 @@ const PlanGenerator: React.FC = () => {
           plan = generateClassicMarathonPlan(opts);
           break;
       }
-      
-      // Assign default start and end dates if not provided
-      const today = new Date();
-      const base = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
-      const diff = (7 - base.getUTCDay()) % 7;
-      base.setUTCDate(base.getUTCDate() + (diff === 0 ? 7 : diff));
-      const assumedStartDate = base.toISOString().slice(0, 10);
-      let assumedEndDate: string;
-
-      if (!endDate) {
-        const projectedEndDate = new Date(today);
-        projectedEndDate.setDate(today.getDate() + weeks * 7);
-
-        // Adjust to nearest following Sunday
-        const dayOfWeek = projectedEndDate.getDay(); // 0 is Sunday
-        const daysToAdd = (7 - dayOfWeek) % 7;
-        projectedEndDate.setDate(projectedEndDate.getDate() + daysToAdd);
-
-        assumedEndDate = projectedEndDate.toISOString().slice(0, 10);
-      } else {
-        assumedEndDate = endDate.toISOString().slice(0, 10);
-      }
 
       const withDates = assignDatesToPlan(plan, {
         startDate: assumedStartDate,
@@ -262,6 +298,11 @@ const PlanGenerator: React.FC = () => {
       setPlanData(withDates);
       if (withDates.endDate) {
         setEndDate(new Date(withDates.endDate));
+      }
+      
+      // Update the weeks input to reflect the actual weeks used
+      if (startNow && actualWeeks !== weeks) {
+        setWeeks(actualWeeks);
       }
     } catch (error) {
       // Handle plan generation errors gracefully
@@ -744,8 +785,8 @@ const PlanGenerator: React.FC = () => {
                 </div>
               )}
 
-              {/* Generate Button */}
-              <div className="flex justify-center pt-8">
+              {/* Generate Buttons */}
+              <div className="flex justify-center gap-4 pt-8">
                 <Button
                   type="submit"
                   size="lg"
@@ -756,6 +797,29 @@ const PlanGenerator: React.FC = () => {
                     <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse"></div>
                   </div>
                 </Button>
+                
+                {/* Start Now Button */}
+                {endDate && (() => {
+                  const startNowState = getStartNowButtonText(endDate, weeks);
+                  return (
+                    <Button
+                      type="button"
+                      onClick={handleStartNow}
+                      disabled={startNowState.isDisabled}
+                      size="lg"
+                      className={`px-8 py-4 text-base font-semibold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-0.5 ${
+                        startNowState.isDisabled
+                          ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                          : startNowState.severity === 'warning'
+                          ? 'bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-600 hover:via-amber-700 hover:to-orange-700 text-white'
+                          : 'bg-gradient-to-r from-green-600 via-green-700 to-emerald-700 hover:from-green-700 hover:via-green-800 hover:to-emerald-800 text-white'
+                      }`}
+                      title={startNowState.message}
+                    >
+                      {startNowState.text}
+                    </Button>
+                  );
+                })()}
               </div>
             </form>
           </CardContent>
@@ -768,14 +832,6 @@ const PlanGenerator: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <Card className="bg-white/50 dark:bg-zinc-900/50 border-0 shadow-none backdrop-blur-sm">
             <CardContent className="p-6">
-              <div className="text-center mb-6">
-                <h2 className="text-lg font-light text-zinc-900 dark:text-zinc-100 mb-1">
-                  Your Training Plan
-                </h2>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Review and customize your personalized training plan
-                </p>
-              </div>
               
               <RunningPlanDisplay
                 planData={planData}
