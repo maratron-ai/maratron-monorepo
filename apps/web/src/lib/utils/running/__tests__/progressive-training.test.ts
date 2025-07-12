@@ -48,7 +48,7 @@ describe('Progressive Training System', () => {
       
       expect(result.isValid).toBe(true);
       expect(result.projectedVDOT).toBeCloseTo(41.85, 1);
-      expect(result.message).toContain('Goal pace (7:45) is achievable');
+      expect(result.message).toContain('7:45 pace looks achievable');
     });
 
     it('should reject overly aggressive goal pace', () => {
@@ -60,8 +60,8 @@ describe('Progressive Training System', () => {
       const result = validateGoalPace(goalPace, currentCalculatedPace, currentVDOT, trainingWeeks);
       
       expect(result.isValid).toBe(false);
-      expect(result.message).toContain('requires 23.1% improvement');
-      expect(result.message).toContain('too aggressive');
+      expect(result.message).toContain('might be too ambitious');
+      expect(result.message).toContain('Try 7:16 pace instead');
     });
 
     it('should suggest more realistic goal for aggressive pace', () => {
@@ -73,7 +73,7 @@ describe('Progressive Training System', () => {
       const result = validateGoalPace(goalPace, currentCalculatedPace, currentVDOT, trainingWeeks);
       
       expect(result.isValid).toBe(false);
-      expect(result.message).toContain('Consider a more gradual goal around 7:16');
+      expect(result.message).toContain('Try 7:16 pace instead');
     });
 
     it('should handle edge case where goal matches current pace', () => {
@@ -85,7 +85,7 @@ describe('Progressive Training System', () => {
       const result = validateGoalPace(goalPace, currentCalculatedPace, currentVDOT, trainingWeeks);
       
       expect(result.isValid).toBe(true);
-      expect(result.message).toContain('Goal pace (8:00) is achievable');
+      expect(result.message).toContain('8:00 pace looks achievable');
     });
   });
 
@@ -206,7 +206,7 @@ describe('Progressive Training System', () => {
       
       // 10:00 vs 12:12 is 18% improvement - should be valid with new system
       expect(validation.isValid).toBe(true);
-      expect(validation.message).toContain('Goal pace (10:00) is achievable');
+      expect(validation.message).toContain('10:00 pace looks achievable');
     });
 
     it('should create progressive zones for VDOT 30 scenario', () => {

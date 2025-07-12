@@ -34,7 +34,7 @@ import {
   getDistanceLabel,
   RaceType,
 } from "@utils/running/planName";
-import { getStartNowButtonText, calculateWeeksBetweenDates, adjustStartDateToMaintainWeeks } from "@utils/running/smartDates";
+import { getStartNowButtonText, calculateWeeksBetweenDates, adjustStartDateToMaintainWeeks, calculateSmartStartDate, calculateFirstWeekDuration } from "@utils/running/smartDates";
 
 
 const DISTANCE_INFO: Record<RaceType, { miles: number; km: number; weeks: number }> = {
@@ -174,7 +174,7 @@ const PlanGenerator: React.FC = () => {
         const raceMeters = targetDistance * toMeters;
         const calculatedMarathonPace = calculatePaceForVDOT(raceMeters, vdot, "M");
         
-        const validation = validateGoalPace(targetPace, calculatedMarathonPace, vdot, weeks);
+        const validation = validateGoalPace(targetPace, calculatedMarathonPace, vdot, weeks, targetDistance, distanceUnit);
         setGoalValidation(validation);
       } catch (error) {
         // Handle validation errors gracefully
@@ -221,12 +221,15 @@ const PlanGenerator: React.FC = () => {
       let assumedEndDate: string;
 
       if (startNow && endDate) {
-        // Calculate weeks from today to race date
+        // Smart Start Now: Use intelligent start date based on day of week
         const today = new Date();
-        assumedStartDate = today.toISOString().slice(0, 10);
+        const todayStr = today.toISOString().slice(0, 10);
         assumedEndDate = endDate.toISOString().slice(0, 10);
         
-        // Use our smart date calculation to get actual weeks needed
+        // Calculate smart start date (could be today or recent Sunday)
+        assumedStartDate = calculateSmartStartDate(today);
+        
+        // Calculate actual weeks needed from smart start to race
         actualWeeks = calculateWeeksBetweenDates(assumedStartDate, assumedEndDate);
         
         // Ensure we have at least 1 week for plan generation
@@ -235,7 +238,12 @@ const PlanGenerator: React.FC = () => {
           return;
         }
         
-        console.log(`Start Now: Original weeks ${weeks}, actual weeks needed: ${actualWeeks}`);
+        // Calculate first week duration for user feedback
+        const firstWeekDays = calculateFirstWeekDuration(assumedStartDate);
+        
+        console.log(`Smart Start Now: Today is ${todayStr}, plan starts ${assumedStartDate}`);
+        console.log(`Smart Start Now: First week is ${firstWeekDays} days, total plan ${actualWeeks} weeks`);
+        console.log(`Smart Start Now: Race date ${assumedEndDate}`);
       } else {
         // Calculate start date based on race date and selected weeks
         if (endDate) {
@@ -294,6 +302,7 @@ const PlanGenerator: React.FC = () => {
       const withDates = assignDatesToPlan(plan, {
         startDate: assumedStartDate,
         endDate: assumedEndDate,
+        smartStartNow: startNow,
       });
       setPlanData(withDates);
       if (withDates.endDate) {
@@ -319,10 +328,10 @@ const PlanGenerator: React.FC = () => {
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="text-center max-w-2xl mx-auto">
-        <h1 className="text-2xl font-light text-zinc-900 dark:text-zinc-100 mb-2">
+        <h1 className="text-3xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">
           Generate Your Running Plan
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Create a personalized training plan based on your goals and fitness level.
         </p>
       </div>
@@ -333,7 +342,7 @@ const PlanGenerator: React.FC = () => {
         </div>
       ) : (
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-white/70 dark:bg-zinc-900/70 border-zinc-200/50 dark:border-zinc-700/50 shadow-sm backdrop-blur-sm">
+          <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
             <CardContent className="p-8">
               <form onSubmit={handleGenerate} className="space-y-6">
                 {/* Basic Configuration */}
@@ -346,11 +355,11 @@ const PlanGenerator: React.FC = () => {
                         Race Distance
                       </Label>
                       <Select value={raceType} onValueChange={(value) => setRaceType(value as RaceType)}>
-                        <SelectTrigger className="h-10 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70">
+                        <SelectTrigger className="h-10 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800">
                           <SelectValue placeholder="Select race distance" />
                         </SelectTrigger>
                         <SelectContent 
-                          className="bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-700/50 shadow-lg"
+                          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg"
                           position="popper"
                           side="bottom"
                           align="start"
@@ -377,7 +386,7 @@ const PlanGenerator: React.FC = () => {
                         min={8}
                         value={String(weeks)}
                         onChange={(e) => setWeeks(Number(e.target.value))}
-                        className="h-10 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
+                        className="h-10 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800"
                       />
                     </div>
                   </div>
@@ -389,11 +398,11 @@ const PlanGenerator: React.FC = () => {
                         Training Level
                       </Label>
                       <Select value={trainingLevel} onValueChange={(value) => setTrainingLevel(value as TrainingLevel)}>
-                        <SelectTrigger className="h-10 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70">
+                        <SelectTrigger className="h-10 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800">
                           <SelectValue placeholder="Select training level" />
                         </SelectTrigger>
                         <SelectContent 
-                          className="bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-700/50 shadow-lg"
+                          className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg"
                           position="popper"
                           side="bottom"
                           align="start"
@@ -416,7 +425,7 @@ const PlanGenerator: React.FC = () => {
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-between text-left font-normal h-10 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
+                            className="w-full justify-between text-left font-normal h-10 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800"
                             aria-label="Select race date"
                             aria-haspopup="dialog"
                             aria-expanded={datePickerOpen}
@@ -426,7 +435,7 @@ const PlanGenerator: React.FC = () => {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent 
-                          className="w-auto p-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg rounded-lg" 
+                          className="w-auto p-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg rounded-lg" 
                           align="center"
                           side="bottom"
                           sideOffset={4}
@@ -451,7 +460,7 @@ const PlanGenerator: React.FC = () => {
                               <div className="flex items-center gap-2">
                                 <div className="relative">
                                   <select 
-                                    className="bg-background border border-input rounded px-3 py-1 pr-8 text-sm font-medium min-w-[100px] appearance-none cursor-pointer"
+                                    className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded px-3 py-1 pr-8 text-sm font-medium min-w-[100px] appearance-none cursor-pointer"
                                     value={endDate?.getMonth() || new Date().getMonth()}
                                     onChange={(e) => {
                                       const newDate = new Date(endDate || new Date());
@@ -471,7 +480,7 @@ const PlanGenerator: React.FC = () => {
                                 
                                 <div className="relative">
                                   <select 
-                                    className="bg-background border border-input rounded px-3 py-1 pr-8 text-sm font-medium min-w-[80px] appearance-none cursor-pointer"
+                                    className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded px-3 py-1 pr-8 text-sm font-medium min-w-[80px] appearance-none cursor-pointer"
                                     value={endDate?.getFullYear() || new Date().getFullYear()}
                                     onChange={(e) => {
                                       const newDate = new Date(endDate || new Date());
@@ -515,7 +524,7 @@ const PlanGenerator: React.FC = () => {
                                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
                                   <div
                                     key={day}
-                                    className="h-8 w-8 text-xs font-medium text-muted-foreground flex items-center justify-center"
+                                    className="h-8 w-8 text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center justify-center"
                                   >
                                     {day}
                                   </div>
@@ -547,7 +556,7 @@ const PlanGenerator: React.FC = () => {
                                     days.push(
                                       <button
                                         key={`prev-${day}`}
-                                        className="h-8 w-8 text-sm text-zinc-400 dark:text-zinc-600 opacity-30 hover:opacity-70 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
+                                        className="h-8 w-8 text-sm text-zinc-600 dark:text-zinc-400 opacity-30 hover:opacity-70 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
                                         onClick={() => {
                                           const newDate = new Date(year, month - 1, day);
                                           setEndDate(newDate);
@@ -574,7 +583,7 @@ const PlanGenerator: React.FC = () => {
                                         key={`current-${day}`}
                                         className={`h-8 w-8 text-sm rounded-md transition-colors relative ${
                                           isSelected
-                                            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 font-semibold shadow-sm'
+                                            ? 'bg-gradient-to-r from-[var(--brand-purple)] to-[var(--brand-blue)] text-white hover:from-[var(--brand-purple)]/80 hover:to-[var(--brand-blue)]/80 font-semibold shadow-sm'
                                             : isToday
                                             ? 'bg-accent text-accent-foreground hover:bg-accent/80 font-bold'
                                             : 'hover:bg-accent hover:text-accent-foreground'
@@ -597,7 +606,7 @@ const PlanGenerator: React.FC = () => {
                                     days.push(
                                       <button
                                         key={`next-${day}`}
-                                        className="h-8 w-8 text-sm text-zinc-400 dark:text-zinc-600 opacity-30 hover:opacity-70 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
+                                        className="h-8 w-8 text-sm text-zinc-600 dark:text-zinc-400 opacity-30 hover:opacity-70 hover:bg-accent/50 hover:text-accent-foreground rounded-md transition-colors"
                                         onClick={() => {
                                           const newDate = new Date(year, month + 1, day);
                                           setEndDate(newDate);
@@ -629,13 +638,13 @@ const PlanGenerator: React.FC = () => {
                     <div className="flex items-center gap-4">
                       {/* Toggle */}
                       <div className="flex-shrink-0">
-                        <div className="flex items-center gap-2 p-1 bg-white/70 dark:bg-zinc-800/70 border border-zinc-200/50 dark:border-zinc-700/50 rounded-lg h-[42px]">
+                        <div className="flex items-center gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg h-[42px]">
                           <button
                             type="button"
                             onClick={() => setUseTotalTime(false)}
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
                               !useTotalTime 
-                                ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' 
+                                ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' 
                                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
                             }`}
                           >
@@ -646,7 +655,7 @@ const PlanGenerator: React.FC = () => {
                             onClick={() => setUseTotalTime(true)}
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
                               useTotalTime 
-                                ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' 
+                                ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' 
                                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
                             }`}
                           >
@@ -682,8 +691,8 @@ const PlanGenerator: React.FC = () => {
                     {goalValidation && !useTotalTime && (
                       <div className={`p-4 rounded-lg border transition-all ${
                         goalValidation.isValid 
-                          ? 'bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border-emerald-200/50 dark:border-emerald-800/50' 
-                          : 'bg-amber-50/50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 border-amber-200/50 dark:border-amber-800/50'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800' 
+                          : 'bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800'
                       }`}>
                         <div className="flex items-start space-x-3">
                           <div className="flex-shrink-0 mt-0.5">
@@ -701,8 +710,8 @@ const PlanGenerator: React.FC = () => {
                     {goalValidation && useTotalTime && (
                       <div className={`p-4 rounded-lg border transition-all ${
                         goalValidation.isValid 
-                          ? 'bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border-emerald-200/50 dark:border-emerald-800/50' 
-                          : 'bg-amber-50/50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 border-amber-200/50 dark:border-amber-800/50'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800' 
+                          : 'bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800'
                       }`}>
                         <div className="flex items-start space-x-3">
                           <div className="flex-shrink-0 mt-0.5">
@@ -725,7 +734,7 @@ const PlanGenerator: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAdvanced((p) => !p)}
-                  className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors underline underline-offset-2"
+                  className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors underline underline-offset-2"
                 >
                   {showAdvanced ? "Hide Advanced Settings" : "Show Advanced Settings"}
                 </button>
@@ -743,7 +752,7 @@ const PlanGenerator: React.FC = () => {
                       max={7}
                       value={String(runsPerWeek)}
                       onChange={(_n, v) => setRunsPerWeek(Number(v))}
-                      className="mt-1 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
+                      className="mt-1 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800"
                     />
                     {/* Cross Training Days */}
                     <Input
@@ -754,7 +763,7 @@ const PlanGenerator: React.FC = () => {
                       max={7 - runsPerWeek}
                       value={String(crossTrainingDays)}
                       onChange={(_n, v) => setCrossTrainingDays(Number(v))}
-                      className="mt-1 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
+                      className="mt-1 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800"
                     />
                     {/* VDOT */}
                     <Input
@@ -779,7 +788,7 @@ const PlanGenerator: React.FC = () => {
                       max={60}
                       value={String(vdot)}
                       onChange={(_n, v) => setVdot(Number(v))}
-                      className="mt-1 border-zinc-200/50 dark:border-zinc-700/50 bg-white/70 dark:bg-zinc-800/70"
+                      className="mt-1 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800"
                     />
                   </div>
                 </div>
@@ -790,7 +799,7 @@ const PlanGenerator: React.FC = () => {
                 <Button
                   type="submit"
                   size="lg"
-                  className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white px-10 py-4 text-base font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] hover:-translate-y-0.5"
+                  className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 px-10 py-4 text-base font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300"
                 >
                   <div className="flex items-center space-x-2">
                     <span>Generate Training Plan</span>
@@ -830,7 +839,7 @@ const PlanGenerator: React.FC = () => {
       {/* Generated Plan Display */}
       {planData && (
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-white/50 dark:bg-zinc-900/50 border-0 shadow-none backdrop-blur-sm">
+          <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm">
             <CardContent className="p-6">
               
               <RunningPlanDisplay
@@ -843,7 +852,7 @@ const PlanGenerator: React.FC = () => {
               />
               
               {/* Debug Section */}
-              <div className="mt-6 pt-4 border-t border-zinc-200/50 dark:border-zinc-700/50">
+              <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center space-x-2 mb-3">
                   <input
                     id="showJson"
@@ -853,10 +862,10 @@ const PlanGenerator: React.FC = () => {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setShowJson(e.target.checked)
                     }
-                    className="rounded border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+                    className="rounded border-zinc-200 dark:border-zinc-800 text-zinc-600 focus:ring-zinc-500 focus:ring-offset-0"
                   />
-                  <Label htmlFor="showJson" className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Show JSON Debug Info
+                  <Label htmlFor="showJson" className="text-xs text-zinc-600 dark:text-zinc-400">
+                    Show JSON Plan
                   </Label>
                   {showJson && (
                     <button
@@ -867,14 +876,14 @@ const PlanGenerator: React.FC = () => {
                         );
                         alert("JSON copied to clipboard!");
                       }}
-                      className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors underline underline-offset-1"
+                      className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors underline underline-offset-1"
                     >
                       Copy JSON
                     </button>
                   )}
                 </div>
                 {showJson && (
-                  <pre className="bg-zinc-50/50 dark:bg-zinc-800/30 border border-zinc-200/50 dark:border-zinc-700/50 p-3 rounded-lg overflow-x-auto text-xs text-zinc-700 dark:text-zinc-300 font-mono">
+                  <pre className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-3 rounded-lg overflow-x-auto text-xs text-zinc-700 dark:text-zinc-300 font-mono">
                     {JSON.stringify(planData, null, 2)}
                   </pre>
                 )}

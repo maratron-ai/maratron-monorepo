@@ -38,6 +38,14 @@ function nextSunday(from: Date = new Date()): Date {
   return base;
 }
 
+function getNextSundayAfter(date: Date): Date {
+  const dayOfWeek = date.getUTCDay(); // 0 = Sunday
+  const daysToAdd = dayOfWeek === 0 ? 7 : (7 - dayOfWeek); // Always get next Sunday
+  const sunday = new Date(date);
+  sunday.setUTCDate(date.getUTCDate() + daysToAdd);
+  return sunday;
+}
+
 const dayIndexMap: Record<DayOfWeek, number> = {
   Sunday: 0,
   Monday: 1,
@@ -54,9 +62,9 @@ export function dayIndex(day: DayOfWeek): number {
 
 export function assignDatesToPlan(
   plan: RunningPlanData,
-  opts: { startDate?: string; endDate?: string }
+  opts: { startDate?: string; endDate?: string; smartStartNow?: boolean }
 ): RunningPlanData {
-  const { startDate, endDate } = opts;
+  const { startDate, endDate, smartStartNow } = opts;
 
   const weeks = plan.schedule.length || plan.weeks;
   let baseStart: Date;
@@ -83,13 +91,38 @@ export function assignDatesToPlan(
   // This ensures the race falls on the correct day within a normal training week and all
   // weeks are continuous. The start date may be adjusted to achieve this alignment.
   let adjustedBaseStart = baseStart;
-  if (endDate) {
+  if (endDate && !startDate) {
+    // Only adjust start date for race alignment if no specific start date was provided
     const raceWeekStart = startOfWeekSunday(parseDateUTC(endDate));
     adjustedBaseStart = addWeeks(raceWeekStart, -(weeks - 1));
   }
 
   const schedule = plan.schedule.map((week, wi) => {
-    const weekStart = wi === 0 ? adjustedBaseStart : startOfWeekSunday(addWeeks(adjustedBaseStart, wi));
+    let weekStart: Date;
+    
+    if (smartStartNow) {
+      // Smart Start Now mode: Special handling
+      if (wi === 0) {
+        // First week: starts exactly on the adjusted base start (could be mid-week)
+        weekStart = adjustedBaseStart;
+      } else {
+        // Subsequent weeks: start on Sundays after the first week
+        const firstWeekNextSunday = getNextSundayAfter(adjustedBaseStart);
+        const startDayOfWeek = adjustedBaseStart.getUTCDay();
+        
+        if (startDayOfWeek >= 4 && startDayOfWeek <= 6) { // Thursday-Saturday
+          // Skip one week to allow first week to "absorb" fragments
+          weekStart = addWeeks(firstWeekNextSunday, wi); // wi instead of wi-1
+        } else {
+          // Normal progression for Sun-Wed starts
+          weekStart = addWeeks(firstWeekNextSunday, wi - 1);
+        }
+      }
+    } else {
+      // Normal mode: original logic
+      weekStart = wi === 0 ? adjustedBaseStart : startOfWeekSunday(addWeeks(adjustedBaseStart, wi));
+    }
+    
     const runs = week.runs.map((r) => {
       let date: Date;
       if (
@@ -100,16 +133,34 @@ export function assignDatesToPlan(
         date = startOfDayUTC(parseDateUTC(endDate));
       } else {
         const idx = r.day ? dayIndex(r.day) : 0;
-        if (wi === 0) {
-          const startDow = baseStart.getUTCDay();
+        
+        if (smartStartNow && wi === 0) {
+          // Smart Start Now: First week handles irregular start
+          const dayOfWeekStart = adjustedBaseStart.getUTCDay();
+          const targetDayIndex = idx;
+          
+          // If target day is today or later this week
+          if (targetDayIndex >= dayOfWeekStart) {
+            const daysFromStart = targetDayIndex - dayOfWeekStart;
+            date = addDays(adjustedBaseStart, daysFromStart);
+          } else {
+            // Target day is next week (first full week)
+            const nextWeekStart = getNextSundayAfter(adjustedBaseStart);
+            date = addDays(nextWeekStart, targetDayIndex);
+          }
+        } else if (!smartStartNow && wi === 0) {
+          // Normal mode: First week with potential mid-week start
+          const startDow = adjustedBaseStart.getUTCDay();
           const diff = idx - startDow;
-          date = addDays(baseStart, diff >= 0 ? diff : 7 + diff);
+          date = addDays(adjustedBaseStart, diff >= 0 ? diff : 7 + diff);
         } else {
+          // All other cases: standard day calculation
           date = addDays(weekStart, idx);
         }
       }
       return { ...r, date: date.toISOString() };
     });
+    
     const done = runs.every((r) => r.done);
     return { ...week, startDate: weekStart.toISOString(), runs, done };
   });

@@ -73,31 +73,63 @@ export function validateGoalPace(
   goalPaceStr: string, 
   currentCalculatedPaceStr: string, 
   currentVDOT: number, 
-  trainingWeeks: number
+  trainingWeeks: number,
+  raceDistance?: number,
+  distanceUnit?: 'miles' | 'kilometers'
 ): { isValid: boolean; projectedVDOT: number; message?: string } {
   const goalPaceSec = parseDuration(goalPaceStr);
   const currentCalculatedPaceSec = parseDuration(currentCalculatedPaceStr);
   
-  // Calculate expected VDOT after training period
+  // Calculate expected VDOT after training period (for compatibility when race distance not provided)
   const projectedVDOT = calculateVDOTProgression(currentVDOT, trainingWeeks);
+  
+  // Calculate the VDOT needed to achieve the goal pace
+  let targetVDOT = projectedVDOT; // default to progression-based VDOT
+  if (raceDistance && distanceUnit) {
+    // Convert distance to meters
+    const distanceMeters = distanceUnit === 'miles' ? raceDistance * 1609.34 : raceDistance * 1000;
+    // Calculate total time for goal pace
+    const goalTotalSeconds = goalPaceSec * raceDistance;
+    // Calculate VDOT needed for this performance
+    targetVDOT = calculateVDOTJackDaniels(distanceMeters, goalTotalSeconds);
+  }
   
   // Allow goals up to projected VDOT capability  
   const improvementRatio = currentCalculatedPaceSec / goalPaceSec;
   const maxReasonableImprovement = 1.20; // 20% pace improvement over training period
   
   if (improvementRatio > maxReasonableImprovement) {
+    const suggestedPace = formatPace(currentCalculatedPaceSec / 1.10);
+    let message: string;
+    
+    if (raceDistance && distanceUnit) {
+      const goalTotalTime = calculateTotalTime(goalPaceStr, raceDistance, distanceUnit);
+      const suggestedTotalTime = calculateTotalTime(suggestedPace, raceDistance, distanceUnit);
+      message = `${goalPaceStr} pace (${goalTotalTime} total time) might be too ambitious. Try ${suggestedPace} pace (${suggestedTotalTime}) instead.`;
+    } else {
+      message = `${goalPaceStr} pace might be too ambitious for ${trainingWeeks} weeks. Try ${suggestedPace} pace instead.`;
+    }
+    
     return {
       isValid: false,
-      projectedVDOT,
-      message: `Goal pace (${goalPaceStr}) requires ${((improvementRatio - 1) * 100).toFixed(1)}% improvement, which may be too aggressive for ${trainingWeeks} weeks. Consider a more gradual goal around ${formatPace(currentCalculatedPaceSec / 1.10)}.`
+      projectedVDOT: targetVDOT,
+      message
     };
   }
   
   // Goal is achievable
+  let message: string;
+  if (raceDistance && distanceUnit) {
+    const totalTime = calculateTotalTime(goalPaceStr, raceDistance, distanceUnit);
+    message = `${goalPaceStr} pace (${totalTime} total time) looks good! 🎯`;
+  } else {
+    message = `${goalPaceStr} pace looks achievable with consistent training! 🎯`;
+  }
+  
   return {
     isValid: true,
-    projectedVDOT,
-    message: `Goal pace (${goalPaceStr}) is achievable with consistent training. Expected fitness improvement: VDOT ${currentVDOT.toFixed(1)} → ${projectedVDOT.toFixed(1)}.`
+    projectedVDOT: raceDistance && distanceUnit ? targetVDOT : projectedVDOT,
+    message
   };
 }
 
@@ -148,8 +180,30 @@ function formatPace(paceSec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-// Import calculatePaceForVDOT from jackDaniels.ts
-import { calculatePaceForVDOT } from "./jackDaniels";
+/**
+ * Helper function to calculate total time from pace and distance
+ */
+function calculateTotalTime(paceStr: string, distance: number, distanceUnit: 'miles' | 'kilometers'): string {
+  const paceSeconds = parseDuration(paceStr);
+  
+  // The pace is already in the correct unit (pace per mile or pace per km)
+  // so we just multiply by the distance
+  const totalSeconds = paceSeconds * distance;
+  
+  // Format as h:mm:ss
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.round(totalSeconds % 60);
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  } else {
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }
+}
+
+// Import functions from jackDaniels.ts
+import { calculatePaceForVDOT, calculateVDOTJackDaniels } from "./jackDaniels";
 
 /**
  * Parse duration string to seconds with robust input validation

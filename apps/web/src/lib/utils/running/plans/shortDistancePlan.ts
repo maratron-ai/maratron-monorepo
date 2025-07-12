@@ -187,7 +187,7 @@ export function generateShortDistancePlan(
 
     const weeklyMileage = round1(runs.reduce((tot, r) => tot + r.mileage, 0));
 
-    const finalLabel = raceKm >= 10 ? "10K Week!" : "5K Week!";
+    const finalLabel = raceKm > 5 ? "10K Week!" : "5K Week!";
     schedule.push({
       weekNumber: w,
       phase,

@@ -284,7 +284,7 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
                 <Button
                   type="button"
                   onClick={() => setEditingName(true)}
-                  className="text-foreground hover:text-primary w-auto bg-transparent no-underline transition-colors hover:bg-transparent"
+                  className="text-zinc-900 dark:text-zinc-100 hover:text-primary w-auto bg-transparent no-underline transition-colors hover:bg-transparent"
                 >
                   <Pencil className="w-4 h-4" />
                 </Button>
@@ -295,21 +295,21 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
             <Button
               type="button"
               onClick={handleSave}
-              className="bg-muted-foreground text-underline px-4 py-2 rounded hover:bg-brand-to hover:text-background block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+              className="bg-transparent text-underline px-4 py-2 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 block w-auto text-zinc-900 dark:text-zinc-100 bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
             >
               Save Plan
             </Button>
             <Button
               type="button"
               onClick={() => setIsEditable((e) => !e)}
-              className="bg-muted-foreground text-underline px-4 py-2 rounded hover:bg-brand-to hover:text-background block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+              className="bg-transparent text-underline px-4 py-2 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 block w-auto text-zinc-900 dark:text-zinc-100 bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
             >
               {isEditable ? "Done" : "Edit"}
             </Button>
             <Button
               type="button"
               onClick={startToday}
-              className="bg-muted-foreground text-underline px-4 py-2 rounded hover:bg-brand-to hover:text-background block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+              className="bg-transparent text-underline px-4 py-2 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 block w-auto text-zinc-900 dark:text-zinc-100 bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
             >
               Start Now
             </Button>
@@ -325,19 +325,19 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   updateStartDate(e.target.value)
                 }
-                className="text-foreground"
+                className="text-zinc-900 dark:text-zinc-100"
               />
             </div>
             <div className="flex flex-col items-center text-center">
-              <div className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-lg mb-2">
-                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-1 rounded-lg mb-2 backdrop-blur-sm">
+                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {planData.startDate && planData.endDate 
                     ? `${calculateWeeksBetweenDates(planData.startDate, planData.endDate)} weeks`
                     : `${planData.schedule.length} weeks`
                   }
                 </span>
               </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+              <div className="text-xs text-zinc-600 dark:text-zinc-400">
                 Training Plan
               </div>
             </div>
@@ -351,7 +351,7 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   updateEndDateCreation(e.target.value)
                 }
-                className="text-foreground"
+                className="text-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
@@ -365,14 +365,14 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
             <div className="mb-4 flex justify-center gap-2">
               <Button
                 onClick={() => setIsEditable((e) => !e)}
-                className="border-none bg-transparent text-foreground hover:bg-brand-from hover:text-background focus:ring-0"
+                className="border-none bg-transparent text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 focus:ring-0"
               >
                 {isEditable ? "Cancel" : "Edit"}
               </Button>
               <Button
                 type="button"
                 onClick={startToday}
-                className="border-none bg-transparent text-foreground hover:bg-brand-from hover:text-background focus:ring-0"
+                className="border-none bg-transparent text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 focus:ring-0"
               >
                 Start Now
               </Button>
@@ -382,7 +382,7 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
                     await onSave?.(planData);
                     setIsEditable(false);
                   }}
-                  className="border-none bg-transparent text-foreground hover:bg-brand-from hover:text-background"
+                  className="border-none bg-transparent text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                 >
                   Save
                 </Button>
@@ -397,15 +397,15 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
               </div>
             </div>
             <div className="flex flex-col items-center text-center">
-              <div className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-lg">
-                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-1 rounded-lg backdrop-blur-sm">
+                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {planData.startDate && planData.endDate 
                     ? `${calculateWeeksBetweenDates(planData.startDate, planData.endDate)} weeks`
                     : `${planData.schedule.length} weeks`
                   }
                 </span>
               </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+              <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
                 Training Plan
               </div>
             </div>
@@ -417,7 +417,7 @@ const RunningPlanDisplay: React.FC<RunningPlanDisplayProps> = ({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   updateEndDateSaved(e.target.value)
                 }
-                className="text-foreground w-auto"
+                className="text-zinc-900 dark:text-zinc-100 w-auto"
               />
             </div>
           </div>
@@ -469,29 +469,29 @@ const AccordionWeek: React.FC<AccordionWeekProps> = ({
 
   return (
     <AccordionItem value={`week-${weekPlan.weekNumber}`}>
-      <Card className={`bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm ${
+      <Card className={`bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm ${
         isWeekComplete ? "opacity-75" : ""
       }`}>
         <AccordionTrigger className="hover:no-underline">
-          <CardHeader className="flex-row items-center justify-between w-full py-2">
+          <CardHeader className="flex-row items-center justify-between w-full py-0">
             <div className="flex items-center gap-3">
               <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                 Week {weekPlan.weekNumber}
                 {weekPlan.phase && (
-                  <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                  <Badge variant="outline" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700">
                     {weekPlan.phase} phase
                   </Badge>
                 )}
               </CardTitle>
               {isWeekComplete && (
-                <Badge className="bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100">
+                <Badge className="bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 border border-green-300 dark:border-green-700">
                   Complete
                 </Badge>
               )}
             </div>
             <div className="text-right">
               <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                Total Mileage: {weekPlan.weeklyMileage} {weekPlan.unit}
+                Total Mileage: {Math.round(weekPlan.weeklyMileage * 10)/10} {weekPlan.unit}
               </div>
               {weekPlan.notes && (
                 <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -512,7 +512,7 @@ const AccordionWeek: React.FC<AccordionWeekProps> = ({
                 const past = run.date ? new Date(run.date) < new Date() : false;
                 const isCompleted = past || run.done;
                 return (
-                  <Card key={index} className={`bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 ${
+                  <Card key={index} className={`bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 shadow-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
                     isCompleted ? "opacity-75" : ""
                   }`}>
                     <CardContent className="p-3">
@@ -617,8 +617,8 @@ const AccordionWeek: React.FC<AccordionWeekProps> = ({
                               variant="outline" 
                               className={
                                 run.type === "marathon" 
-                                  ? "bg-brand-purple text-white border-brand-purple" 
-                                  : "bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                                  ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100" 
+                                  : "bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-600"
                               }
                             >
                               {run.type.charAt(0).toUpperCase() + run.type.slice(1)}
@@ -721,7 +721,7 @@ const BulkDaySetter: React.FC<BulkDaySetterProps> = ({ planData, onPlanChange })
       <Button
         type="button"
         onClick={apply}
-        className="bg-primary px-3 py-1 rounded block w-auto text-foreground bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
+        className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-3 py-1 rounded block w-auto text-zinc-900 dark:text-zinc-100 bg-transparent no-underline transition-colors hover:text-background hover:no-underline hover:bg-brand-from focus:ring-0"
       >
         Apply
       </Button>

@@ -150,6 +150,63 @@ export function adjustStartDateToMaintainWeeks(
 }
 
 /**
+ * Get the most recent Sunday (could be today if today is Sunday, or in the past)
+ */
+export function getMostRecentSunday(date?: string | Date): string {
+  const d = date ? parseDateUTC(date) : parseDateUTC(new Date());
+  const dayOfWeek = d.getUTCDay(); // 0 = Sunday
+  const daysBack = dayOfWeek; // Sunday=0, Monday=1, etc.
+  const sunday = new Date(d);
+  sunday.setUTCDate(d.getUTCDate() - daysBack);
+  return sunday.toISOString().slice(0, 10);
+}
+
+/**
+ * Get the next Sunday after the given date (never today, always future)
+ */
+export function getNextSunday(date?: string | Date): string {
+  const d = date ? parseDateUTC(date) : parseDateUTC(new Date());
+  const dayOfWeek = d.getUTCDay(); // 0 = Sunday
+  const daysToAdd = dayOfWeek === 0 ? 7 : (7 - dayOfWeek); // Always get next Sunday
+  const sunday = new Date(d);
+  sunday.setUTCDate(d.getUTCDate() + daysToAdd);
+  return sunday.toISOString().slice(0, 10);
+}
+
+/**
+ * Calculate smart start date for "Start Now" functionality
+ * Rules:
+ * - Sunday-Wednesday: Start on most recent Sunday (could be past)
+ * - Thursday-Saturday: Start today
+ */
+export function calculateSmartStartDate(today?: string | Date): string {
+  const d = today ? parseDateUTC(today) : parseDateUTC(new Date());
+  const dayOfWeek = d.getUTCDay(); // 0 = Sunday, 6 = Saturday
+  
+  if (dayOfWeek <= 3) { // Sunday, Monday, Tuesday, Wednesday
+    return getMostRecentSunday(d);
+  } else { // Thursday, Friday, Saturday
+    return d.toISOString().slice(0, 10);
+  }
+}
+
+/**
+ * Calculate the duration of the first week in days for smart start
+ * This represents how many days until the next Sunday (end of extended first week)
+ */
+export function calculateFirstWeekDuration(startDate: string | Date): number {
+  const start = parseDateUTC(startDate);
+  const nextSunday = parseDateUTC(getNextSunday(startDate));
+  
+  const diffMs = nextSunday.getTime() - start.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  
+  // For Smart Start Now, the first week extends to the next Sunday
+  // So if we start Thursday, we get Thu+Fri+Sat+Sun+Mon+Tue+Wed+Thu+Fri+Sat = 10 days to next Sun
+  return diffDays === 0 ? 7 : diffDays; // If start date is Sunday, treat as 7-day week
+}
+
+/**
  * Get the text and state for the "start now" button
  */
 export function getStartNowButtonText(
