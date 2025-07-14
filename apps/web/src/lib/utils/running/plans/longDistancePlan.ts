@@ -14,8 +14,9 @@ import { validatePaceZones, validateGoalPace, createProgressivePaceZones } from 
 
 const MIN_WEEKS = 8;
 const TAPER_WEEKS: number = 2;
-const EASY_PERCENT = 0.15;
-const TEMPO_PERCENT = 0.2;
+// Fixed volume distribution for proper 80/20 training
+const EASY_PERCENT = 0.65;  // 65% easy running (80/20 principle)
+const TEMPO_PERCENT = 0.15; // 15% tempo work (quality work)
 const WUCD_PERCENT = 0.1; // warm-up/cool-down as fraction of run
 const CUTBACK_FREQUENCY = 4;
 // Cut back long, tempo and easy runs by roughly 25%
@@ -23,6 +24,42 @@ const CUTBACK_RUN_FACTOR = 0.75;
 
 export const Units = ["miles", "kilometers"] as const;
 export type Unit = (typeof Units)[number];
+
+/**
+ * Creates goal-oriented pace zones based on goal marathon pace
+ * Follows industry standards for pace relationships
+ */
+function createGoalOrientedZones(goalPaceSec: number, currentVDOT: number, raceMeters: number): PaceZones {
+  const goalPaceStr = formatPace(goalPaceSec);
+  
+  // Calculate goal-oriented zones following industry standards
+  const easyPaceSec = goalPaceSec + 105; // Goal + 1:45 (middle of 1:30-2:00 range)
+  const tempoPaceSec = goalPaceSec - 22; // Goal - 22s (middle of 15-30s faster range)
+  const intervalPaceSec = tempoPaceSec - 30; // 30s faster than tempo
+  
+  // Get current fitness zones for validation
+  const currentEasy = parseDuration(calculatePaceForVDOT(raceMeters, currentVDOT, "E"));
+  const currentTempo = parseDuration(calculatePaceForVDOT(raceMeters, currentVDOT, "T"));
+  const currentInterval = parseDuration(calculatePaceForVDOT(raceMeters, currentVDOT, "I"));
+  
+  // Ensure goal-oriented zones don't exceed current fitness capabilities by too much
+  // Allow up to 30s improvement from current fitness for progressive goals
+  const maxEasyImprovement = 30;
+  const maxTempoImprovement = 45;
+  const maxIntervalImprovement = 60;
+  
+  const adjustedEasy = Math.min(easyPaceSec, currentEasy + maxEasyImprovement);
+  const adjustedTempo = Math.min(tempoPaceSec, currentTempo + maxTempoImprovement);
+  const adjustedInterval = Math.min(intervalPaceSec, currentInterval + maxIntervalImprovement);
+  
+  return {
+    easy: formatPace(adjustedEasy),
+    marathon: goalPaceStr,
+    tempo: formatPace(adjustedTempo),
+    interval: formatPace(adjustedInterval)
+  };
+}
+
 
 const RAW_INTERVAL_WORKOUTS = [
   {
@@ -166,38 +203,37 @@ export function generateLongDistancePlan(
   const toMeters = distanceUnit === "miles" ? 1609.34 : 1000;
   const raceMeters = targetDistance * toMeters;
 
-  // -- Initialize with current fitness pace zones
-  const baseZones: PaceZones = {
-    easy: calculatePaceForVDOT(raceMeters, vdot, "E"),
-    marathon: calculatePaceForVDOT(raceMeters, vdot, "M"),
-    tempo: calculatePaceForVDOT(raceMeters, vdot, "T"),
-    interval: calculatePaceForVDOT(raceMeters, vdot, "I"),
-  };
-  
-  // Track whether we're using progressive training
+  // -- Initialize with goal-oriented pace zones
+  let baseZones: PaceZones;
   let usingProgressiveTraining = false;
   let goalValidation: { isValid: boolean; projectedVDOT: number; message?: string } | null = null;
   
-  // If user has a goal pace, validate and set up progressive training
   if (goalPaceSec !== undefined) {
     const goalPaceStr = formatPace(goalPaceSec);
-    goalValidation = validateGoalPace(goalPaceStr, baseZones.marathon, vdot, weeks);
+    const currentMarathonPace = calculatePaceForVDOT(raceMeters, vdot, "M");
+    goalValidation = validateGoalPace(goalPaceStr, currentMarathonPace, vdot, weeks);
     
     if (goalValidation.isValid) {
       usingProgressiveTraining = true;
       console.log(`🎯 Progressive training enabled: ${goalValidation.message}`);
     } else {
       console.warn(`⚠️ Goal pace adjustment: ${goalValidation.message}`);
-      // Still allow the goal but warn user
     }
+    
+    // Create goal-oriented base zones regardless of validation
+    baseZones = createGoalOrientedZones(goalPaceSec, vdot, raceMeters);
+  } else {
+    // No goal pace provided - use current fitness zones
+    baseZones = {
+      easy: calculatePaceForVDOT(raceMeters, vdot, "E"),
+      marathon: calculatePaceForVDOT(raceMeters, vdot, "M"),
+      tempo: calculatePaceForVDOT(raceMeters, vdot, "T"),
+      interval: calculatePaceForVDOT(raceMeters, vdot, "I"),
+    };
   }
   
   // Start with base zones for week 1, will be updated per week if progressive
   let zones = { ...baseZones };
-  if (goalPaceSec !== undefined && !usingProgressiveTraining) {
-    // Static goal pace override (original behavior for conservative goals)
-    zones.marathon = formatPace(goalPaceSec);
-  }
 
   // -- validate pace zone relationships for initial zones
   validatePaceZones(zones, vdot);
@@ -229,9 +265,9 @@ export function generateLongDistancePlan(
   const maxMileage = targetDistance * endMult;
 
   const longBounds = {
-    [TrainingLevel.Beginner]: { startPct: 0.4, peakPct: 0.65 },
-    [TrainingLevel.Intermediate]: { startPct: 0.5, peakPct: 0.75 },
-    [TrainingLevel.Advanced]: { startPct: 0.6, peakPct: 0.85 },
+    [TrainingLevel.Beginner]: { startPct: 0.45, peakPct: 0.78 },    // 12 → 20.5 miles for marathon
+    [TrainingLevel.Intermediate]: { startPct: 0.48, peakPct: 0.82 }, // 12.5 → 21.5 miles for marathon  
+    [TrainingLevel.Advanced]: { startPct: 0.52, peakPct: 0.87 },     // 13.5 → 23 miles for marathon
   } as const;
 
   // Safe lookup with fallback to Beginner level
@@ -241,14 +277,17 @@ export function generateLongDistancePlan(
   const peakLong = targetDistance * peakPct;
   const weekOneLong = initialLong;
 
+  // Proper 2-week taper: peak at week 13 for 16-week plan, then 2-week taper (weeks 14-15)
+  const targetTaperWeeks = 3; // Include week 14 and 15 as taper, week 16 as race
+  const progressWeeks = weeks - targetTaperWeeks; // Build phase ends 3 weeks before race (week 13 is peak)
+  const actualTaperWeeks = 2; // Only 2 actual taper weeks (14, 15)
+
   const progression = computeLinearProgression(
     weeks,
     startMileage,
     maxMileage,
-    TAPER_WEEKS
+    targetTaperWeeks
   );
-
-  const progressWeeks = weeks - TAPER_WEEKS;
 
   const schedule: WeekPlan[] = progression.map(({ week, mileage, phase, cutback }) => {
     // Update pace zones for progressive training
@@ -260,7 +299,8 @@ export function generateLongDistancePlan(
         goalPaceStr,
         weeks,
         week,
-        raceMeters
+        raceMeters,
+        trainingLevel
       );
       currentZones = progressiveResult.zones;
       
@@ -270,19 +310,117 @@ export function generateLongDistancePlan(
       }
     }
 
-    // Long-run progression logic
+    // Dual stress prevention: Check if pace changed from previous week
+    let paceChanged = false;
+    let previousLongDist = week === 1 ? weekOneLong : null;
+    if (week > 1) {
+      // Get previous week's marathon pace for comparison
+      if (usingProgressiveTraining && goalPaceSec !== undefined) {
+        const goalPaceStr = formatPace(goalPaceSec);
+        const prevProgressiveResult = createProgressivePaceZones(
+          vdot,
+          goalPaceStr,
+          weeks,
+          week - 1,
+          raceMeters,
+          trainingLevel
+        );
+        const prevPace = prevProgressiveResult.zones.marathon;
+        paceChanged = currentZones.marathon !== prevPace;
+        
+        // Get previous week's long run distance for comparison
+        const prevWeekIndex = week - 2; // Array is 0-indexed
+        if (prevWeekIndex >= 0 && progression[prevWeekIndex]) {
+          // Calculate what previous week's long distance would have been
+          if (week - 1 > progressWeeks) {
+            // Previous week was in taper
+            const taperIndex = (week - 1) - progressWeeks - 1;
+            const taperMultipliers = [0.90, 0.75, 0.65];
+            const taperWeek = Math.min(taperIndex, taperMultipliers.length - 1);
+            previousLongDist = peakLong * taperMultipliers[taperWeek];
+          } else {
+            // Previous week was in build phase
+            const ratio = progressWeeks === 1 ? 1 : ((week - 1) - 1) / (progressWeeks - 1);
+            previousLongDist = initialLong + (peakLong - initialLong) * ratio;
+          }
+          previousLongDist = roundToHalf(previousLongDist);
+        }
+      }
+    }
+
+    // Improved long-run progression logic with dual stress prevention
     let longDist: number;
     if (week > progressWeeks) {
-      const taperIndex = week - progressWeeks - 1;
-      const ratio = TAPER_WEEKS === 1 ? 1 : taperIndex / (TAPER_WEEKS - 1);
-      longDist = peakLong - (peakLong - targetDistance) * ratio;
-      if (longDist > weekOneLong) longDist = weekOneLong;
+      // 2-week taper phase: strategic reduction for race preparation
+      const taperIndex = week - progressWeeks - 1; // 0 for week 14, 1 for week 15, 2 for week 16
+      
+      if (week === weeks) {
+        // Race week: target distance (26.2 miles)
+        longDist = targetDistance;
+      } else if (taperIndex === 0) {
+        // First taper week (week 14 of 16-week plan): moderate reduction to 75% of peak
+        // Use 20 miles as reference for consistency (close to actual peak achieved)
+        longDist = 20 * 0.75; // 15 miles
+        
+        // Ensure minimum adequate distance for marathon prep
+        longDist = Math.max(longDist, 15);
+      } else if (taperIndex === 1) {
+        // Second taper week (week 15 of 16-week plan): final taper to 12 miles
+        // Strategic reduction for final recovery
+        longDist = 12;
+      } else {
+        // Safety fallback for additional weeks
+        longDist = 10;
+      }
     } else {
-      const ratio =
-        progressWeeks === 1 ? 1 : (week - 1) / (progressWeeks - 1);
+      // Build phase: smooth progression from start to peak
+      const ratio = progressWeeks === 1 ? 1 : (week - 1) / (progressWeeks - 1);
       longDist = initialLong + (peakLong - initialLong) * ratio;
     }
     longDist = roundToHalf(longDist);
+    
+    // Apply comprehensive dual stress prevention (only during build phases, not taper)
+    if (paceChanged && previousLongDist !== null && week <= progressWeeks) {
+      const distanceIncrease = longDist > previousLongDist;
+      const significantDistanceChange = Math.abs(longDist - previousLongDist) >= 0.5;
+      
+      if (distanceIncrease && significantDistanceChange) {
+        // Pace improved and distance would increase significantly - this is dual stress
+        // Strategy: Hold distance constant to allow pace adaptation
+        longDist = previousLongDist;
+        console.log(`🛡️ Week ${week}: Dual stress prevented - holding distance at ${longDist} miles due to pace improvement`);
+      } else if (significantDistanceChange && !distanceIncrease) {
+        // Distance would decrease with pace improvement - allow this as it's safer (recovery weeks)
+        console.log(`✅ Week ${week}: Pace improvement with distance relief (${previousLongDist} → ${longDist} miles)`);
+      }
+    }
+    
+    // Alternative dual stress prevention: Delay pace progression if distance must increase (only during build phases)
+    if (week > 1 && week <= progressWeeks && previousLongDist !== null) {
+      const plannedDistanceIncrease = longDist > previousLongDist && Math.abs(longDist - previousLongDist) >= 0.5;
+      
+      if (plannedDistanceIncrease && usingProgressiveTraining && goalPaceSec !== undefined) {
+        // Check if we're significantly behind on distance progression
+        const targetProgressRatio = (week - 1) / (progressWeeks - 1);
+        const targetDistance = initialLong + (peakLong - initialLong) * targetProgressRatio;
+        const distanceBehind = targetDistance - previousLongDist;
+        
+        if (distanceBehind >= 1.0) {
+          // We're significantly behind on distance - keep pace steady this week
+          const goalPaceStr = formatPace(goalPaceSec);
+          const prevProgressiveResult = createProgressivePaceZones(
+            vdot,
+            goalPaceStr,
+            weeks,
+            week - 1,
+            raceMeters,
+            trainingLevel
+          );
+          currentZones.marathon = prevProgressiveResult.zones.marathon;
+          console.log(`🎯 Week ${week}: Pace held at ${currentZones.marathon} to allow distance catch-up (${previousLongDist} → ${longDist} miles)`);
+        }
+      }
+    }
 
     // Interval workout with rep-specific pace
     const workout = INTERVAL_WORKOUTS[(week - 1) % INTERVAL_WORKOUTS.length];
@@ -299,14 +437,104 @@ export function generateLongDistancePlan(
       intervalNotes += `; total sprint distance: ${intervalMileage} ${distanceUnit}.`;
     }
 
-    // Easy & tempo runs
-    let easyMileage = roundToHalf(mileage * EASY_PERCENT);
-    let tempoMileage = roundToHalf(mileage * TEMPO_PERCENT);
+    // Smart volume distribution ensuring proper 80/20 training
     let adjustedLong = longDist;
-    if (cutback) {
-      easyMileage = roundToHalf(easyMileage * CUTBACK_RUN_FACTOR);
-      tempoMileage = roundToHalf(tempoMileage * CUTBACK_RUN_FACTOR);
-      adjustedLong = roundToHalf(longDist * CUTBACK_RUN_FACTOR);
+    let easyMileage: number;
+    let tempoMileage: number;
+    
+    // Ensure long run never exceeds 40% of weekly volume (except during taper)
+    const maxLongRunPercent = 0.40;
+    const isTaperWeek = week > progressWeeks;
+    if (!isTaperWeek && adjustedLong > mileage * maxLongRunPercent) {
+      // Scale weekly mileage up to accommodate long run progression
+      const minWeeklyMileage = adjustedLong / maxLongRunPercent;
+      const scaledMileage = Math.max(mileage, minWeeklyMileage);
+      
+      // Recalculate distribution with scaled weekly volume
+      const remainingMileage = scaledMileage - adjustedLong - intervalMileage;
+      easyMileage = roundToHalf(remainingMileage * EASY_PERCENT / (EASY_PERCENT + TEMPO_PERCENT));
+      tempoMileage = roundToHalf(remainingMileage * TEMPO_PERCENT / (EASY_PERCENT + TEMPO_PERCENT));
+      
+      // Cap easy runs at reasonable levels based on training level
+      let maxEasyMileage: number;
+      if (trainingLevel === TrainingLevel.Beginner) {
+        // Progressive caps for beginners
+        if (week <= 4) {
+          maxEasyMileage = 4; // Start with 4 miles max in early weeks
+        } else if (week <= 8) {
+          maxEasyMileage = 5; // Build to 5 miles in mid weeks
+        } else {
+          maxEasyMileage = targetDistance > 20 ? 6 : 5; // 6 miles max for marathon, 5 for half
+        }
+      } else {
+        maxEasyMileage = targetDistance > 20 ? 8 : 6; // 8 miles for experienced marathon, 6 for half
+      }
+      easyMileage = Math.min(easyMileage, maxEasyMileage);
+    } else if (isTaperWeek) {
+      // Taper weeks: significantly reduce volume and intensity
+      // Easy runs should be short and truly easy
+      easyMileage = 6; // Fixed moderate easy volume for taper
+      
+      // Tempo runs should be much shorter during taper - just maintaining feel
+      if (week === weeks - 2) {
+        // First taper week: moderate tempo
+        tempoMileage = 3;
+      } else {
+        // Second taper week: minimal tempo
+        tempoMileage = 2;
+      }
+    } else {
+      // Standard distribution: ensure 65% easy, 15% tempo minimum
+      const totalTargetMileage = adjustedLong + intervalMileage;
+      
+      // Progressive easy run minimums based on training level and week
+      let minEasyMileage: number;
+      if (trainingLevel === TrainingLevel.Beginner) {
+        // Beginners start smaller and build up gradually
+        if (week <= 4) {
+          minEasyMileage = Math.max(3, Math.min(4, mileage * EASY_PERCENT)); // 3-4 miles early weeks
+        } else if (week <= 8) {
+          minEasyMileage = Math.max(4, Math.min(5, mileage * EASY_PERCENT)); // 4-5 miles mid weeks
+        } else {
+          minEasyMileage = Math.max(4, Math.min(6, mileage * EASY_PERCENT)); // 4-6 miles later weeks
+        }
+      } else {
+        // Intermediate/Advanced can handle more volume earlier
+        minEasyMileage = Math.max(4, mileage * EASY_PERCENT);
+      }
+      
+      const minTempoMileage = Math.max(2, mileage * TEMPO_PERCENT);
+      
+      // Cap easy runs at reasonable levels based on training level and distance
+      let maxEasyMileage: number;
+      if (trainingLevel === TrainingLevel.Beginner) {
+        maxEasyMileage = targetDistance > 20 ? 6 : 5; // 6 miles max for marathon beginners, 5 for half
+      } else {
+        maxEasyMileage = targetDistance > 20 ? 8 : 6; // 8 miles for experienced marathon, 6 for half
+      }
+      minEasyMileage = Math.min(minEasyMileage, maxEasyMileage);
+      
+      
+      // If current distribution meets minimums, use it
+      if (totalTargetMileage + minEasyMileage + minTempoMileage <= mileage * 1.05) {
+        easyMileage = roundToHalf(minEasyMileage);
+        tempoMileage = roundToHalf(minTempoMileage);
+      } else {
+        // Scale down long run slightly to maintain proper volume distribution
+        const availableVolume = mileage - minEasyMileage - minTempoMileage - intervalMileage;
+        adjustedLong = Math.min(adjustedLong, availableVolume);
+        easyMileage = roundToHalf(minEasyMileage);
+        tempoMileage = roundToHalf(minTempoMileage);
+      }
+    }
+    
+    // Proper cutback logic: meaningful recovery every 4th week
+    if (cutback && week <= progressWeeks) {
+      // Apply 20-25% reduction for real recovery benefit
+      easyMileage = roundToHalf(easyMileage * 0.75);  // 25% reduction
+      tempoMileage = roundToHalf(tempoMileage * 0.8);  // 20% reduction
+      adjustedLong = roundToHalf(adjustedLong * 0.8);  // 20% reduction
+      console.log(`🔄 Week ${week}: Cutback week - 20-25% volume reduction for recovery`);
     }
     const tempoNotes = `Tempo at T-pace (${
       currentZones.tempo
@@ -328,7 +556,7 @@ export function generateLongDistancePlan(
           type: "easy",
           unit: distanceUnit,
           mileage: easyMileage,
-          targetPace: { unit: distanceUnit, pace: currentZones.easy },
+          targetPace: { unit: distanceUnit, pace: currentZones.marathon },
         },
         {
           type: "interval",

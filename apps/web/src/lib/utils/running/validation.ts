@@ -142,7 +142,8 @@ export function createProgressivePaceZones(
   goalPaceStr: string,
   trainingWeeks: number,
   weekNumber: number,
-  raceMeters: number
+  raceMeters: number,
+  trainingLevel: number = 0 // 0=Beginner, 1=Intermediate, 2=Advanced
 ): { zones: { easy: string; marathon: string; tempo: string; interval: string }; currentTrainingVDOT: number } {
   const goalPaceSec = parseDuration(goalPaceStr);
   const projectedVDOT = calculateVDOTProgression(currentVDOT, trainingWeeks);
@@ -153,19 +154,124 @@ export function createProgressivePaceZones(
   // Interpolate VDOT between current and projected
   const currentTrainingVDOT = currentVDOT + (projectedVDOT - currentVDOT) * progressionFactor;
   
-  // Generate pace zones for current training VDOT
+  // Calculate dynamic progression cushion based on training level and goal ambition
+  const goalTotalSecondsForVDOT = goalPaceSec * (raceMeters / 1609.34);
+  const goalVDOTRequired = calculateVDOTJackDaniels(raceMeters, goalTotalSecondsForVDOT);
+  const vdotGap = goalVDOTRequired - currentVDOT;
+  
+  // Base cushion by training level (seconds slower than goal to start)
+  const baseCushionByLevel = {
+    'Beginner': 90,     // Very conservative start
+    'Intermediate': 60, // Moderate start  
+    'Advanced': 45      // More aggressive start
+  };
+  
+  // Adjust cushion based on VDOT improvement needed
+  const vdotAdjustment = Math.max(0, (vdotGap - 2) * 15); // +15s per VDOT point above 2
+  
+  // Map training level to cushion
+  const levelMapping = ['Beginner', 'Intermediate', 'Advanced'];
+  const levelString = levelMapping[trainingLevel] || 'Beginner';
+  const baseCushion = baseCushionByLevel[levelString as keyof typeof baseCushionByLevel] || 90;
+  const totalCushion = baseCushion + vdotAdjustment;
+  
+  // Progressive marathon pace: start with calculated cushion, progress to goal pace
+  const progressionPaceSec = goalPaceSec + (1 - progressionFactor) * totalCushion;
+  const progressionPaceStr = formatPace(progressionPaceSec);
+  
+  // Calculate goal VDOT to determine target training intensities
+  const goalTotalSeconds = goalPaceSec * (raceMeters / 1609.34);
+  const goalVDOT = calculateVDOTJackDaniels(raceMeters, goalTotalSeconds);
+  
+  // Create progressive training zones that blend current fitness with goal-oriented paces
+  // For aggressive goals, we need goal-oriented tempo and interval paces to be effective
+  const blendFactor = Math.min(progressionFactor * 1.5, 1); // More aggressive blending for tempo/interval
+  
+  // Blend current fitness VDOT with goal VDOT for training zones
+  const trainingVDOTForTempo = currentTrainingVDOT + (goalVDOT - currentTrainingVDOT) * blendFactor;
+  const trainingVDOTForInterval = currentTrainingVDOT + (goalVDOT - currentTrainingVDOT) * blendFactor;
+  
+  // Calculate goal-oriented training paces
+  const currentTempo = parseDuration(calculatePaceForVDOT(raceMeters, trainingVDOTForTempo, "T"));
+  const currentInterval = parseDuration(calculatePaceForVDOT(raceMeters, trainingVDOTForInterval, "I"));
+  
+  // Ensure proper pace hierarchy: Interval < Tempo < Marathon/Easy
+  const marathonPaceSec = progressionPaceSec;
+  
+  // Tempo must be faster than marathon pace
+  const tempoSec = Math.min(currentTempo, marathonPaceSec - 15); // At least 15s faster than marathon
+  
+  // Interval must be faster than tempo
+  const intervalSec = Math.min(currentInterval, tempoSec - 15); // At least 15s faster than tempo
+  
   const zones = {
-    easy: calculatePaceForVDOT(raceMeters, currentTrainingVDOT, "E"),
-    marathon: calculatePaceForVDOT(raceMeters, currentTrainingVDOT, "M"),
-    tempo: calculatePaceForVDOT(raceMeters, currentTrainingVDOT, "T"),
-    interval: calculatePaceForVDOT(raceMeters, currentTrainingVDOT, "I"),
+    easy: progressionPaceStr, // Easy runs = marathon pace for specificity
+    marathon: progressionPaceStr,
+    tempo: formatPace(tempoSec),
+    interval: formatPace(intervalSec),
   };
   
   // In final weeks, adjust marathon pace toward goal if realistic
-  if (weekNumber >= trainingWeeks * 0.8) { // Final 20% of training
+  if (weekNumber === trainingWeeks) {
+    // Race week: Use exact goal pace and calculate VDOT-based zones for consistency
+    zones.marathon = goalPaceStr;
+    
+    // Calculate VDOT needed for goal pace and use it for other zones
+    const goalTotalSeconds = goalPaceSec * (raceMeters / 1609.34); // Convert to total race time
+    const goalVDOT = calculateVDOTJackDaniels(raceMeters, goalTotalSeconds);
+    
+    // Recalculate other zones based on goal VDOT to maintain proper relationships
+    zones.easy = calculatePaceForVDOT(raceMeters, goalVDOT, "E");
+    zones.tempo = calculatePaceForVDOT(raceMeters, goalVDOT, "T");
+    zones.interval = calculatePaceForVDOT(raceMeters, goalVDOT, "I");
+  } else if (weekNumber >= Math.ceil(trainingWeeks * 0.4)) {
+    // Build phase progression: Start at 40% through plan with gradual 15-second improvements
     const marathonPaceSec = parseDuration(zones.marathon);
-    const blendedMarathonPaceSec = marathonPaceSec * 0.7 + goalPaceSec * 0.3;
-    zones.marathon = formatPace(blendedMarathonPaceSec);
+    const fitnessGap = marathonPaceSec - goalPaceSec;
+    
+    // Phase-based progression: Start earlier but with smaller, safer increments
+    const buildPhaseStart = Math.ceil(trainingWeeks * 0.4); // Week 7 for 16-week plan
+    const progressWeeks = weekNumber - buildPhaseStart + 1;
+    
+    // Calculate target improvement per week (max 15 seconds)
+    const totalWeeksToGoal = trainingWeeks - buildPhaseStart;
+    const improvementPerWeek = Math.min(15, Math.max(5, fitnessGap / totalWeeksToGoal));
+    
+    // Progressive improvement: 15-second increments for user-friendly progression
+    const totalImprovement = progressWeeks * improvementPerWeek;
+    let targetPaceSec = marathonPaceSec - totalImprovement;
+    
+    // Ensure we don't go faster than goal pace during training
+    targetPaceSec = Math.max(targetPaceSec, goalPaceSec + 10); // Stay 10s slower than goal minimum
+    
+    // For final weeks, allow closer to goal pace
+    if (weekNumber >= trainingWeeks - 2) {
+      targetPaceSec = Math.max(targetPaceSec, goalPaceSec + 5); // Within 5s of goal in final weeks
+    }
+    
+    zones.marathon = formatPace(targetPaceSec);
+    
+    // Ensure proper pace zone relationships are maintained after blending
+    const marathonSec = parseDuration(zones.marathon);
+    const tempoSec = parseDuration(zones.tempo);
+    const intervalSec = parseDuration(zones.interval);
+    const easySec = parseDuration(zones.easy);
+    
+    // Fix pace zone relationships if they're physiologically incorrect
+    let correctedTempo = tempoSec;
+    let correctedInterval = intervalSec;
+    
+    // Tempo should be faster than marathon pace
+    if (tempoSec >= marathonSec) {
+      correctedTempo = Math.max(marathonSec - 15, marathonSec * 0.95); // At least 15s or 5% faster
+      zones.tempo = formatPace(correctedTempo);
+    }
+    
+    // Interval should be faster than tempo pace  
+    if (intervalSec >= correctedTempo) {
+      correctedInterval = Math.max(correctedTempo - 15, correctedTempo * 0.95); // At least 15s or 5% faster
+      zones.interval = formatPace(correctedInterval);
+    }
   }
   
   return { zones, currentTrainingVDOT };
@@ -175,8 +281,9 @@ export function createProgressivePaceZones(
  * Helper function to format pace (moved from inline to reusable)
  */
 function formatPace(paceSec: number): string {
-  const m = Math.floor(paceSec / 60);
-  const s = Math.round(paceSec % 60);
+  const totalSeconds = Math.round(paceSec);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 

@@ -62,10 +62,10 @@ type PaceZone = "E" | "M" | "T" | "I" | "R";
 
 const ZONE_FACTORS: Record<PaceZone, number> = {
   E: 0.7, // easy
-  M: 0.88, // marathon
-  T: 0.95, // threshold
-  I: 1.02, // interval
-  R: 1.08, // repetition
+  M: 0.89, // marathon
+  T: 1.00, // threshold
+  I: 1.06, // interval
+  R: 1.1, // repetition
 };
 
 
